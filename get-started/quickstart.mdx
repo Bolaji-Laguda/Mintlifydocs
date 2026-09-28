@@ -1,0 +1,233 @@
+---
+title: 'Youverify Quickstart: Your First API Call in 5 Minutes'
+sidebarTitle: 'Quickstart'
+description: 'Create a Youverify account, obtain your API key, create your first entity, and run an identity verification — all in under five minutes.'
+---
+
+The fastest way to understand Youverify is to create an entity and read back its Entity 360 — the unified view of everything attached to a subject. This guide walks you through every step from account creation to your first successful API call, using the sandbox environment so nothing is billed.
+
+<Steps>
+  <Step title="Create your Youverify account">
+    Go to [cowork.youverify.co](https://cowork.youverify.co) and sign up for a free workspace. Once you confirm your email, you land on the dashboard — your central hub for managing entities, verifications, and workspace settings.
+
+    <Tip>
+      If your organisation already has a workspace, ask your admin to invite you rather than creating a new one. All API keys and entity data are scoped to a single workspace.
+    </Tip>
+  </Step>
+  <Step title="Choose your environment">
+    Youverify runs two fully independent environments. Start with **sandbox** — it uses synthetic test data and is never billed.
+
+    | Environment | Base URL | Data | Billing |
+    | --- | --- | --- | --- |
+    | **Sandbox** | `https://api.sandbox.youverify.co` | Test / synthetic | Free |
+    | **Production** | `https://api.youverify.co` | Authoritative sources | Billed per check |
+
+    Switch environments in the top-left environment selector of your workspace. Each environment has its own set of API keys — a sandbox key will be rejected by the production endpoint and vice versa.
+
+    <Warning>
+      Never point a sandbox key at the production base URL, or a production key at the sandbox URL. The API returns a `401 Unauthorized` error when the key and environment are mismatched.
+    </Warning>
+  </Step>
+  <Step title="Get your API key">
+    In your workspace, navigate to **Settings → API Keys**. Copy your **API Secret Key** for the sandbox environment. Store it in an environment variable immediately — you should never hard-code it in source files.
+
+    ```bash
+    export YV_SECRET_KEY="your_sandbox_secret_key_here"
+    ```
+
+    Your secret key authenticates every server-to-server request via a single `token` header. There is no OAuth handshake — possession of the key is authority, so it must stay on your backend and never be exposed to client-side code.
+
+    <Note>
+      You will also see a **Public Merchant Key** in settings. That key is safe to embed in web or mobile SDKs and hosted flows. It is scoped only to starting liveness and document-capture sessions — it cannot create entities or retrieve sensitive data.
+    </Note>
+  </Step>
+  <Step title="Create your first entity">
+    An **entity** is any subject you need to track, verify, or monitor — an individual or a business. Creating an entity is the entry point to the entire Youverify platform: the moment you create one, Youverify runs initial CDD screening (PEP, sanctions, adverse-media) and assigns a risk score.
+
+    Send a `POST` request to `/v2/api/entities` with the minimum required fields — `entityType`, `isSubjectConsent`, and basic identity information:
+
+    <CodeGroup>
+
+    ```bash cURL
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "email": "jane@example.com"
+      }'
+    ```
+
+    ```javascript Node.js
+    const response = await fetch(
+      "https://api.sandbox.youverify.co/v2/api/entities",
+      {
+        method: "POST",
+        headers: {
+          token: process.env.YV_SECRET_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entityType: "individual",
+          isSubjectConsent: true,
+          firstName: "Jane",
+          lastName: "Doe",
+          email: "jane@example.com",
+        }),
+      }
+    );
+    
+    const { data } = await response.json();
+    console.log("Entity ID:", data.id); // ent_...
+    ```
+
+    ```python Python
+    import os, requests
+    
+    response = requests.post(
+        "https://api.sandbox.youverify.co/v2/api/entities",
+        headers={
+            "token": os.environ["YV_SECRET_KEY"],
+            "Content-Type": "application/json",
+        },
+        json={
+            "entityType": "individual",
+            "isSubjectConsent": True,
+            "firstName": "Jane",
+            "lastName": "Doe",
+            "email": "jane@example.com",
+        },
+    )
+    
+    data = response.json()["data"]
+    print("Entity ID:", data["id"])  # ent_...
+    ```
+
+    </CodeGroup>
+
+    A successful response looks like this:
+
+    ```json
+    {
+      "success": true,
+      "status_code": 201,
+      "message": "Entity created successfully.",
+      "data": {
+        "id": "ent_685c73c8519d82bd21a42fae",
+        "entityType": "individual",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "email": "jane@example.com",
+        "status": "not_approved",
+        "profileStatus": "pending",
+        "riskScore": 12,
+        "riskLevel": "low",
+        "isSubjectConsent": true,
+        "createdAt": "2025-06-25T10:00:00.000Z",
+        "updatedAt": "2025-06-25T10:00:00.000Z"
+      },
+      "links": []
+    }
+    ```
+
+    Save the `id` value (the `ent_...` string) — you use it to reference this entity in every subsequent call.
+
+    <Note>
+      `status: "not_approved"` is the expected starting state. Creating an entity is a **tracking** action, not an approval decision. Approval runs separately as an automated AI-agent workflow after you attach verifications.
+    </Note>
+  </Step>
+  <Step title="Read the Entity 360">
+    The **Entity 360** is not a separate object — it is the entity viewed through everything attached to it: its profile, risk score, verifications, transactions, signals, activities, and cases. Retrieve it by calling `GET /v2/api/entities/{id}` with the entity ID you just saved.
+
+    <CodeGroup>
+
+    ```bash cURL
+    curl -X GET "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae" \
+      -H "token: $YV_SECRET_KEY"
+    ```
+
+    ```javascript Node.js
+    const entityId = "ent_685c73c8519d82bd21a42fae";
+    
+    const response = await fetch(
+      `https://api.sandbox.youverify.co/v2/api/entities/${entityId}`,
+      {
+        headers: { token: process.env.YV_SECRET_KEY },
+      }
+    );
+    
+    const { data } = await response.json();
+    console.log("Risk score:", data.riskScore);
+    console.log("Profile status:", data.profileStatus);
+    ```
+
+    ```python Python
+    import os, requests
+    
+    entity_id = "ent_685c73c8519d82bd21a42fae"
+    
+    response = requests.get(
+        f"https://api.sandbox.youverify.co/v2/api/entities/{entity_id}",
+        headers={"token": os.environ["YV_SECRET_KEY"]},
+    )
+    
+    data = response.json()["data"]
+    print("Risk score:", data["riskScore"])
+    print("Profile status:", data["profileStatus"])
+    ```
+
+    </CodeGroup>
+
+    The response returns the full 360 canvas for the entity:
+
+    ```json
+    {
+      "success": true,
+      "status_code": 200,
+      "message": "Entity retrieved successfully.",
+      "data": {
+        "id": "ent_685c73c8519d82bd21a42fae",
+        "entityType": "individual",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "email": "jane@example.com",
+        "status": "not_approved",
+        "profileStatus": "pending",
+        "riskScore": 12,
+        "riskLevel": "low",
+        "isSubjectConsent": true,
+        "verifications": [],
+        "transactions": [],
+        "signals": [],
+        "activities": [],
+        "cases": [],
+        "createdAt": "2025-06-25T10:00:00.000Z",
+        "updatedAt": "2025-06-25T10:00:00.000Z"
+      },
+      "links": []
+    }
+    ```
+  </Step>
+</Steps>
+
+## What's next?
+
+You have a live entity with an initial risk score. From here, you can enrich its profile by attaching verifications and transaction data — each check folds its results into the same 360 canvas rather than creating a separate, orphaned report.
+
+<CardGroup cols={2}>
+  <Card title="Run a KYC Verification" icon="user-check" href="/api-reference/kyc">
+    Verify an individual's identity against government documents, biometrics, or official ID databases.
+  </Card>
+  <Card title="Run a KYB Verification" icon="building" href="/api-reference/kyb">
+    Verify a business's incorporation details and retrieve its UBO ownership graph.
+  </Card>
+  <Card title="AML Screening" icon="shield-halved" href="/api-reference/aml">
+    Screen an entity against PEP lists, sanctions registers, and adverse media sources.
+  </Card>
+  <Card title="Core Concepts" icon="book-open" href="/concepts/entity-360">
+    Understand entities, the Entity 360, risk scores, and the lifecycle from creation to decision.
+  </Card>
+</CardGroup>

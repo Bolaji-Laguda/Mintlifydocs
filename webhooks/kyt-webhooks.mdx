@@ -1,0 +1,192 @@
+---
+title: 'KYT Webhook Events for Transaction Monitoring'
+sidebarTitle: 'KYT Webhooks'
+description: 'Subscribe to transaction monitoring webhook events to receive alerts when transactions are flagged or evaluations complete.'
+---
+
+Youverify's Know Your Transaction (KYT) service fires webhooks across the full transaction monitoring lifecycle — from the moment a client record is created, through evaluation results, to alert creation and triage. Subscribe to these events to build real-time fraud response workflows in your own systems.
+
+## KYT event types
+
+| Event | Trigger |
+|---|---|
+| `tm.client.created` | A new KYT client (individual or business) was created |
+| `tm.client.updated` | An existing KYT client record was updated |
+| `tm.evaluation.started` | A transaction evaluation run has begun |
+| `tm.evaluation.completed` | A transaction evaluation run has finished |
+| `tm.transaction.updated` | A transaction record was updated |
+| `tm.alert.created` | A transaction monitoring rule fired and created a new alert |
+| `tm.alert.triage.created` | A triage record was created for an existing alert |
+| `tm.alert.updated` | An alert's status was updated |
+
+<Note>
+  All KYT webhook payloads include a top-level `eventId` (UUID) that you can use as an idempotency key to safely ignore duplicate deliveries.
+</Note>
+
+## Alert events
+
+### `tm.alert.created`
+
+Youverify fires this event when the transaction monitoring engine evaluates a transaction and a rule threshold is breached, creating a new alert. This is the primary event to subscribe to for real-time fraud response.
+
+#### Example payload
+
+```json
+{
+  "businessId": "61d880f1e8e15aaf24558f1a",
+  "eventId": "26800455-009f-479c-a521-7ade761e7542",
+  "event": "tm.alert.created",
+  "apiVersion": "v1",
+  "data": {
+    "id": "659560cdb7cc04aa50134b67",
+    "tag": "Fraud",
+    "ruleId": "653bc228212e5d79592bab1a",
+    "ruleScore": 87,
+    "actorId": "653bbf58d90bc8280c533de6",
+    "ruleAction": "Reject",
+    "riskLevel": "CRITICAL",
+    "valueAtRisk": 710296,
+    "currencyCode": "NGN",
+    "weightedScore": 65.11,
+    "transactionIds": ["65955f85d22a9ec93a0c0dde"],
+    "status": "UN_ACTIONED",
+    "detectionDate": "2024-01-03T13:26:32.724Z",
+    "createdAt": "2024-01-03T13:27:41.639Z",
+    "businessId": "61d880f1e8e15aaf24558f1a"
+  },
+  "createdAt": 1709851492
+}
+```
+
+#### Alert payload fields
+
+<ResponseField name="data.id" type="string">
+  Unique ID of the alert record.
+</ResponseField>
+
+<ResponseField name="data.riskLevel" type="string">
+  Severity of the alert. See [alert severity values](#alert-severity-values) below.
+</ResponseField>
+
+<ResponseField name="data.ruleScore" type="number">
+  Score assigned by the triggered rule (0–100).
+</ResponseField>
+
+<ResponseField name="data.weightedScore" type="number">
+  Combined weighted risk score across all triggered rules.
+</ResponseField>
+
+<ResponseField name="data.ruleAction" type="string">
+  Recommended action from the rule: `Reject`, `Warning`, or `Review`.
+</ResponseField>
+
+<ResponseField name="data.tag" type="string">
+  Risk category label, for example `Fraud`, `AML`, `Structuring`.
+</ResponseField>
+
+<ResponseField name="data.transactionIds" type="array">
+  IDs of the transactions that triggered this alert.
+</ResponseField>
+
+<ResponseField name="data.valueAtRisk" type="number">
+  Cumulative transaction value (in minor currency units) that is considered at risk.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Current alert status. Starts as `UN_ACTIONED`. Updates are delivered via `tm.alert.updated`.
+</ResponseField>
+
+## Evaluation events
+
+### `tm.evaluation.completed`
+
+Youverify fires this event when a transaction evaluation run completes — either because all rules finished processing, or because a rule threshold breach was detected.
+
+#### Example payload
+
+```json
+{
+  "eventId": "24242cb7-7bb7-4a51-802a-ff5fde13e792",
+  "event": "tm.evaluation.completed",
+  "apiVersion": "v1",
+  "data": {
+    "id": "65e51c4097c2b9acd520705f",
+    "transactionIds": ["65e51c3f97c2b9acd520705d"],
+    "businessId": "61d880f1e8e15aaf24558f1a",
+    "triggeredTags": [
+      {
+        "tag": "Transaction Status",
+        "ruleScore": 50,
+        "ruleId": "65ca95ca117fae26f1275a71",
+        "ruleAction": "Warning"
+      }
+    ],
+    "valueAtRisk": 593000,
+    "currency": "NGN",
+    "detectionDate": "2024-03-04T01:56:32.072535+01:00",
+    "createdAt": "2024-03-04T00:56:32.726Z"
+  },
+  "createdAt": 1709513793
+}
+```
+
+#### Evaluation payload fields
+
+<ResponseField name="data.triggeredTags" type="array">
+  List of rules that fired during this evaluation, each with `tag`, `ruleScore`, `ruleId`, and `ruleAction`.
+</ResponseField>
+
+<ResponseField name="data.valueAtRisk" type="number">
+  Total transaction value considered at risk in this evaluation.
+</ResponseField>
+
+<ResponseField name="data.currency" type="string">
+  ISO 4217 currency code of the evaluated transactions.
+</ResponseField>
+
+## Alert severity values
+
+The `data.riskLevel` field uses the following severity levels:
+
+| Value | Description |
+|---|---|
+| `LOW` | Minor anomaly; informational only |
+| `MEDIUM` | Noteworthy pattern; consider reviewing |
+| `HIGH` | Significant risk signal; action recommended |
+| `CRITICAL` | Severe risk; immediate action required |
+
+## Client events
+
+Youverify fires `tm.client.created` and `tm.client.updated` events whenever a client record in the KYT service is created or modified. These events allow you to keep your own customer records in sync with the Youverify KYT service.
+
+```json
+{
+  "event": "tm.client.created",
+  "apiVersion": "v1",
+  "eventId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "data": {
+    "clientId": "client_abc123",
+    "businessId": "61d880f1e8e15aaf24558f1a",
+    "type": "individual",
+    "createdAt": "2024-01-15T10:30:00.000Z"
+  },
+  "createdAt": 1705315800
+}
+```
+
+## How to triage alerts
+
+When your system receives a `tm.alert.created` event, you have two options for triaging it:
+
+<CardGroup cols={2}>
+  <Card title="Triage via Dashboard" icon="browser">
+    Open the alert in the Cowork dashboard at [cowork.youverify.co](https://cowork.youverify.co), review the transaction details, and record your decision (approve, reject, escalate, or dismiss).
+  </Card>
+  <Card title="Triage via Cases API" icon="code">
+    Use the Cases API to programmatically open a case for the alert, assign it to an analyst, and record the triage decision. See the Case Management reference for endpoint details.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Use the `eventId` field as an idempotency key when writing alert data to your database. If Youverify retries a delivery you can safely skip duplicates by checking whether you have already processed that `eventId`.
+</Tip>

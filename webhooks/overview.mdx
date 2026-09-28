@@ -1,0 +1,121 @@
+---
+title: 'Receive Real-Time Events with Youverify Webhooks'
+sidebarTitle: 'Overview'
+description: 'Configure webhooks to receive instant notifications when verifications complete, risk signals fire, or transaction alerts are triggered.'
+---
+
+Youverify webhooks let your server receive automatic HTTP POST notifications whenever a significant event occurs in your account — a KYC check completing, a transaction alert firing, or an evaluation finishing. Instead of polling the API for status updates, you register a URL and Youverify delivers the result the moment it is ready.
+
+## How webhooks work
+
+When a triggering event occurs, Youverify sends an HTTP `POST` request to the URL you have configured. The request body is a JSON object describing the event. Your endpoint must respond with HTTP `200` within a reasonable timeout; any other response code causes Youverify to retry the delivery.
+
+<Note>
+  Webhooks are server-to-server. Your webhook endpoint must be publicly reachable over HTTPS and must not require client authentication.
+</Note>
+
+## Register your webhook endpoint
+
+<Steps>
+  <Step title="Open the Cowork dashboard">
+    Log in to [cowork.youverify.co](https://cowork.youverify.co) and navigate to **Settings → API KEY / Webhook**.
+  </Step>
+  <Step title="Set your callback URL">
+    Scroll to the **Webhook** section and enter your HTTPS callback URL. This is the endpoint Youverify will `POST` to for every event.
+  </Step>
+  <Step title="Save and test">
+    Save the configuration. You can send a test event from the dashboard to confirm your endpoint is reachable and returns `200`.
+  </Step>
+</Steps>
+
+## Webhook payload structure
+
+Every webhook Youverify sends shares the same top-level envelope:
+
+```json
+{
+  "event": "identity.verification.completed",
+  "apiVersion": "v2",
+  "data": { },
+  "createdAt": 1709851492
+}
+```
+
+<ResponseField name="event" type="string">
+  The dot-separated event name, for example `identity.verification.completed` or `tm.alert.created`.
+</ResponseField>
+
+<ResponseField name="apiVersion" type="string">
+  The API version that produced this event. Currently `v1` (KYT) or `v2` (KYC).
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  The full event payload. Shape varies by event type — see the individual event pages for details.
+</ResponseField>
+
+<ResponseField name="createdAt" type="number | string">
+  Timestamp of the event. KYT events use a Unix epoch integer; KYC events use an ISO 8601 string.
+</ResponseField>
+
+## Acknowledge receipt
+
+Return HTTP `200` as soon as you receive the webhook — before doing any processing. If Youverify does not receive a `200` response it will retry the delivery. Keep your handler fast: write the payload to a queue and process it asynchronously.
+
+<Warning>
+  Returning a non-`200` status or timing out will trigger retries. Design your endpoint to be idempotent so duplicate deliveries do not cause side effects.
+</Warning>
+
+## Validate webhook signatures
+
+Youverify signs every webhook payload with your secret key so you can confirm the request genuinely came from Youverify. The signature is sent in the `x-yv-signature` request header as an HMAC-SHA256 hex digest of the raw request body.
+
+Verify the signature before processing any event:
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhookSignature(req, webhookSecret) {
+  const signature = req.headers['x-yv-signature'];
+  const computed = crypto
+    .createHmac('sha256', webhookSecret)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
+
+  if (signature !== computed) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Signature is valid — process the event
+}
+```
+
+<Tip>
+  Your webhook secret is the same API secret key you use for server-to-server API calls. Never expose it in client-side code.
+</Tip>
+
+## Event categories
+
+Youverify webhooks are grouped into four categories. Each category has its own dedicated page:
+
+<CardGroup cols={2}>
+  <Card title="KYC Events" icon="id-card" href="/webhooks/kyc-webhooks">
+    Identity verification completed and address verification completed events.
+  </Card>
+  <Card title="KYT / Transaction Events" icon="arrow-right-arrow-left" href="/webhooks/kyt-webhooks">
+    Transaction evaluation started, evaluation completed, and transaction updated events.
+  </Card>
+  <Card title="Alert Events" icon="bell" href="/webhooks/kyt-webhooks">
+    Alert created, alert triage created, and alert updated events fired by the transaction monitoring engine.
+  </Card>
+  <Card title="Client / Evaluation Events" icon="user-check" href="/webhooks/kyt-webhooks">
+    Client created, client updated, and evaluation lifecycle events from the KYT service.
+  </Card>
+</CardGroup>
+
+## Retry behaviour
+
+If your endpoint returns a non-`200` response or does not respond within the timeout window, Youverify will retry the delivery. Design your handler to be **idempotent** — use the `eventId` field (present on KYT events) or the `data.id` / `data.verificationId` field to detect and safely ignore duplicate deliveries.
+
+<Note>
+  The `PENDING` status on identity verifications indicates that an upstream identity provider is temporarily unavailable. When the check completes, Youverify delivers the result via webhook. Always listen for the webhook rather than assuming a `PENDING` response is final.
+</Note>

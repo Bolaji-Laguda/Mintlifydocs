@@ -1,0 +1,314 @@
+---
+title: 'Build Tiered KYC Flows for Digital Banking'
+sidebarTitle: 'Tiered KYC'
+description: 'Implement progressive identity verification tiers that unlock higher transaction limits as customers provide more identity proof, all on a single entity record.'
+---
+
+Digital banks and fintechs are required by regulators to apply proportionate due diligence: lower limits for lightly-verified customers, higher limits as verification deepens. Youverify's entity model makes this natural — you create the entity once, run each verification tier against the same `ent_…` ID, and the risk score tightens as the profile fills out. No duplicate records, no reconciliation work.
+
+This guide shows you how to implement a four-tier KYC flow — from email or phone only through to biometric liveness and address verification — and how to use webhooks and risk score thresholds to automate tier upgrades.
+
+## What tiered KYC looks like
+
+<CardGroup cols={4}>
+  <Card title="Tier 0" icon="envelope">
+    **Email or phone only**
+
+    Lowest transaction limits. Entity created with minimal data. AML screen runs automatically at creation.
+  </Card>
+  <Card title="Tier 1" icon="id-card">
+    **Government ID match**
+
+    BVN, NIN, National ID, or equivalent. Identity verified against authoritative registry. Medium limits unlocked.
+  </Card>
+  <Card title="Tier 2" icon="camera">
+    **Biometric liveness + document capture**
+
+    Customer passes a liveness check and captures their ID document. Higher limits unlocked.
+  </Card>
+  <Card title="Tier 3" icon="house">
+    **Address verification**
+
+    Physical or digital address confirmed. Full limits unlocked.
+  </Card>
+</CardGroup>
+
+---
+
+## Prerequisites
+
+- A Youverify account at [cowork.youverify.co](https://cowork.youverify.co)
+- Your API secret key (server-side calls) and public merchant key (SDK/client-side calls)
+- Webhooks configured to receive verification completion events
+- Risk score thresholds configured in the dashboard under **Settings → Risk Scoring**
+
+---
+
+## Steps
+
+<Steps>
+
+### Tier 0 — Create the entity (minimal data)
+
+Onboard the customer as soon as they sign up, even with only an email or phone number. The platform creates the entity and runs an automatic AML screen immediately.
+
+<CodeGroup>
+
+```bash cURL — email only
+curl -X POST "https://api.youverify.co/v2/api/entities" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityType": "individual",
+    "isSubjectConsent": true,
+    "email": "jane@example.com"
+  }'
+```
+
+```bash cURL — name + phone
+curl -X POST "https://api.youverify.co/v2/api/entities" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityType": "individual",
+    "isSubjectConsent": true,
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "phone": "+2348012345678",
+    "nationality": "NG"
+  }'
+```
+
+</CodeGroup>
+
+```json Response
+{
+  "success": true,
+  "status_code": 201,
+  "message": "Entity created successfully.",
+  "data": {
+    "id": "ent_684f5cc5a47a3926763b83a7",
+    "businessId": "61d880f1e8e15aaf24558f1a",
+    "createdBy": {
+      "firstName": "Timothy",
+      "lastName": "Akinyelu",
+      "middleName": "",
+      "id": "61f162ec1fd251c3a63f31c2"
+    }
+  },
+  "links": []
+}
+```
+
+Store the `ent_…` ID. This is the single identifier for every subsequent step in this customer's lifecycle.
+
+<Tip>
+  Apply your **Tier 0** transaction limits as soon as you receive the `201` response. You don't need to wait for the AML screen to complete — the entity is being monitored from the moment it's created.
+</Tip>
+
+### Tier 1 — Verify with a government ID (eIDV)
+
+When the customer wants to increase their limit, prompt them for a government ID. Run the KYC verification on the same entity ID using `POST /v2/api/entities/{id}/verify/kyc`. Cross-validate the name and date of birth to catch mismatches early.
+
+<Tabs>
+  <Tab title="Nigeria — BVN">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "22222222222",
+          "countryCode": "NG",
+          "idType": "bvn"
+        },
+        "validations": {
+          "data": {
+            "firstName": "Jane",
+            "lastName": "Doe",
+            "dateOfBirth": "1990-06-15"
+          }
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="Nigeria — NIN">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "90899740000",
+          "countryCode": "NG",
+          "idType": "nin"
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="Kenya — National ID">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "23772148",
+          "countryCode": "KE",
+          "idType": "keNationalId"
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="South Africa — SAID">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "8012185201081",
+          "countryCode": "ZA",
+          "idType": "zaSAID"
+        }
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+A `"status": "found"` result with a matching name and date of birth confirms Tier 1. Upgrade the customer's limits in your system when you receive the `entity.verification_completed` webhook.
+
+### Tier 2 — Biometric liveness + document capture (SDK)
+
+For Tier 2, launch the Youverify Anti-Deepfake Liveness SDK or Document Capture SDK from your mobile or web app. These use your **public merchant key** (not the secret key) and run client-side.
+
+**Server-side: generate a liveness session token**
+
+```bash cURL
+curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityId": "ent_684f5cc5a47a3926763b83a7"
+  }'
+```
+
+Pass the returned `sessionToken` to your client-side SDK. The SDK handles camera access, liveness checks, and document capture. Results are posted back to the entity record automatically when the session completes.
+
+<Note>
+  The public merchant key is safe to expose in client-side code. The secret key must **never** leave your backend — it has full API authority.
+</Note>
+
+**Listen for the completion webhook:**
+
+```json Webhook — liveness.completed
+{
+  "event": "liveness.completed",
+  "data": {
+    "entityId": "ent_684f5cc5a47a3926763b83a7",
+    "sessionId": "sess_abc123",
+    "livenessStatus": "passed",
+    "faceMatchScore": 0.97
+  }
+}
+```
+
+When `livenessStatus` is `"passed"` and `faceMatchScore` meets your threshold, upgrade the customer to Tier 2.
+
+### Tier 3 — Address verification
+
+For full limits, verify the customer's residential address. Youverify supports both physical (field agent) and digital address verification.
+
+**Digital address verification:**
+
+```bash cURL
+curl -X POST "https://api.youverify.co/v2/api/address/verify" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityId": "ent_684f5cc5a47a3926763b83a7",
+    "addressLine1": "12 Marina Street",
+    "city": "Lagos",
+    "state": "Lagos",
+    "country": "NG",
+    "verificationType": "digital"
+  }'
+```
+
+Address verification results attach to the entity record. Listen for the `address.verification_completed` webhook and upgrade to Tier 3 when the result is confirmed.
+
+### Use webhooks to automate tier upgrades
+
+Rather than polling the API, subscribe to verification completion events and update your tier assignments reactively. Configure your webhook endpoint in the dashboard under **Settings → Webhooks**.
+
+```json Webhook — entity.verification_completed
+{
+  "event": "entity.verification_completed",
+  "data": {
+    "entityId": "ent_684f5cc5a47a3926763b83a7",
+    "verificationType": "kyc",
+    "status": "found",
+    "idType": "bvn",
+    "riskScore": 18,
+    "riskLevel": "low"
+  }
+}
+```
+
+Your webhook handler looks up the entity's current tier, checks the verification result, and upgrades the tier in your system:
+
+```javascript Node.js webhook handler
+app.post('/webhooks/youverify', async (req, res) => {
+  const { event, data } = req.body;
+
+  if (event === 'entity.verification_completed' && data.status === 'found') {
+    if (data.verificationType === 'kyc') {
+      await upgradeTier(data.entityId, 1);
+    }
+  }
+
+  if (event === 'liveness.completed' && data.livenessStatus === 'passed') {
+    await upgradeTier(data.entityId, 2);
+  }
+
+  if (event === 'address.verification_completed' && data.status === 'confirmed') {
+    await upgradeTier(data.entityId, 3);
+  }
+
+  res.sendStatus(200);
+});
+```
+
+</Steps>
+
+---
+
+## The tier progression at a glance
+
+| Tier | Verification | Data collected | Endpoint |
+|------|-------------|----------------|----------|
+| 0 | None (AML auto-runs) | Email or phone | `POST /v2/api/entities` |
+| 1 | Government ID match | BVN / NIN / National ID | `POST /v2/api/entities/{id}/verify/kyc` |
+| 2 | Biometric liveness | Selfie + document capture | SDK → `POST /v2/api/sdk/liveness-token` |
+| 3 | Address verification | Residential address | `POST /v2/api/address/verify` |
+
+<Tip>
+  Configure risk score thresholds in the dashboard under **Settings → Risk Scoring** to automate tier assignments. When an entity's score crosses a threshold — downward (safer) or upward (riskier) — the platform can trigger an AI-agent workflow to approve, restrict, or escalate without manual intervention.
+</Tip>
+
+---
+
+## What's next
+
+- Review the full [KYC API reference](/api-reference/entities/verify-entity-kyc)
+- Integrate the [Anti-Deepfake Liveness SDK](/sdks/liveness-sdk) for Tier 2
+- Set up [webhooks](/webhooks/overview) for real-time event handling
+- Onboard business customers with [KYB and UBO Verification](/guides/corporate-kyb-ubo)

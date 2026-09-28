@@ -1,0 +1,120 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Youverify",
+  "theme": "luma",
+  "colors": {
+    "primary": "#ef7025",
+    "light": "#eec9bc",
+    "dark": "#4fa1ab"
+  },
+  "favicon": {
+    "light": "/images/428750ea-0194-4bd6-95b4-601108a9337d-1.svg",
+    "dark": "/images/428750ea-0194-4bd6-95b4-601108a9337d-1.svg"
+  },
+  "logo": {
+    "light": "/images/Youverify-logo-teal-tag.svg",
+    "dark": "/images/Youverify-logo-teal-tag.svg"
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://cowork.youverify.co"
+    }
+  },
+  "footer": {
+    "socials": {
+      "website": "https://youverify.co",
+      "linkedin": "https://linkedin.com/company/youverify"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Product Guide",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "get-started/quickstart",
+              "get-started/authentication",
+              "get-started/response-codes",
+              "get-started/test-data"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/entity-360",
+              "concepts/risk-scoring",
+              "concepts/monitoring-model",
+              "concepts/plans-and-billing"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/onboard-by-email",
+              "guides/onboard-by-phone",
+              "guides/onboard-by-government-id",
+              "guides/tiered-kyc-digital-banking",
+              "guides/corporate-kyb-ubo"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "webhooks/overview",
+              "webhooks/kyc-webhooks",
+              "webhooks/kyt-webhooks"
+            ]
+          },
+          {
+            "group": "SDKs",
+            "pages": [
+              "sdks/overview",
+              "sdks/web-sdk",
+              "sdks/android-sdk",
+              "sdks/ios-sdk",
+              "sdks/liveness-sdk"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/overview",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Cowork API",
+            "openapi": {
+              "source": "api-reference/specs/cowork.json",
+              "directory": "api-reference/cowork"
+            }
+          },
+          {
+            "group": "Quick Check API",
+            "openapi": {
+              "source": "api-reference/specs/quickcheck.json",
+              "directory": "api-reference/quickcheck"
+            }
+          },
+          {
+            "group": "SDK API",
+            "openapi": {
+              "source": "api-reference/specs/sdk.json",
+              "directory": "api-reference/sdk"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

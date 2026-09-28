@@ -1,0 +1,147 @@
+---
+title: "Continuous Monitoring Model for Entities and Transactions"
+sidebarTitle: "Monitoring Model"
+description: "Learn how Youverify continuously monitors entities for new risk signals and how alerts and cases are generated from monitoring activity."
+---
+
+A one-time KYC check tells you who a customer was when they onboarded. It tells you nothing about who they are six months later, whether their business has been sanctioned, or whether their transaction behaviour has quietly shifted into a structuring pattern. Youverify's monitoring model is built around the premise that compliance is ongoing — every entity you add stays under observation, and every new signal automatically updates their record and risk score.
+
+## Two types of monitoring
+
+Youverify runs monitoring at two levels simultaneously:
+
+<CardGroup cols={2}>
+  <Card title="Entity-Level Monitoring" icon="user-shield">
+    Ongoing KYC and AML re-screening. Youverify continuously checks monitored entities against PEP lists, global sanctions databases, adverse-media sources, and your custom watchlists. A new listing or adverse hit raises a signal immediately.
+  </Card>
+  <Card title="Transaction-Level Monitoring (KYT)" icon="arrow-right-arrow-left">
+    Know-Your-Transaction screening applied to financial activity. Each transaction posted to an entity is evaluated for behavioural anomalies, structuring, velocity patterns, unusual counterparties, and fraud-detection model matches.
+  </Card>
+</CardGroup>
+
+## Signals: the monitoring umbrella
+
+**Signals** is the umbrella concept that groups everything you monitor about an entity. A signal is a detected event, pattern, or trigger that warrants attention. Five linked signal types all key back to the same entity identifier:
+
+<AccordionGroup>
+  <Accordion title="Activities">
+    The immutable audit trail of every action and verification performed on the entity. Activities cannot be edited or deleted — they form the compliance record you show to regulators.
+  </Accordion>
+  <Accordion title="Behavioural Insights">
+    Patterns in *how* an entity behaves over time: transaction rhythm, channels used, counterparties, device and access patterns. Behavioural insights move monitoring from single-event flags to a full pattern-of-life risk picture.
+  </Accordion>
+  <Accordion title="Transactions">
+    Financial activity posted to the entity and its KYT evaluations. Youverify applies your configured detection models (Fraud Traps) and global screening to every transaction.
+  </Accordion>
+  <Accordion title="Alerts">
+    Monitoring outputs generated automatically when signal thresholds are crossed. Alerts need triage — your team reviews, investigates, and resolves them.
+  </Accordion>
+  <Accordion title="Cases">
+    Investigations escalated from alerts or raised manually. Cases support structured evidence collection and receive an AI-generated summary from Vyra to accelerate review.
+  </Accordion>
+</AccordionGroup>
+
+## Alert lifecycle
+
+When Youverify detects a signal that crosses a configured threshold, it creates an alert and attaches it to the relevant entity. Alerts follow a clear lifecycle:
+
+<Steps>
+  <Step title="Created">
+    The alert is generated automatically from a signal — for example, a sanctions match, a transaction velocity breach, or a Fraud Trap match. The entity's risk score is updated immediately.
+  </Step>
+  <Step title="Triaged">
+    Your compliance team (or an AI-agent workflow) reviews the alert, assesses the evidence, and determines whether the signal is a true positive or a false positive.
+  </Step>
+  <Step title="Resolved">
+    The alert is closed with a decision recorded: cleared (false positive), actioned (e.g. transaction blocked, entity restricted), or escalated to a case for deeper investigation.
+  </Step>
+</Steps>
+
+## Cases: structured investigations
+
+A case is an investigation opened on an entity, either escalated automatically from an alert or raised manually by a compliance officer. Cases are the **human-in-the-loop** layer of the monitoring model.
+
+Each case provides:
+
+- A full timeline of signals, alerts, and activities that led to the case being opened
+- An **AI-generated summary** produced by Vyra to give the assigned reviewer immediate context
+- Structured evidence collection so reviewers can attach documents, notes, and decisions
+- A clear audit trail of every action taken during the investigation
+
+<Note>
+  Cases are attached to the entity, not to an isolated incident. The reviewer sees the complete Entity 360 — all verifications, transactions, and prior alerts — without switching systems.
+</Note>
+
+## Vyra: Youverify's AI compliance copilot
+
+**Vyra** is the AI layer built into Youverify that automates decision workflows across onboarding, screening, and monitoring. Rather than wiring check-then-decide logic by hand, you deploy Vyra-powered AI agents that orchestrate the same API capabilities and automate decisions end to end across four domains:
+
+<CardGroup cols={2}>
+  <Card title="Customer Onboarding" icon="user-plus">
+    Verify, score, and approve / reject / restrict / escalate new entities automatically based on your configured rules. Edge cases escalate to a human or a case.
+  </Card>
+  <Card title="Transaction Screening" icon="shield">
+    Screen parties and transactions before they complete, blocking high-risk activity in real time.
+  </Card>
+  <Card title="Transaction Monitoring" icon="chart-bar">
+    Watch behaviour over time and raise signals and alerts automatically when patterns cross your thresholds.
+  </Card>
+  <Card title="Fraud Detection" icon="triangle-exclamation">
+    Apply custom Fraud Trap models — trained on your own data — to catch fraud patterns in real time and across historical activity.
+  </Card>
+</CardGroup>
+
+### Fraud Traps
+
+Fraud Traps are **custom AI detection models trained on your own data**, not generic or static rules. Each Fraud Trap is private to your tenant and reflects your specific fraud patterns. When a fraud event occurs, you model it as a Fraud Trap so the platform can detect the same pattern in future activity. You can fine-tune a Fraud Trap at any time to improve its performance as new fraud patterns emerge.
+
+<Tip>
+  Because Fraud Traps are trained on your data, they outperform static rule engines for your specific customer base. Start with the built-in detection models and layer in custom Fraud Traps as you accumulate transaction history.
+</Tip>
+
+## Receiving signals via webhooks
+
+You do not need to poll the API for monitoring events. Youverify delivers signals to your systems in real time via webhooks. Configure your webhook endpoints in the Cowork dashboard to receive:
+
+<CodeGroup>
+```json Entity Signal Payload
+{
+  "event": "entity.signal.created",
+  "data": {
+    "entityId": "ent_01j9xkp4f8e3q2wr5td6mnbc7a",
+    "signalType": "aml_hit",
+    "severity": "high",
+    "description": "Sanctions list match detected for entity.",
+    "riskScoreUpdated": 78,
+    "createdAt": "2025-01-15T14:22:05.000Z"
+  }
+}
+```
+
+```json Transaction Alert Payload
+{
+  "event": "transaction.alert.created",
+  "data": {
+    "entityId": "ent_01j9xkp4f8e3q2wr5td6mnbc7a",
+    "transactionId": "txn_09kz2mp7r1t8q4vs6ue3nwcd5b",
+    "alertType": "velocity_breach",
+    "severity": "medium",
+    "description": "Transaction count exceeded threshold within 24-hour window.",
+    "createdAt": "2025-01-15T14:45:18.000Z"
+  }
+}
+```
+</CodeGroup>
+
+<Warning>
+  Validate the webhook signature on every inbound request. Youverify includes a signature header you should verify before processing any payload to prevent spoofed events from affecting your compliance workflows.
+</Warning>
+
+## Data residency and bring-your-own-database
+
+For transaction screening and monitoring, where data physically resides can itself be a regulatory requirement. Youverify supports two approaches:
+
+- **Data residency by region**: select the country or region where your data is stored and processed, ensuring locally-generated data never leaves the required jurisdiction. Data can be moved between supported regions without losing history or the Entity 360.
+- **Bring your own database (BYODB)**: connect your own datastore so screening and monitoring workflows run against your data in place. Results — signals, alerts, scores, and cases — still attach to the entity 360 in Youverify.
+
+This gives you the flexibility to meet data-localisation mandates across multiple markets while maintaining a unified compliance view.

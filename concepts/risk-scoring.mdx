@@ -1,0 +1,114 @@
+---
+title: "Risk Scoring and Compliance Health in Youverify FRAML"
+sidebarTitle: "Risk Scoring"
+description: "Understand how Youverify computes entity risk scores, what factors affect them, and how to configure thresholds for your risk appetite."
+---
+
+Every entity in Youverify carries a **risk score** — a single number between 0 and 100 that summarises everything Youverify knows about that subject at this moment. Rather than forcing your team to manually correlate KYC results, AML hits, and transaction patterns, the risk score gives you an always-current signal you can act on immediately, route through automated workflows, or surface in your own product UI.
+
+## How the risk score is computed
+
+Youverify computes an initial risk score the moment you create an entity, running Customer Due Diligence (CDD) — PEP screening, sanctions screening, and adverse-media checks — against whatever data is present. If you create an entity with only an email address, the score starts low (reflecting the absence of risk signals, not their absence of relevance) and tightens automatically as you enrich the record.
+
+The score is **weighted and transparent**: every score can be traced back to the specific factors that produced it, supporting explainability requirements and audit trails. No black-box scoring — your compliance team can always see why an entity scored the way it did.
+
+<Note>
+  A low initial score on a thinly-created entity does not mean the entity is safe — it means Youverify has limited data to work with. Enrich the entity with verifications and transaction history to give the model meaningful signals.
+</Note>
+
+## Score range and risk tiers
+
+The risk score runs from **0** (lowest risk) to **100** (highest risk), mapped to four tiers you can configure to match your organisation's risk appetite.
+
+| Tier | Default Score Range | Suggested Action |
+|------|--------------------|--------------------|
+| **Low** | 0 – 24 | Standard onboarding; continue monitoring |
+| **Medium** | 25 – 49 | Enhanced due diligence; request additional documents |
+| **High** | 50 – 74 | Manual review required before proceeding |
+| **Critical** | 75 – 100 | Block or escalate immediately |
+
+<Tip>
+  The default tier boundaries shown above are a starting point. Configure the thresholds in the Youverify Cowork dashboard to reflect your actual risk appetite and regulatory obligations.
+</Tip>
+
+## What factors affect the score
+
+The risk score is updated continuously. Each of the following signals feeds into the weighted model:
+
+<AccordionGroup>
+  <Accordion title="Identity verification status">
+    Whether the entity's identity has been verified against a government-issued document, and whether liveness and document-capture checks passed. A verified identity reduces uncertainty and typically lowers risk.
+  </Accordion>
+  <Accordion title="AML screening results">
+    Matches against PEP lists, global sanctions databases, and adverse-media sources. A confirmed sanctions hit or PEP designation significantly increases the score. Custom watchlist matches (targets you have added yourself) are included in this signal.
+  </Accordion>
+  <Accordion title="Watchlist matches">
+    Proximity to known bad actors on your custom AML watchlist or global lists. Even a partial or fuzzy match can elevate the score pending review.
+  </Accordion>
+  <Accordion title="Transaction patterns">
+    Behavioural signals derived from financial activity — transaction velocity, structuring patterns, unusual counterparties, channel anomalies, and deviations from the entity's established behaviour baseline.
+  </Accordion>
+  <Accordion title="Adverse media">
+    Negative news coverage associated with the entity's name, linked persons, or affiliated businesses. Youverify screens global adverse-media sources continuously and folds new matches into the score.
+  </Accordion>
+</AccordionGroup>
+
+## Continuous score updates
+
+The risk score is not a snapshot — it is a **live signal**. Every time a new piece of information is attached to an entity, Youverify recalculates the score:
+
+<Steps>
+  <Step title="Entity created">
+    Initial CDD runs automatically. Score is computed from data present at creation (PEP, sanctions, adverse media).
+  </Step>
+  <Step title="Verifications added">
+    As you run KYC or KYB checks referencing the entity ID, identity-verification status feeds into the model and the score updates.
+  </Step>
+  <Step title="Transactions posted">
+    Each transaction attached to the entity adds behavioural signals. Patterns that cross detection thresholds raise alerts and adjust the score.
+  </Step>
+  <Step title="AML re-screening">
+    Youverify re-screens monitored entities continuously. A new PEP listing or sanctions addition is reflected in the score in near real time.
+  </Step>
+</Steps>
+
+## Compliance health: your portfolio-level view
+
+Beyond the individual entity score, Youverify gives you a **compliance health** view in the dashboard — an aggregated snapshot across all entities in your account. Use this to:
+
+- Identify the distribution of Low / Medium / High / Critical entities in your book
+- Spot clusters of high-risk entities that may indicate an emerging pattern
+- Track how overall compliance health changes over time as your customer base grows
+
+## Configuring risk thresholds
+
+You set your risk thresholds in the **Youverify Cowork dashboard** at [cowork.youverify.co](https://cowork.youverify.co). Threshold configuration lets you:
+
+- Define the score boundaries for each risk tier (Low / Medium / High / Critical)
+- Set automated workflow triggers per tier — for example, auto-approve entities below 25, request enhanced due diligence between 25 and 49, and escalate everything above 74 to a compliance officer
+- Adjust thresholds over time as your risk appetite or regulatory environment changes
+
+<Warning>
+  Changing a risk threshold applies to entities scored going forward. Review your existing portfolio after a threshold change to ensure previously onboarded entities are reassessed under the new rules.
+</Warning>
+
+## Acting on risk scores with automated workflows
+
+You do not need to poll entity scores manually. Youverify's AI-agent workflows let you define score-band logic once and automate the response:
+
+<CardGroup cols={2}>
+  <Card title="Auto-approve" icon="circle-check">
+    Automatically approve entities that score below your Low threshold, reducing manual workload for straightforward cases.
+  </Card>
+  <Card title="Flag for review" icon="flag">
+    Route Medium-scored entities to an enhanced-due-diligence queue, prompting your team to collect additional documents.
+  </Card>
+  <Card title="Escalate to case" icon="folder-open">
+    Automatically open a case for High-scored entities, capturing evidence and generating an AI summary for the assigned reviewer.
+  </Card>
+  <Card title="Block" icon="ban">
+    Immediately block onboarding or transactions for Critical-scored entities until a human decision is recorded.
+  </Card>
+</CardGroup>
+
+Because the score is updated continuously, these workflows trigger not only at onboarding but any time a new signal pushes an entity into a different tier — even months after the original approval.

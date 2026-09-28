@@ -1,0 +1,538 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Youverify SDK Utilities API",
+    "version": "2.0.0",
+    "description": "Server-side helper endpoints used by Youverify's mobile/web Liveness SDKs: configuring liveness behavior, minting SDK session tokens, and reviewing liveness-check history. Assembled from doc.youverify.co/api-reference-sdk/sdk, kept in the exact order they appear in the GitBook navigation (SDK Settings → Generate SDK Liveness Token → Generate SDK Session ID → Liveness History). 401/429/500 are account-wide errors sourced verbatim from Youverify's \"Youverify OS Error Codes\" page and attached to every operation; 402 is attached to POST operations; any error a specific page actually showed (e.g. the 404 on SDK Settings and Liveness History) is kept exactly as documented there.",
+    "contact": {
+      "name": "Youverify Support",
+      "email": "support@youverify.co"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.youverify.co",
+      "description": "Production (live, billed)"
+    },
+    {
+      "url": "https://api.sandbox.youverify.co",
+      "description": "Sandbox (test data, not billed)"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "SDK Utilities",
+      "description": "Server-side helper endpoints used by the mobile/web SDKs."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "token",
+        "description": "Your Youverify API secret key. Never expose client-side."
+      }
+    },
+    "responses": {
+      "Error401Unauthorized": {
+        "description": "Unauthorized — the token header is missing or invalid.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 401,
+              "message": "Permission denied",
+              "name": "UnauthorizedError",
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error402PaymentRequired": {
+        "description": "Payment Required — your account balance is too low to run this check.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 402,
+              "message": "Insufficient fund",
+              "name": "PaymentRequiredError",
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error429TooManyRequests": {
+        "description": "Too Many Requests — you have exceeded the rate limit; wait and retry.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 429,
+              "message": "Too many requests",
+              "name": "RateLimitError",
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error500ServerError": {
+        "description": "Internal Server Error — a rare, unexpected failure on Youverify's side. Contact support@youverify.co if it persists.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 500,
+              "message": "Internal Server Error",
+              "name": "Error",
+              "data": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v2/sdk/identity/liveness/settings": {
+      "post": {
+        "tags": [
+          "SDK Utilities"
+        ],
+        "summary": "SDK Settings",
+        "description": "Configure the liveness-check behavior (security threshold, which actions to require, whether to randomize them, how many, and per-action duration) used by the Anti-Deepfake Liveness SDK.",
+        "operationId": "updateSdkLivenessSettings",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "threshold": {
+                    "type": "string",
+                    "description": "Security threshold for liveness detection. Default: \"low\".",
+                    "enum": [
+                      "low",
+                      "mid",
+                      "high"
+                    ]
+                  },
+                  "actions": {
+                    "type": "array",
+                    "description": "Liveness actions to require.",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "faceRotation",
+                        "openMouth",
+                        "zoom",
+                        "blink",
+                        "passive",
+                        "motion",
+                        "yesOrNo"
+                      ]
+                    }
+                  },
+                  "randomizeActions": {
+                    "type": "boolean",
+                    "description": "Whether to randomize the actions during the session. Default: false."
+                  },
+                  "numberofActions": {
+                    "type": "number",
+                    "description": "Number of actions to perform in the session. Default: 1."
+                  },
+                  "actionsDuration": {
+                    "type": "object",
+                    "description": "Per-action duration in seconds.",
+                    "properties": {
+                      "faceRotation": {
+                        "type": "number"
+                      },
+                      "openMouth": {
+                        "type": "number"
+                      },
+                      "zoom": {
+                        "type": "number"
+                      },
+                      "blink": {
+                        "type": "number"
+                      },
+                      "yesOrNo": {
+                        "type": "number"
+                      },
+                      "motion": {
+                        "type": "number"
+                      },
+                      "passive": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "threshold": "mid",
+                "actions": [
+                  "faceRotation",
+                  "openMouth",
+                  "blink"
+                ],
+                "randomizeActions": true,
+                "numberofActions": 3,
+                "actionsDuration": {
+                  "faceRotation": 5,
+                  "openMouth": 3,
+                  "blink": 2
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "liveness settings updated successfully!",
+                  "data": {
+                    "threshold": "high",
+                    "actions": [
+                      "faceRotation",
+                      "openMouth",
+                      "blink"
+                    ],
+                    "randomizeActions": true,
+                    "numberofActions": 3,
+                    "actionsDuration": {
+                      "faceRotation": 5,
+                      "openMouth": 3,
+                      "zoom": 0,
+                      "blink": 2
+                    },
+                    "businessId": "62b2e8b281442b03187f7896",
+                    "createdAt": "2024-09-09T08:24:35.285Z",
+                    "lastModifiedAt": "2024-09-09T13:08:26.490Z",
+                    "id": "66deb0c395f3cd56ddfe6a17"
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found — the resource you attempted to fetch does not exist.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
+        }
+      }
+    },
+    "/v2/api/identity/sdk/liveness/token": {
+      "post": {
+        "tags": [
+          "SDK Utilities"
+        ],
+        "summary": "Generate SDK Liveness Token",
+        "description": "Allows users to create a liveness token for SDK operations.",
+        "operationId": "generateSdkLivenessToken",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "publicMerchantID": {
+                    "type": "string",
+                    "description": "Public merchant ID"
+                  },
+                  "deviceCorrelationId": {
+                    "type": "string",
+                    "description": "Device correlation ID"
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "description": "Device ID used to derive deviceCorrelationId"
+                  }
+                },
+                "required": [
+                  "publicMerchantID"
+                ]
+              },
+              "example": {
+                "publicMerchantID": "92hfbw9ub299929b"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Liveness token fetched successfully!",
+                  "data": {
+                    "authToken": "eyJhbGciOi...",
+                    "sessionId": "b15a8d20-c602-..."
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
+        }
+      }
+    },
+    "/v2/api/identity/sdk/liveness/session/generate": {
+      "post": {
+        "tags": [
+          "SDK Utilities"
+        ],
+        "summary": "Generate SDK Session ID",
+        "description": "Enables users to create a short-lived session ID for SDK initialization.",
+        "operationId": "generateSdkSessionId",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ttlSeconds": {
+                    "type": "number",
+                    "description": "TTL in seconds, default 120, valid range 30-600"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Custom metadata, default empty object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "SDK session generated",
+                  "data": {
+                    "sessionId": "200f5a883713b7ff26f22f489d716ca3",
+                    "expiresAt": "2025-10-05T23:56:48.821Z",
+                    "status": "active"
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
+        }
+      }
+    },
+    "/v2/api/identity/liveness": {
+      "get": {
+        "tags": [
+          "SDK Utilities"
+        ],
+        "summary": "Liveness History",
+        "description": "Retrieve a paginated log of liveness-check sessions run through the SDK, optionally filtered by session ID.",
+        "operationId": "getLivenessHistory",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Page number of the requested page. Default: 1."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Number of logs to return. Default: 20."
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by session ID."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "All liveness data retrieved successfully!",
+                  "data": {
+                    "docs": [
+                      {
+                        "method": "liveness",
+                        "faceImage": "https://cdn.youverify.co/1758189745918-OjZKC2OsiuoQKQkqCR73m.jpg",
+                        "livenessClip": "https://cdn.youverify.co/1758189745919-ipJqWMP5qQ2jnZo-w9NEi.mp4",
+                        "passed": true,
+                        "country": null,
+                        "sessionId": "8053d9aff1f50518b3d6e23972bcc2a7",
+                        "createdAt": "2025-09-18T10:02:27.216Z",
+                        "id": "68cbd8b20f3dc9d9bd19f9fd"
+                      }
+                    ],
+                    "pagination": {
+                      "totalDocs": 630,
+                      "perPage": 20,
+                      "totalPages": 32,
+                      "currentPage": 1,
+                      "serialNo": 1,
+                      "hasPrevPage": false,
+                      "hasNextPage": true,
+                      "prevPage": null,
+                      "nextPage": 2
+                    }
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found — the resource you attempted to fetch does not exist.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    }
+  }
+}

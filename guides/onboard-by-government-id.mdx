@@ -1,0 +1,336 @@
+---
+title: 'Onboard a Customer Using a Government-Issued ID'
+sidebarTitle: 'Onboard by ID'
+description: "Verify a customer's identity against government databases using their ID number and personal details, and review the match result and updated risk score."
+---
+
+When a customer provides a government-issued ID — a BVN, NIN, national ID, or passport — you can verify their identity directly against the authoritative source and fold the result into their entity record. This is the highest-confidence onboarding path: the returned PII fields come from the official registry, and a name or date-of-birth mismatch raises a fraud signal automatically.
+
+This guide walks you through creating an entity, triggering a KYC check with an ID number, interpreting the result, and understanding the risk score update.
+
+## Prerequisites
+
+- A Youverify account at [cowork.youverify.co](https://cowork.youverify.co)
+- Your API secret key from the dashboard under **Settings → API Keys**
+- The customer's ID type, ID number, and country
+
+---
+
+## Supported ID types by country
+
+<CardGroup cols={2}>
+  <Card title="🇳🇬 Nigeria" icon="id-card">
+    - `bvn` — Bank Verification Number
+    - `nin` — National Identification Number
+    - `nin_phone` — NIN lookup by phone number
+    - `drivers_license` — Nigerian Driver's Licence
+    - `passport` — International Passport
+    - `pvc` — Permanent Voter's Card
+  </Card>
+  <Card title="🇰🇪 Kenya" icon="id-card">
+    - `keNationalId` — National ID
+    - `kePassport` — International Passport
+    - `keAlienId` — Alien ID
+    - `keDriversLicense` — Driver's Licence
+  </Card>
+  <Card title="🇿🇦 South Africa" icon="id-card">
+    - `zaSAID` — South African ID Number
+  </Card>
+  <Card title="🇬🇭 Ghana" icon="id-card">
+    - `ghPassport` — International Passport
+    - `ghVoter` / `oldGhVoter` — Ghana Voters Card (new/old)
+    - `ssnit` — Social Security and National Insurance Trust
+  </Card>
+  <Card title="🇨🇮 Côte d'Ivoire" icon="id-card">
+    - National ID (new and old formats)
+    - Residence Card
+  </Card>
+  <Card title="🌍 Global" icon="globe">
+    Many additional countries are supported via the global eIDV endpoint. Contact your Youverify account team or consult the dashboard for the full list of supported countries.
+  </Card>
+</CardGroup>
+
+---
+
+## Steps
+
+<Steps>
+
+### Create the entity with name and ID data
+
+Create the entity first with whatever PII you hold. You can include the ID number at creation or add it in the next step via the KYC endpoint.
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.youverify.co/v2/api/entities" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityType": "individual",
+    "isSubjectConsent": true,
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "phone": "+2348012345678",
+    "nationality": "NG",
+    "dateOfBirth": "1990-06-15"
+  }'
+```
+
+```javascript Node.js
+const response = await fetch('https://api.youverify.co/v2/api/entities', {
+  method: 'POST',
+  headers: {
+    'token': process.env.YV_SECRET_KEY,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    entityType: 'individual',
+    isSubjectConsent: true,
+    firstName: 'Jane',
+    lastName: 'Doe',
+    phone: '+2348012345678',
+    nationality: 'NG',
+    dateOfBirth: '1990-06-15',
+  }),
+});
+const { data } = await response.json();
+const entityId = data.id;
+```
+
+```python Python
+import os, requests
+
+resp = requests.post(
+    'https://api.youverify.co/v2/api/entities',
+    headers={
+        'token': os.environ['YV_SECRET_KEY'],
+        'Content-Type': 'application/json',
+    },
+    json={
+        'entityType': 'individual',
+        'isSubjectConsent': True,
+        'firstName': 'Jane',
+        'lastName': 'Doe',
+        'phone': '+2348012345678',
+        'nationality': 'NG',
+        'dateOfBirth': '1990-06-15',
+    },
+)
+entity_id = resp.json()['data']['id']
+```
+
+</CodeGroup>
+
+### Trigger KYC verification with the government ID
+
+Call `POST /v2/api/entities/{id}/verify/kyc` with the ID type and ID number. Pass the customer's name and date of birth in the `validations` block to cross-validate the supplied data against what the registry returns — a mismatch raises an automatic fraud signal.
+
+The examples below cover the most common ID types. Select your country:
+
+<Tabs>
+  <Tab title="Nigeria — BVN">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "22222222222",
+          "countryCode": "NG",
+          "idType": "bvn"
+        },
+        "validations": {
+          "data": {
+            "firstName": "Jane",
+            "lastName": "Doe",
+            "dateOfBirth": "1990-06-15"
+          }
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="Nigeria — NIN">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "90899740000",
+          "countryCode": "NG",
+          "idType": "nin"
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="Nigeria — Driver's Licence">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "SMK86220XXXX",
+          "countryCode": "NG",
+          "idType": "drivers_license"
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="Kenya — National ID">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "23772148",
+          "countryCode": "KE",
+          "idType": "keNationalId"
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="South Africa — SAID">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "8012185201081",
+          "countryCode": "ZA",
+          "idType": "zaSAID"
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="Ghana — Passport">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "G0000575",
+          "countryCode": "GH",
+          "idType": "ghPassport"
+        }
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+### Review the verification result
+
+A successful verification returns `"status": "found"` with the PII fields retrieved from the authoritative registry. Review the returned name and date of birth against what you hold on file.
+
+```json Response — match found
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Identity check successful!",
+  "data": {
+    "id": "ent_684f5cc5a47a3926763b83a7",
+    "entity": {
+      "entityId": "ent_684f5cc5a47a3926763b83a7",
+      "isNew": false,
+      "message": ""
+    },
+    "identityCheck": {
+      "status": "found",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "dateOfBirth": "1990-06-15",
+      "middleName": "Adaeze",
+      "phone": "08012345678",
+      "gender": "Female",
+      "type": "bvn",
+      "nationality": "NG",
+      "idNumber": "22222222222",
+      "isExpired": false,
+      "verificationId": "69da8ae76398f3a575c950e0"
+    }
+  },
+  "links": []
+}
+```
+
+If the ID is not found in the registry, `"status"` returns `"not_found"`. If the name or date-of-birth supplied in `validations` does not match the registry record, Youverify raises a fraud signal on the entity automatically.
+
+<Warning>
+  A `"not_found"` result does not necessarily mean the customer is fraudulent — the ID may be new or the registry temporarily unavailable. Review the entity's signal history before making a decision.
+</Warning>
+
+### Check the updated entity risk score
+
+After the KYC verification completes, the entity's risk score is re-evaluated incorporating the verification outcome. Retrieve the entity to read the updated score:
+
+```bash cURL
+curl -X GET "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7" \
+  -H "token: $YV_SECRET_KEY"
+```
+
+```json Response — entity with risk score
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entity retrieved successfully.",
+  "data": {
+    "id": "ent_684f5cc5a47a3926763b83a7",
+    "entityType": "individual",
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "status": "created",
+    "profileStatus": "pending",
+    "riskScore": 18,
+    "riskLevel": "low",
+    "verifications": [
+      {
+        "type": "kyc",
+        "status": "found",
+        "idType": "bvn",
+        "completedAt": "2025-06-15T10:23:00.000Z"
+      }
+    ]
+  },
+  "links": []
+}
+```
+
+</Steps>
+
+---
+
+## What happens behind the scenes
+
+When you post the KYC verification, Youverify:
+
+1. Queries the authoritative source (e.g. Nigeria's BVN database, NIMC for NIN)
+2. Compares the returned PII against the `validations` block you supplied
+3. Attaches the result to the entity's activity log and 360 record
+4. Re-computes the risk score — incorporating AML screening, identity match status, and any fraud signals
+
+All of this is automatic. The result lives on the entity record, not as a separate standalone report.
+
+---
+
+## What's next
+
+- Run [AML screening](/api-reference/entities/verify-entity-aml) explicitly to check the entity against additional watchlists
+- Add liveness detection for a biometric match using the [Liveness SDK](/sdks/liveness-sdk)
+- Build a progressive [Tiered KYC](/guides/tiered-kyc-digital-banking) flow on top of this foundation
+- Onboard a business using [KYB and UBO verification](/guides/corporate-kyb-ubo)

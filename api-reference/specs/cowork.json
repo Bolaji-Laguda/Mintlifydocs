@@ -1,0 +1,2160 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Youverify Cowork API",
+    "version": "2.0.0",
+    "description": "Entity, Activity, Signal and Case Management endpoints — the core Cowork platform object model. Assembled from doc.youverify.co/api-reference-sdk, endpoints kept in the exact order they appear in the GitBook navigation.\n\nAccount-wide error responses (401, 429, 500 on every endpoint; 402 on paid verification calls; 404 on lookup-by-ID calls) are sourced verbatim from Youverify's own \"Youverify OS Error Codes\" and \"Response Codes\" pages (doc.youverify.co/youverify-os-error-codes, /get-started/response-codes) and attached via components.responses, since those pages document them account-wide rather than per endpoint. Any error example that a specific endpoint's own page actually showed is kept exactly as documented there instead of being replaced by these.",
+    "contact": {
+      "name": "Youverify Support",
+      "email": "support@youverify.co"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.youverify.co",
+      "description": "Production (live, billed)"
+    },
+    {
+      "url": "https://api.sandbox.youverify.co",
+      "description": "Sandbox (test data, not billed)"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Entity Management",
+      "description": "Create, retrieve and verify entities (individuals or businesses) — the core object every check attaches to."
+    },
+    {
+      "name": "Activity Management",
+      "description": "Inspect the verification activities run against your account."
+    },
+    {
+      "name": "Signal Management",
+      "description": "Retrieve monitoring signals and their events, by entity or business."
+    },
+    {
+      "name": "Case Management",
+      "description": "Create and manage compliance cases, including AI-generated case summaries."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "token",
+        "description": "Your Youverify API secret key. Never expose client-side."
+      }
+    },
+    "responses": {
+      "Error401Unauthorized": {
+        "description": "Unauthorized — the token header is missing or invalid.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 401,
+              "message": "Permission denied",
+              "name": "UnauthorizedError",
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error402PaymentRequired": {
+        "description": "Payment Required — your account balance is too low to run this check.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 402,
+              "message": "Insufficient fund",
+              "name": "PaymentRequiredError",
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error404NotFound": {
+        "description": "Not Found — the URL, or the resource ID in the URL, was not recognized.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 404,
+              "message": "Not found",
+              "name": "ResourceNotFoundError",
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error429TooManyRequests": {
+        "description": "Too Many Requests — you have exceeded the rate limit; wait and retry.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 429,
+              "message": "Too many requests",
+              "name": "RateLimitError",
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error500ServerError": {
+        "description": "Internal Server Error — a rare, unexpected failure on Youverify's side. Contact support@youverify.co if it persists.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 500,
+              "message": "Internal Server Error",
+              "name": "Error",
+              "data": {}
+            }
+          }
+        }
+      },
+      "Error503ServiceUnavailable": {
+        "description": "Service Unavailable — the upstream third-party data provider is currently unreachable.",
+        "content": {
+          "application/json": {
+            "example": {
+              "success": false,
+              "statusCode": 503,
+              "message": "Third-party provider not reacheable",
+              "name": "Error",
+              "data": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/v2/api/entities": {
+      "post": {
+        "tags": [
+          "Entity Management"
+        ],
+        "summary": "Create Entity",
+        "description": "Creates a new individual or business entity record for verification and monitoring purposes.",
+        "operationId": "createEntity",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "entityType": {
+                    "type": "string",
+                    "description": "Type of entity being created",
+                    "enum": [
+                      "individual",
+                      "business"
+                    ]
+                  },
+                  "isSubjectConsent": {
+                    "type": "boolean",
+                    "description": "Must be true"
+                  },
+                  "incorporationNumber": {
+                    "type": "string",
+                    "description": "Required if entityType is \"business\""
+                  },
+                  "incorporationName": {
+                    "type": "string",
+                    "description": "Required if entityType is \"business\""
+                  },
+                  "incorporationCountry": {
+                    "type": "string",
+                    "description": "2-letter country code (businesses only)"
+                  },
+                  "incorporationDate": {
+                    "type": "string",
+                    "description": "Format: YYYY-MM-DD (businesses only)"
+                  },
+                  "businessType": {
+                    "type": "string",
+                    "description": "Businesses only"
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "Businesses only"
+                  },
+                  "docLink": {
+                    "type": "string",
+                    "description": "Businesses only, link to registration document"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "description": "Required if entityType is \"individual\""
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "description": "Required if entityType is \"individual\""
+                  },
+                  "phone": {
+                    "type": "string",
+                    "description": "Required if entityType is \"individual\""
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "Individual or business"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "description": "Individual only"
+                  },
+                  "dateOfBirth": {
+                    "type": "string",
+                    "description": "Format: YYYY-MM-DD (required for individuals)"
+                  },
+                  "nationality": {
+                    "type": "string",
+                    "description": "2-letter code (required for individuals)"
+                  },
+                  "imageUrl": {
+                    "type": "string",
+                    "description": "Link to uploaded image"
+                  },
+                  "verifiedBy": {
+                    "type": "string",
+                    "description": "Verification source",
+                    "enum": [
+                      "client"
+                    ]
+                  }
+                },
+                "required": [
+                  "entityType",
+                  "isSubjectConsent"
+                ]
+              },
+              "example": {
+                "entityType": "individual",
+                "isSubjectConsent": true,
+                "firstName": "John",
+                "lastName": "Doe",
+                "email": "john.doe@example.com",
+                "phone": "+2348012345678",
+                "gender": "male",
+                "dateOfBirth": "1990-01-01",
+                "nationality": "NG",
+                "imageUrl": "http://someimage",
+                "verifiedBy": "client"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "status_code": 201,
+                  "message": "Entity created successfully.",
+                  "data": {
+                    "id": "ent_684f5cc5a47a3926763b83a7",
+                    "businessId": "61d880f1e8e15aaf24558f1a",
+                    "createdBy": {
+                      "firstName": "Timothy",
+                      "lastName": "Akinyelu",
+                      "middleName": "",
+                      "id": "61f162ec1fd251c3a63f31c2"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Entity Management"
+        ],
+        "summary": "Get All Entity",
+        "description": "Retrieves a paginated list of entities, with support for filtering by type, status, country, and search terms.",
+        "operationId": "getAllEntity",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Sort order, either 'asc' or 'desc'"
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search query"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Number of logs to return (default: 20)"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Start date"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "End date"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma separated list of statuses"
+          },
+          {
+            "name": "entityType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Type of entity (individual or business)"
+          },
+          {
+            "name": "businessIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Admin use only (comma separated list of business IDs)"
+          },
+          {
+            "name": "countryCodes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "A comma separated list of country codes"
+          },
+          {
+            "name": "isUBO",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Whether the entity is a UBO (Ultimate Beneficial Owner)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Entities fetched successfully!",
+                  "data": {
+                    "docs": [
+                      {
+                        "_id": "685c87dfe1d184f2663b4e41",
+                        "businessId": "61d880f1e8e15aaf24558f1a",
+                        "entityType": "business",
+                        "incorporationNumber": "RC00000002",
+                        "incorporationName": "Kord Industries",
+                        "incorporationDate": "2019-06-09",
+                        "address": "Somewhere on palmeras city",
+                        "businessType": "Corporate Equity",
+                        "taxId": null,
+                        "status": "not_approved",
+                        "profileStatus": "pending",
+                        "incorporationCountry": "NG",
+                        "createdBy": "61f162ec1fd251c3a63f31c2",
+                        "isOnboarded": true,
+                        "potentialEntityMatch": null,
+                        "createdAt": "2025-06-25T23:35:59.293Z",
+                        "lastModifiedAt": "2025-06-25T23:35:59.293Z",
+                        "_createdAt": "2025-06-26T00:35:5959+01:00",
+                        "_lastModifiedAt": "2025-06-26T00:35:5959+01:00",
+                        "object": "entity",
+                        "id": "ent_685c87dfe1d184f2663b4e41"
+                      },
+                      {
+                        "businessId": "61d880f1e8e15aaf24558f1a",
+                        "id": "ent_68ae3859d82e350f82fd9e95",
+                        "firstName": "Sarah",
+                        "lastName": "Doe",
+                        "middleName": "Jane",
+                        "entityType": "individual",
+                        "gender": "female",
+                        "taxId": null,
+                        "status": "created",
+                        "profileStatus": "pending",
+                        "isOnboarded": true,
+                        "dateOfBirth": "1988-04-04",
+                        "createdAt": "2025-08-26T22:42:33.879Z",
+                        "lastModifiedAt": "2025-08-26T22:42:37.860Z",
+                        "createdBy": "61f162ec1fd251c3a63f31c2",
+                        "_id": "68ae3859d82e350f82fd9e95",
+                        "object": "entity"
+                      }
+                    ],
+                    "pagination": {
+                      "type": "cursor",
+                      "perPage": 20,
+                      "nextPage": "685c7479519d82bd21a42fba",
+                      "prevPage": null,
+                      "hasNextPage": true,
+                      "hasPrevPage": false
+                    },
+                    "searchTerms": {}
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/entities/{entityId}": {
+      "get": {
+        "tags": [
+          "Entity Management"
+        ],
+        "summary": "Get Entity using ID",
+        "description": "Fetches the full profile of a single entity (individual or business) by its unique entity ID.",
+        "operationId": "getEntityById",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id of the entity being fetched"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "status_code": 200,
+                  "message": "Entity fetched successfully!",
+                  "data": {
+                    "_id": "685c73c8519d82bd21a42fae",
+                    "businessId": "61d880f1e8e15aaf24558f1a",
+                    "firstName": "Jack",
+                    "lastName": "Frost",
+                    "entityType": "individual",
+                    "dateOfBirth": "1999-10-02",
+                    "phone": "07030000001",
+                    "taxId": null,
+                    "gender": "male",
+                    "status": "not_approved",
+                    "profileStatus": "pending",
+                    "createdBy": "61f162ec1fd251c3a63f31c2",
+                    "isOnboarded": true,
+                    "potentialEntityMatch": null,
+                    "createdAt": "2025-06-25T22:10:16.862Z",
+                    "lastModifiedAt": "2025-06-25T22:10:16.862Z",
+                    "_createdAt": "2025-06-25T23:10:1616+01:00",
+                    "_lastModifiedAt": "2025-06-25T23:10:1616+01:00",
+                    "object": "entity",
+                    "id": "ent_685c73c8519d82bd21a42fae"
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404NotFound"
+          }
+        }
+      }
+    },
+    "/v2/api/entities/{entityId}/amlChecks": {
+      "post": {
+        "tags": [
+          "Entity Management"
+        ],
+        "summary": "Verify Entity (AML)",
+        "description": "Runs Anti-Money Laundering (AML) checks such as PEP and sanctions screening against an entity, including its Ultimate Beneficial Owners.",
+        "operationId": "verifyEntityAml",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id of the entity being checked"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "entityType": {
+                    "type": "string",
+                    "description": "Type of entity",
+                    "enum": [
+                      "individual",
+                      "business"
+                    ]
+                  },
+                  "isSubjectConsent": {
+                    "type": "boolean",
+                    "description": "Must be true"
+                  },
+                  "incorporationNumber": {
+                    "type": "string",
+                    "description": "Required if amlCheckType is \"id_number\""
+                  },
+                  "incorporationName": {
+                    "type": "string",
+                    "description": "Business registered name"
+                  },
+                  "incorporationCountry": {
+                    "type": "string",
+                    "description": "ISO 3166-1 alpha-2 code"
+                  },
+                  "incorporationDate": {
+                    "type": "string",
+                    "description": "Format: YYYY-MM-DD"
+                  },
+                  "amlCheckType": {
+                    "type": "string",
+                    "description": "AML check strategy",
+                    "enum": [
+                      "name",
+                      "id_number"
+                    ]
+                  },
+                  "amlChecks": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Additional AML checks, e.g. pep, sanctions"
+                  },
+                  "ubos": {
+                    "type": "object",
+                    "description": "Ultimate Beneficial Owners info, containing uboList and amlChecks"
+                  },
+                  "uboList": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "List of UBOs"
+                  },
+                  "category": {
+                    "type": "string",
+                    "description": "UBO category",
+                    "enum": [
+                      "individual",
+                      "business"
+                    ]
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "description": "Required for individual UBOs"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "description": "Required for individual UBOs"
+                  },
+                  "dateOfBirth": {
+                    "type": "string",
+                    "description": "Format: YYYY-MM-DD"
+                  },
+                  "nationality": {
+                    "type": "string",
+                    "description": "2-character code"
+                  }
+                },
+                "required": [
+                  "entityType",
+                  "isSubjectConsent"
+                ]
+              },
+              "example": {
+                "entityType": "business",
+                "isSubjectConsent": true,
+                "incorporationName": "Acme Corp",
+                "incorporationCountry": "NG",
+                "incorporationDate": "2010-01-01",
+                "amlCheckType": "name",
+                "amlChecks": [
+                  "pep"
+                ],
+                "ubos": {
+                  "uboList": [
+                    {
+                      "category": "individual",
+                      "firstName": "Jon",
+                      "lastName": "Snow"
+                    }
+                  ],
+                  "amlChecks": [
+                    "pep"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "status_code": 200,
+                  "message": "AML checks performed successfully!",
+                  "data": {
+                    "id": "ent_6834f77bc55aea948b907391",
+                    "entityType": "business",
+                    "amlProcessedChecks": {
+                      "sanctions": {
+                        "status": "not_cleared",
+                        "reportId": "68364960534488d5449f0784",
+                        "data": []
+                      }
+                    },
+                    "uboChecks": [
+                      {
+                        "ubo": "Jon Snow",
+                        "pep": {
+                          "status": "cleared",
+                          "reportId": "68364962534488d5449f0787",
+                          "data": []
+                        }
+                      }
+                    ]
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
+        }
+      }
+    },
+    "/v2/api/entities/{entityId}/company": {
+      "post": {
+        "tags": [
+          "Entity Management"
+        ],
+        "summary": "Verify Entity (KYB)",
+        "description": "Performs a Know Your Business (KYB) check on a business entity using its incorporation number and country to validate registration details.",
+        "operationId": "verifyEntityKyb",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id of the entity being checked."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "entityType": {
+                    "type": "string",
+                    "description": "Type of entity being checked or verified.",
+                    "enum": [
+                      "business"
+                    ]
+                  },
+                  "isSubjectConsent": {
+                    "type": "boolean",
+                    "description": "Consent of the individual or entity being verified.",
+                    "enum": [
+                      true
+                    ]
+                  },
+                  "checkType": {
+                    "type": "string",
+                    "description": "Type of business check",
+                    "enum": [
+                      "basic",
+                      "standard",
+                      "premium"
+                    ]
+                  },
+                  "incorporationNumber": {
+                    "type": "string",
+                    "description": "Business registration number"
+                  },
+                  "incorporationCountry": {
+                    "type": "string",
+                    "description": "Country code of business incorporation (ISO 3166-1 alpha-2). Size: 2 characters"
+                  }
+                },
+                "required": [
+                  "entityType",
+                  "isSubjectConsent"
+                ]
+              },
+              "example": {
+                "entityType": "business",
+                "isSubjectConsent": true,
+                "incorporationNumber": "RC123456",
+                "incorporationCountry": "NG",
+                "checkType": "basic"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success (new business, entity created)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "status_code": 201,
+                  "message": "Business check successful!",
+                  "data": {
+                    "id": "69dab502682626b4e9e6d77c",
+                    "entity": {
+                      "entityId": "ent_69dab0119abad240d91071a4",
+                      "isNew": true,
+                      "message": "Entity created successfully."
+                    },
+                    "businessCheck": {
+                      "id": "69dab502682626b4e9e6d77c",
+                      "status": "found",
+                      "businessId": "69b3c7f1556f687f7fb8a5bd",
+                      "parentId": null,
+                      "isConsent": true,
+                      "type": "basic_company_check",
+                      "searchTerm": "RC00000000",
+                      "name": "John Doe Inc",
+                      "registrationNumber": "RC00000000",
+                      "companyStatus": "ACTIVE",
+                      "requestedAt": "2026-04-11T20:54:27.818Z",
+                      "country": "Nigeria",
+                      "createdAt": "2022-11-03T14:16:54.235Z",
+                      "lastModifiedAt": "2022-11-03T14:16:54.235Z",
+                      "typeOfEntity": "PRIVATE COMPANY LIMITED BY SHARES",
+                      "registrationDate": "2017-06-09",
+                      "natureOfBusiness": null,
+                      "amlReport": null,
+                      "adverseMediaReport": null,
+                      "requestedBy": {
+                        "firstName": "Jamal",
+                        "lastName": "Akinyelu",
+                        "middleName": "",
+                        "id": "69b3c7f6556f687f7fb8a5c7"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success (existing business, or not found)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "status_code": 200,
+                  "message": "Business check successful!",
+                  "data": {
+                    "id": "ent_69dab0119abad240d91071a4",
+                    "entity": {
+                      "entityId": "ent_69dab0119abad240d91071a4",
+                      "isNew": false
+                    },
+                    "businessCheck": {
+                      "id": "69dab502682626b4e9e6d77c",
+                      "status": "found",
+                      "businessId": "69b3c7f1556f687f7fb8a5bd",
+                      "parentId": null,
+                      "isConsent": true,
+                      "type": "basic_company_check",
+                      "searchTerm": "RC00000000",
+                      "name": "John Doe Inc",
+                      "registrationNumber": "RC00000000",
+                      "companyStatus": "ACTIVE",
+                      "requestedAt": "2026-04-11T20:54:27.818Z",
+                      "country": "Nigeria",
+                      "createdAt": "2022-11-03T14:16:54.235Z",
+                      "lastModifiedAt": "2022-11-03T14:16:54.235Z",
+                      "typeOfEntity": "PRIVATE COMPANY LIMITED BY SHARES",
+                      "registrationDate": "2017-06-09",
+                      "natureOfBusiness": null,
+                      "amlReport": null,
+                      "adverseMediaReport": null,
+                      "requestedBy": {
+                        "firstName": "Jamal",
+                        "lastName": "Akinyelu",
+                        "middleName": "",
+                        "id": "69b3c7f6556f687f7fb8a5c7"
+                      }
+                    }
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
+        }
+      }
+    },
+    "/v2/api/verifications/global/supported-countries-and-region": {
+      "get": {
+        "tags": [
+          "Entity Management"
+        ],
+        "summary": "Get Supported Countries and Regions",
+        "description": "Returns the list of countries and their subdivisions/regions supported for KYB verification checks.",
+        "operationId": "getKybSupportedCountriesAndRegions",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "success",
+                  "data": [
+                    {
+                      "country": "Argentina",
+                      "code": "AR",
+                      "emoji": "🇦🇷",
+                      "continent": "SA",
+                      "subDivisions": []
+                    }
+                  ],
+                  "links": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/entities/identity": {
+      "post": {
+        "tags": [
+          "Entity Management"
+        ],
+        "summary": "Verify Entity (KYC)",
+        "description": "Performs identity (Know Your Customer) verification checks such as BVN, NIN, passport, driver's license, bank account verification and more, across multiple supported countries.",
+        "operationId": "verifyEntityKyc",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "entityType": {
+                    "type": "string",
+                    "description": "Type of entity",
+                    "enum": [
+                      "individual"
+                    ]
+                  },
+                  "isSubjectConsent": {
+                    "type": "boolean",
+                    "description": "Consent of the individual being verified"
+                  },
+                  "identity": {
+                    "type": "object",
+                    "description": "Identity document data",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique identifier (BVN, NIN, Passport, etc.)"
+                      },
+                      "countryCode": {
+                        "type": "string",
+                        "description": "ISO 3166-1 alpha-2 code"
+                      },
+                      "idType": {
+                        "type": "string",
+                        "description": "Document type code, e.g. bvn, nin, passport, drivers_license, pvc, phone, nin_phone, keDriversLicense, keAlienId, keNationalId, kePassport, ghVoter, oldGhVoter, ghPassport, zaSAID"
+                      },
+                      "mobile": {
+                        "type": "string",
+                        "description": "Mobile number (nin_phone/phone)"
+                      },
+                      "accountNumber": {
+                        "type": "string",
+                        "description": "10-digit account for BAV"
+                      },
+                      "bankCode": {
+                        "type": "string",
+                        "description": "Bank code for BAV"
+                      },
+                      "lastName": {
+                        "type": "string",
+                        "description": "Last name (passport verification)"
+                      },
+                      "shouldRetrivedNin": {
+                        "type": "boolean",
+                        "description": "Fetch linked NIN from BVN (default: false)"
+                      },
+                      "premiumBVN": {
+                        "type": "boolean",
+                        "description": "Premium BVN check (default: false)"
+                      },
+                      "premiumNin": {
+                        "type": "boolean",
+                        "description": "Premium NIN check (default: false)"
+                      },
+                      "fullDetails": {
+                        "type": "boolean",
+                        "description": "Extended BVN profile (default: false)"
+                      },
+                      "metadata": {
+                        "type": "object",
+                        "description": "Optional audit/tracking data"
+                      },
+                      "validations": {
+                        "type": "object",
+                        "description": "Cross-check validation payload"
+                      },
+                      "bank": {
+                        "type": "string",
+                        "description": "Bank name (South Africa)"
+                      },
+                      "bankBranchCode": {
+                        "type": "string",
+                        "description": "Required for SA BAV"
+                      },
+                      "accountType": {
+                        "type": "string",
+                        "description": "Account type for ZA (default: Savings)",
+                        "enum": [
+                          "Savings",
+                          "Current"
+                        ]
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "Voter card type for Ghana",
+                        "enum": [
+                          "new_voter_card",
+                          "old_voter_card"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "countryCode",
+                      "idType"
+                    ]
+                  }
+                },
+                "required": [
+                  "entityType",
+                  "isSubjectConsent",
+                  "identity"
+                ]
+              },
+              "example": {
+                "entityType": "individual",
+                "isSubjectConsent": true,
+                "identity": {
+                  "id": "A11111111",
+                  "countryCode": "NG",
+                  "idType": "bvn",
+                  "premiumBVN": false
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success (existing entity / identity found)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "status_code": 200,
+                  "message": "Identity check successful!",
+                  "data": {
+                    "id": "ent_69da84b4c0ac039957be5439",
+                    "entity": {
+                      "entityId": "ent_69da84b4c0ac039957be5439",
+                      "isNew": false,
+                      "message": ""
+                    },
+                    "identityCheck": {
+                      "status": "found",
+                      "firstName": "Sarah",
+                      "lastName": "Doe",
+                      "dateOfBirth": "1988-04-04",
+                      "middleName": "Jane",
+                      "image": "base64 image",
+                      "phone": "08000000000",
+                      "email": null,
+                      "gender": "Female",
+                      "adverseMediaReport": null,
+                      "amlReport": null,
+                      "type": "nin",
+                      "nationality": "NG",
+                      "idNumber": "11111111111",
+                      "businessId": "69b3c7f1556f687f7fb8a5bd",
+                      "parentId": null,
+                      "requestedBy": {
+                        "firstName": "Jamal",
+                        "lastName": "Akinyelu",
+                        "middleName": "",
+                        "id": "69b3c7f6556f687f7fb8a5c7"
+                      },
+                      "isExpired": false,
+                      "reason": null,
+                      "verificationId": "69da8ae76398f3a575c950e0"
+                    }
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Success (new business created via identity check)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "status_code": 201,
+                  "message": "Business check successful!",
+                  "data": {
+                    "id": "69dab502682626b4e9e6d77c",
+                    "entity": {
+                      "entityId": "ent_69dab0119abad240d91071a4",
+                      "isNew": true,
+                      "message": "Entity created successfully."
+                    },
+                    "businessCheck": {
+                      "id": "69dab502682626b4e9e6d77c",
+                      "status": "found",
+                      "businessId": "69b3c7f1556f687f7fb8a5bd",
+                      "parentId": null,
+                      "isConsent": true,
+                      "type": "basic_company_check",
+                      "searchTerm": "RC00000000",
+                      "name": "John Doe Inc",
+                      "registrationNumber": "RC00000000",
+                      "companyStatus": "ACTIVE",
+                      "requestedAt": "2026-04-11T20:54:27.818Z",
+                      "country": "Nigeria",
+                      "createdAt": "2022-11-03T14:16:54.235Z",
+                      "lastModifiedAt": "2022-11-03T14:16:54.235Z",
+                      "typeOfEntity": "PRIVATE COMPANY LIMITED BY SHARES",
+                      "registrationDate": "2017-06-09",
+                      "natureOfBusiness": null,
+                      "amlReport": null,
+                      "adverseMediaReport": null,
+                      "requestedBy": {
+                        "firstName": "Jamal",
+                        "lastName": "Akinyelu",
+                        "middleName": "",
+                        "id": "69b3c7f6556f687f7fb8a5c7"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
+        }
+      }
+    },
+    "/v2/api/activities": {
+      "get": {
+        "tags": [
+          "Activity Management"
+        ],
+        "summary": "Retrieve an Activity",
+        "description": "Retrieves a paginated, filterable list of activities (verification/check events) recorded against entities.",
+        "operationId": "retrieveActivities",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "entityId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Entity ID to filter activities"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Number of records to return (Default: 10)"
+          },
+          {
+            "name": "sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort results by (Default: createdAt)"
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "description": "Sort order (Default: desc)"
+          },
+          {
+            "name": "next",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for fetching the next page"
+          },
+          {
+            "name": "prev",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for fetching the previous page"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by activity type"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by activity status"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter activities created after this date"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter activities created before this date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Activities successfully retrieved!",
+                  "data": {
+                    "docs": [
+                      {
+                        "entityId": "68b0114137593677539a1638",
+                        "activity": "Identity Check",
+                        "type": "bvn",
+                        "reportId": "68c169c76271c8b9f0bc25c3",
+                        "status": "found",
+                        "createdAt": "2025-09-10T12:06:37.180Z",
+                        "lastModifiedAt": "2025-09-10T12:06:37.180Z",
+                        "_createdAt": "2025-09-10T12:06:3737+00:00",
+                        "_lastModifiedAt": "2025-09-10T12:06:3737+00:00",
+                        "id": "act_68c169cd9a12af3e53c5dc65",
+                        "_id": "act_68c169cd9a12af3e53c5dc65"
+                      }
+                    ],
+                    "pagination": {
+                      "type": "cursor",
+                      "perPage": 20,
+                      "nextPage": "2025-08-15T15:31:51.922Z",
+                      "prevPage": null,
+                      "hasNextPage": true,
+                      "hasPrevPage": false
+                    },
+                    "filters": {}
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/activities/{activityId}": {
+      "get": {
+        "tags": [
+          "Activity Management"
+        ],
+        "summary": "Retrieve an Activity using ID",
+        "description": "Fetches a single activity record by its unique activity ID.",
+        "operationId": "retrieveActivityById",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "activityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique Id of the activity"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Activity retrieved successfully!",
+                  "data": {
+                    "requestedBy": {
+                      "id": "63d7ad866bf278e0a3fd7f09",
+                      "firstName": "Paulina",
+                      "lastName": "John",
+                      "middleName": null
+                    },
+                    "_id": "6904dfadf32cb9ff48dc7551",
+                    "entityId": "6904dfa8accfde8c7ce074c8",
+                    "activity": "AML Check",
+                    "type": "pep",
+                    "incorporationName": null,
+                    "firstName": null,
+                    "lastName": null,
+                    "entityType": "individual",
+                    "reportId": "6904dfa9ff3e09f79eecc9a5",
+                    "businessId": "61d880f1e8e15aaf24558f1a",
+                    "status": "cleared",
+                    "createdAt": "2025-10-31T16:11:25.088Z",
+                    "lastModifiedAt": "2025-10-31T16:11:25.088Z",
+                    "_createdAt": "2025-10-31T17:11:2525+01:00",
+                    "_lastModifiedAt": "2025-10-31T17:11:2525+01:00",
+                    "id": "act_6904dfadf32cb9ff48dc7551",
+                    "report": []
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/activities/verification-types": {
+      "get": {
+        "tags": [
+          "Activity Management"
+        ],
+        "summary": "Get Verification Types",
+        "description": "Returns the list of supported verification/document types per country, along with their billing IDs and required permissions.",
+        "operationId": "getVerificationTypes",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Business Metrics returned successfully",
+                  "data": {
+                    "NG": {
+                      "name": "Nigeria",
+                      "documents": [
+                        {
+                          "code": "bvn",
+                          "label": "Bank Verification Number",
+                          "billingId": [
+                            "kyc_bvn",
+                            "kyc_premium_bvn"
+                          ],
+                          "permission": [
+                            "identity:bvn:verify"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/signals/{signalId}": {
+      "get": {
+        "tags": [
+          "Signal Management"
+        ],
+        "summary": "Get Signals using ID",
+        "description": "Fetches a single device/session signal record (device fingerprint, IP, VPN/bot flags, etc.) by its unique signal ID.",
+        "operationId": "getSignalById",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "signalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique Id of the signal"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Signal retrieved successfully!",
+                  "data": {
+                    "id": "ebs_g78oTpoBrfVbJH-ng6oa",
+                    "ip": "102.67.1.4",
+                    "asn": {
+                      "number": 36920,
+                      "organization": "KKON"
+                    },
+                    "platform": "web",
+                    "isVirtualMachine": true,
+                    "isVpn": true,
+                    "isBot": false
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404NotFound"
+          }
+        }
+      }
+    },
+    "/v2/api/signals/{signalId}/events/cursor": {
+      "get": {
+        "tags": [
+          "Signal Management"
+        ],
+        "summary": "List Event using Signals ID (Cursor)",
+        "description": "Lists events (session_start, session_end, custom) tied to a given signal ID, using cursor-based pagination.",
+        "operationId": "listEventsBySignalIdCursor",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "signalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Signal unique identifier (ebs_ prefix accepted)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Page size (default: 20)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Events retrieved successfully!",
+                  "data": {
+                    "docs": [],
+                    "nextCursor": "event_123",
+                    "prevCursor": null,
+                    "hasNextPage": true,
+                    "hasPrevPage": false,
+                    "totalDocs": 7
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404NotFound"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/signals/cursor": {
+      "get": {
+        "tags": [
+          "Signal Management"
+        ],
+        "summary": "List Signals by Business (Cursor)",
+        "description": "Lists all signals for the authenticated business using cursor-based pagination, with filters for entity, device, anomaly and date range.",
+        "operationId": "listSignalsByBusinessCursor",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Page size (default: 20)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Signals retrieved successfully!",
+                  "data": {
+                    "docs": [],
+                    "totalDocs": 100
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/signals/business/{businessId}/cursor": {
+      "get": {
+        "tags": [
+          "Signal Management"
+        ],
+        "summary": "List Signals by Business ID (Cursor)",
+        "description": "Lists signals for a specific business ID using cursor-based pagination, with filters for entity, device, anomaly and date range.",
+        "operationId": "listSignalsByBusinessIdCursor",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Business unique identifier"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Signals retrieved successfully!",
+                  "data": {"docs": [], "totalDocs": 100}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/signals": {
+      "get": {
+        "tags": [
+          "Signal Management"
+        ],
+        "summary": "List Signals by Business",
+        "description": "Lists all device/session signals for the authenticated business using page-number based pagination.",
+        "operationId": "listSignalsByBusiness",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Page number for pagination (Default: 1)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Number of signals per page (max 100) (Default: 20)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {"success": true, "statusCode": 200, "data": {"docs": []}}
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/api/signals/entity/{entityId}/cursor": {
+      "get": {
+        "tags": [
+          "Signal Management"
+        ],
+        "summary": "List Signals by Entity (Cursor)",
+        "description": "Lists signals for a specific entity using cursor-based pagination, with filters for device, anomaly and date range.",
+        "operationId": "listSignalsByEntityCursor",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {"type": "string"},
+            "description": "API secret token"
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"},
+            "description": "Entity unique identifier"
+          }
+        ],
+        "responses": {
+          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true}}}},
+          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
+          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
+          "500": {"$ref": "#/components/responses/Error500ServerError"}
+        }
+      }
+    },
+    "/v2/api/signals/entity/{entityId}": {
+      "get": {
+        "tags": [
+          "Signal Management"
+        ],
+        "summary": "List Signals by Entity",
+        "description": "Lists signals for a specific entity using page-number based pagination.",
+        "operationId": "listSignalsByEntity",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {"type": "string"},
+            "description": "API secret token"
+          },
+          {
+            "name": "entityId",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"},
+            "description": "Entity unique identifier"
+          }
+        ],
+        "responses": {
+          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true}}}},
+          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
+          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
+          "500": {"$ref": "#/components/responses/Error500ServerError"}
+        }
+      }
+    },
+    "/v2/api/cases": {
+      "post": {
+        "tags": [
+          "Case Management"
+        ],
+        "summary": "Create a Case",
+        "description": "Creates a new investigation case, linking it to an entity and related issues (activities, alerts, behavioural insights, or custom issues), with an assigned investigator and case stages/tasks.",
+        "operationId": "createCase",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {"type": "string"},
+            "description": "API secret token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "caseTitle": {"type": "string", "description": "Title of the case"},
+                  "caseType": {"type": "string", "description": "Type of case being created"},
+                  "description": {"type": "string", "description": "Detailed reason or context for creating the case"},
+                  "severity": {"type": "string", "enum": ["High", "Medium", "Low"]},
+                  "entityId": {"type": "string", "description": "ID of the entity the case is associated with"},
+                  "linkedIssues": {"type": "array", "items": {"type": "object"}},
+                  "caseStage": {"type": "array", "items": {"type": "object"}},
+                  "investigator": {"type": "object"}
+                },
+                "required": ["caseTitle", "caseType", "description", "severity", "entityId", "linkedIssues", "caseStage", "investigator"]
+              },
+              "example": {
+                "caseTitle": "KYC data Mismatch",
+                "caseType": "KYC",
+                "description": "The case was created because there's a complete mismatch between the NIN and BVN data of the client.",
+                "severity": "High",
+                "entityId": "6880a452495dce07d2f7ff5a",
+                "investigator": {"investigatorId": "681d7b32cd275833cb856fff"},
+                "linkedIssues": [{"issueId": "6880f7d527309cf76eb5db2e", "issueType": "Activity", "status": "Mismatch"}],
+                "caseStage": [{"stage": "Investigation", "level": "LV1", "tasks": [{"task": "Investigate KYC verification"}]}]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Success", "content": {"application/json": {"example": {"success": true, "statusCode": 201, "message": "Case created successfully!"}}}},
+          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
+          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
+          "500": {"$ref": "#/components/responses/Error500ServerError"},
+          "402": {"$ref": "#/components/responses/Error402PaymentRequired"}
+        }
+      },
+      "get": {
+        "tags": ["Case Management"],
+        "summary": "Retrieve All Cases",
+        "description": "Retrieves a paginated, filterable list of investigation cases for the authenticated business.",
+        "operationId": "retrieveAllCases",
+        "parameters": [
+          {"name": "token", "in": "header", "required": true, "schema": {"type": "string"}, "description": "API secret token"}
+        ],
+        "responses": {
+          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true, "data": {"docs": []}}}}},
+          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
+          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
+          "500": {"$ref": "#/components/responses/Error500ServerError"}
+        }
+      }
+    },
+    "/v2/api/cases/{caseId}/summary": {
+      "put": {
+        "tags": ["Case Management"],
+        "summary": "Get Case AI Summary",
+        "description": "Generates (or updates and returns) an AI-produced investigation summary/report for a case, including executive summary, entity profile, transaction analysis and recommended action.",
+        "operationId": "getCaseAiSummary",
+        "parameters": [
+          {"name": "token", "in": "header", "required": true, "schema": {"type": "string"}, "description": "API secret token"},
+          {"name": "caseId", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Unique Id of the case"}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {"application/json": {"schema": {"type": "object", "properties": {"task": {"type": "string"}, "isCompleted": {"type": "boolean"}}}, "example": {"task": "Gather evidences, and add them to the case.", "isCompleted": true}}}
+        },
+        "responses": {
+          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true}}}},
+          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
+          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
+          "500": {"$ref": "#/components/responses/Error500ServerError"},
+          "402": {"$ref": "#/components/responses/Error402PaymentRequired"}
+        }
+      }
+    },
+    "/v2/api/cases/{caseId}": {
+      "get": {
+        "tags": ["Case Management"],
+        "summary": "Retrieve a Case",
+        "description": "Fetches the full details of a single case by its unique case ID, including case stages, tasks, linked issues and activity log.",
+        "operationId": "retrieveCaseById",
+        "parameters": [
+          {"name": "token", "in": "header", "required": true, "schema": {"type": "string"}, "description": "API secret token"},
+          {"name": "caseId", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Unique Id of the case"}
+        ],
+        "responses": {
+          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true}}}},
+          "404": {"$ref": "#/components/responses/Error404NotFound"},
+          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
+          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
+          "500": {"$ref": "#/components/responses/Error500ServerError"}
+        }
+      }
+    }
+  }
+}

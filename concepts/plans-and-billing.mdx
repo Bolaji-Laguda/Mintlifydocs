@@ -1,0 +1,143 @@
+---
+title: "Youverify Plans, Entitlements, and Billing Overview"
+sidebarTitle: "Plans & Billing"
+description: "Understand how Youverify billing works, what your plan entitles you to, and how to manage usage across sandbox and production environments."
+---
+
+Youverify's billing model is designed to stay predictable as you grow. The primary meter is **Add Entity** — the action of bringing a new subject into the platform. Reading, monitoring, and running checks on existing entities do not consume additional entity allowance. Plan once around how many new entities you add per month, and your costs stay clear.
+
+## Sandbox vs. production
+
+Before spending anything, use the sandbox environment to build and test your integration completely.
+
+<CardGroup cols={2}>
+  <Card title="Sandbox" icon="flask">
+    Free to use. All API calls return realistic test data but are never billed and never affect real individuals or businesses. Use the base URL `https://api.sandbox.youverify.co`.
+  </Card>
+  <Card title="Production" icon="server">
+    Billed per entity added, per your plan's pricing. All verifications run against live data sources. Use the base URL `https://api.youverify.co`.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Each environment has its own API key. Never use a production API key in a test integration, and never use a sandbox key against the production base URL. Verify which key you are using before going live.
+</Warning>
+
+## Plans and entity allowances
+
+Every subscription plan includes a prepaid **entity allowance** — a pooled monthly budget of entities you can add — plus a **Vyra AI token allocation** for AI-agent workflows.
+
+| Plan | Entity Allowance | Vyra AI Tokens |
+|------|-----------------|----------------|
+| Scale with Vyra AI | Up to 500 units/month | 4 million tokens |
+| Growth with Vyra AI | Up to 1,200 units/month | 11 million tokens |
+| Pro with Vyra AI | Up to 2,000 units/month | 20 million tokens |
+| Enterprise | Unlimited (custom) | Custom |
+
+<Note>
+  The entity allowance is **pooled**: one budget covers all entity types. A **Base Entity** (fully diligenced individual or business) costs one full unit. A **Relationship Entity** (UBO or downstream entity, typically thinly known at creation) costs a fraction — approximately half a unit — because it starts with less data. If you later promote a relationship entity to full verification, it consumes a full unit at that point.
+</Note>
+
+## What your plan entitles you to
+
+Youverify bundles capabilities rather than selling them as separate licensed products. If a capability is documented, your plan can use it. Specifically, your plan determines:
+
+- **Which API capabilities are available** — including which countries, which government ID types, and which AML data sources are accessible
+- **Advanced AML features** — deepfake-resistant liveness, document capture, PEP screening, and adverse-media screening are bundled into all plans, not sold as add-ons
+- **AI-agent workflows** — Vyra-powered automation for customer onboarding, transaction monitoring, and fraud detection, metered by token usage
+- **Custom Fraud Traps** — availability depends on plan tier
+
+<Tip>
+  Single-tool usage (consuming only one capability in isolation, such as government-data verification by itself) is available on **Enterprise plans only**, with volume pricing negotiated under a rate card. Subscription plans cover the end-to-end workflow.
+</Tip>
+
+## Add-ons
+
+You can extend any plan with:
+
+<CardGroup cols={3}>
+  <Card title="Identity Verifications" icon="id-card">
+    Extra global identity verifications beyond your plan's included bundle, billed per verification.
+  </Card>
+  <Card title="Vyra AI Tokens" icon="robot">
+    Additional token allocation for AI-agent workflows beyond your plan's included allocation.
+  </Card>
+  <Card title="Workflow Automation" icon="gears">
+    Customer Onboarding workflow automation, if not included in your base plan tier.
+  </Card>
+</CardGroup>
+
+## Viewing your usage
+
+Track your entity allowance consumption and Vyra AI token usage at any time in the **Youverify Cowork dashboard** at [cowork.youverify.co](https://cowork.youverify.co). The usage dashboard shows:
+
+- Current-month entity count against your allowance
+- Vyra AI token consumption against your plan allocation
+- Overage accrued so far this billing period
+
+## Over-quota behaviour
+
+If you exceed your plan's entity allowance or Vyra AI token allocation, the API returns a `403` error. The response follows the standard error envelope:
+
+```json
+{
+  "success": false,
+  "statusCode": 403,
+  "name": "PlanLimitError",
+  "message": "You have reached your monthly entity allowance. Upgrade your plan or wait for the next billing cycle to continue adding entities."
+}
+```
+
+<Warning>
+  Over-quota errors block new entity creation and chargeable AI-agent actions. Monitor your usage in the dashboard proactively — especially during onboarding campaigns or high-volume periods — to avoid disruption to your workflows.
+</Warning>
+
+## Overage charges
+
+If you exceed your monthly allowance, overage applies at the published per-unit rate for your plan. Overage is billed on the same cycle as your base subscription.
+
+<Accordion title="Base vs. Relationship Entity pricing detail">
+  Your entity allowance uses one shared pool, but entity types consume it differently:
+
+  - **Base Entity** (Individual or Business, standalone): 1 full unit
+  - **Relationship Entity** (UBO or Downstream Entity, linked via `parentId`): approximately 0.5 units
+
+  **Anti-gaming rule**: if a relationship entity is promoted to full verification status (for example, a thinly-known downstream entity that later completes full KYC), it is reclassified and consumes a full unit at the time of promotion. You cannot get full diligence at the relationship rate.
+</Accordion>
+
+## Subscription lifecycle and data retention
+
+If your subscription lapses, Youverify separates access from data retention — because your compliance records are regulated data, not just application state.
+
+<Steps>
+  <Step title="Grace period (7–14 days)">
+    Full access continues with renewal reminders sent to your account email.
+  </Step>
+  <Step title="Restricted / read-only (30–60 days)">
+    Chargeable actions are suspended. You retain read-only access to all existing records and can export data during this period.
+  </Step>
+  <Step title="Dormant / archived">
+    Account access moves behind a reactivation paywall. All data is retained in archival storage — nothing is deleted.
+  </Step>
+  <Step title="Deletion">
+    Data is only deleted at the end of the legal or contractual retention period, or on a documented instruction with no legal hold, after a final export is offered.
+  </Step>
+</Steps>
+
+<Note>
+  AML regulations (including FATF Recommendation 11 and most national laws) typically require KYC, CDD, and transaction records to be retained for at least **5 years** after the relationship ends. Youverify will not delete your compliance data simply because a subscription lapses.
+</Note>
+
+## Upgrading or adjusting your plan
+
+To upgrade your plan, purchase add-ons, or discuss Enterprise pricing, visit [youverify.co](https://youverify.co) or contact your account manager directly. The Enterprise plan offers:
+
+- Unlimited entity allowance
+- Custom Vyra AI token allocation
+- Negotiated rate card and SLA
+- Enterprise-grade support
+- Single-tool usage for isolated capability consumption
+
+<Tip>
+  If you are building a high-volume integration or need to isolate specific capabilities (for example, running only government-data verification without the full onboarding workflow), reach out to discuss an Enterprise agreement before you start building — the pricing model is meaningfully different from subscription plans.
+</Tip>

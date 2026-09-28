@@ -1,0 +1,133 @@
+---
+title: 'Youverify API Authentication — Token Header & Keys'
+sidebarTitle: 'Authentication'
+description: 'Pass your secret API key in the token header on every server-to-server request. Covers key types, setup steps, and security best practices.'
+---
+
+Every request to the Youverify API must include your secret API key in the `token` header. There is no OAuth handshake, no bearer token exchange, and no session initialization step — possession of the key is authority, which means it must never leave your backend. This page covers the two key types, how to locate them, example requests, and security best practices.
+
+## Authentication Method
+
+Youverify uses a single `token` header for server-to-server authentication. Pass it on every request alongside `Content-Type: application/json`:
+
+```http
+token: sk_live_abc123...
+Content-Type: application/json
+```
+
+<Warning>
+  Do **not** prefix the key with `Bearer` or `Basic`. The header name is literally `token` and the value is your raw API key.
+</Warning>
+
+## Key Types
+
+Youverify issues two types of credentials. Use the right one for the right context:
+
+<CardGroup cols={2}>
+  <Card title="Secret API Key" icon="key">
+    Full API access. Use for all server-to-server calls. **Never expose this key in client-side code, mobile apps, or version control.**
+  </Card>
+  <Card title="Public Merchant Key" icon="lock-open">
+    Scoped only to SDK session initialization and hosted flows (e.g. liveness capture, document upload). Safe to embed in web or mobile clients.
+  </Card>
+</CardGroup>
+
+| Credential | Where to use | Can be client-side? |
+|---|---|---|
+| Secret API key | Server-to-server, `token` header | ❌ Never |
+| Public merchant key | Web/mobile SDKs, hosted flows | ✅ Yes |
+
+## Where to Find Your Keys
+
+Retrieve your API keys from the Youverify dashboard:
+
+<Steps>
+  <Step title="Sign in to the dashboard">
+    Go to [cowork.youverify.co](https://cowork.youverify.co) and sign in to your workspace.
+  </Step>
+  <Step title="Open Workspace Settings">
+    Click your workspace name or avatar in the top navigation, then select **Workspace Settings**.
+  </Step>
+  <Step title="Navigate to API Keys">
+    In the settings sidebar, click **API Keys**. Your sandbox and production keys are listed separately.
+  </Step>
+  <Step title="Copy the correct key">
+    Copy the key for the environment you are targeting — sandbox keys work only against `https://api.sandbox.youverify.co`, and production keys work only against `https://api.youverify.co`.
+  </Step>
+</Steps>
+
+## Example Request
+
+The following `curl` example creates an entity using a secret API key in the `token` header:
+
+```bash
+curl -X POST "https://api.sandbox.youverify.co/v2/api/entities" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityType": "individual",
+    "isSubjectConsent": true,
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane.doe@example.com"
+  }'
+```
+
+<Tip>
+  Store your key in an environment variable (e.g. `YV_SECRET_KEY`) rather than hard-coding it. This makes it easy to switch environments and prevents accidental exposure.
+</Tip>
+
+## Authentication Errors
+
+| Status | Error Name | Meaning |
+|---|---|---|
+| `401 Unauthorized` | `UnauthorizedError` | The `token` header is missing, empty, or contains an invalid key. |
+| `403 Forbidden` | `ForbiddenError` | The token is valid but your plan or permission level does not allow this operation. |
+
+### 401 Example
+
+```json
+{
+  "success": false,
+  "statusCode": 401,
+  "name": "UnauthorizedError",
+  "message": "Invalid or missing token."
+}
+```
+
+### 403 Example
+
+```json
+{
+  "success": false,
+  "statusCode": 403,
+  "name": "ForbiddenError",
+  "message": "Your current plan does not include access to this endpoint."
+}
+```
+
+## Security Best Practices
+
+Follow these practices to keep your API keys secure:
+
+<Steps>
+  <Step title="Use environment variables">
+    Never hard-code a secret key in source code. Load it at runtime from environment variables (`YV_SECRET_KEY`) or a secrets manager such as AWS Secrets Manager, HashiCorp Vault, or GCP Secret Manager.
+  </Step>
+  <Step title="Use separate keys per environment">
+    Keep sandbox and production keys entirely separate. Treat your production key as the highest-sensitivity credential in your system.
+  </Step>
+  <Step title="Rotate keys regularly">
+    Generate a new secret key from the dashboard periodically, update your environment variable, and revoke the old key. Rotate immediately if you suspect a key has been exposed.
+  </Step>
+  <Step title="Never commit keys to version control">
+    Add key files and `.env` files to `.gitignore`. Scan your repository history with tools like `git-secrets` or `trufflehog` before making it public.
+  </Step>
+  <Step title="Restrict server egress where possible">
+    If your infrastructure supports it, restrict outbound calls to the Youverify API to a specific service or network segment so the key is used only from expected origins.
+  </Step>
+</Steps>
+
+<Note>
+  The public merchant key is safe to embed in web and mobile apps because it is scoped solely to starting a liveness or document-capture session — it cannot create entities, run verifications, or access any data.
+</Note>

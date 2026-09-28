@@ -1,0 +1,77 @@
+---
+title: "Youverify: FRAML Platform for Modern Compliance Teams"
+sidebarTitle: "Introduction"
+description: "Youverify provides KYC, KYB, AML screening, and transaction monitoring in one unified API platform built for fintechs and payment processors."
+---
+
+Youverify is a unified FRAML (fraud and anti-money laundering) platform that lets you onboard, verify, monitor, and investigate individuals and businesses through a single set of APIs and credentials. Instead of stitching together separate KYC, sanctions screening, and transaction monitoring tools, Youverify gives you one consistent data model — the **Entity 360** — so your compliance team always has the full picture.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/get-started/quickstart">
+    Create your first entity and run a verification in under 5 minutes.
+  </Card>
+  <Card title="Authentication" icon="key" href="/get-started/authentication">
+    Get your API key and learn how to authenticate every request.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/overview">
+    Full endpoint reference for entity management, KYC, KYB, AML, and more.
+  </Card>
+  <Card title="Guides" icon="book-open" href="/guides/onboard-by-email">
+    Step-by-step walkthroughs for common compliance use cases.
+  </Card>
+</CardGroup>
+
+## What You Can Build
+
+Youverify's APIs power end-to-end compliance workflows across every stage of the customer lifecycle:
+
+<CardGroup cols={3}>
+  <Card title="Identity Verification" icon="id-card" href="/api-reference/kyc/id-data-matching">
+    Validate government-issued IDs and PII across Nigeria, Kenya, South Africa, Ghana, Côte d'Ivoire, and more.
+  </Card>
+  <Card title="Business Verification" icon="building" href="/api-reference/kyb/business-verification">
+    Verify company registrations, UBO structures, and business addresses across Africa and EMEA.
+  </Card>
+  <Card title="AML Screening" icon="shield-halved" href="/api-reference/aml/pep-sanction-screening">
+    Screen individuals and businesses against global PEP, sanctions, and adverse media databases.
+  </Card>
+  <Card title="Transaction Monitoring" icon="chart-line" href="/api-reference/kyt/create-transaction">
+    Submit transactions for real-time risk evaluation and alert generation.
+  </Card>
+  <Card title="Case Management" icon="folder-open" href="/api-reference/cases/create-case">
+    Create and investigate compliance cases with AI-powered summaries.
+  </Card>
+  <Card title="Mobile & Web SDKs" icon="mobile" href="/sdks/overview">
+    Embed liveness detection and document capture directly in your app.
+  </Card>
+</CardGroup>
+
+## How It Works
+
+<Steps>
+  <Step title="Get your API key">
+    Sign in to the [Youverify Cowork dashboard](https://cowork.youverify.co) and generate a secret API key from your workspace settings. You'll get separate keys for sandbox and production.
+  </Step>
+  <Step title="Create an entity">
+    Add any individual or business to the platform. Start with as little as an email address — Youverify creates a risk-scored record immediately and lets you enrich it over time.
+  </Step>
+  <Step title="Run verifications">
+    Trigger KYC identity checks, KYB business lookups, AML screenings, or transaction risk evaluations against the entity using the same credentials.
+  </Step>
+  <Step title="Monitor and act">
+    Receive webhook notifications as verification results and risk signals arrive. Escalate to cases, review with AI summaries, and make informed decisions.
+  </Step>
+</Steps>
+
+## Environments
+
+Youverify provides two isolated environments:
+
+| Environment | Base URL | Purpose |
+|---|---|---|
+| **Sandbox** | `https://api.sandbox.youverify.co` | Test integrations with synthetic data — not billed |
+| **Production** | `https://api.youverify.co` | Live checks against authoritative sources — billed |
+
+<Note>
+  Always use your sandbox credentials for development and testing. Never use a sandbox key against the production endpoint or vice versa.
+</Note>

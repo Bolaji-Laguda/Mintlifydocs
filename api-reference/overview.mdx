@@ -1,0 +1,203 @@
+---
+title: 'Youverify REST API Reference — Overview & Conventions'
+sidebarTitle: 'Overview'
+description: 'Base URLs, request format, authentication, response envelope, error codes, pagination, and rate limits for the Youverify REST API.'
+---
+
+The Youverify REST API gives you programmatic access to the full FRAML platform: create and monitor entities, run KYC, KYB, and AML checks, ingest transactions for KYT, manage cases, and stream signals — all over JSON and HTTPS. Every resource in this reference follows the same conventions, so once you understand the envelope and authentication pattern, the rest is consistent throughout.
+
+## Base URLs
+
+Youverify provides two fully isolated environments. Use the sandbox for integration and testing; switch to production when you are ready for live, billed checks.
+
+| Environment | Base URL | Purpose |
+|---|---|---|
+| **Sandbox** | `https://api.sandbox.youverify.co` | Integration & testing — test data, not billed |
+| **Production** | `https://api.youverify.co` | Real checks against authoritative sources, billed |
+
+<Warning>
+  Never mix credentials between environments. A sandbox key will be rejected by the production endpoint, and vice versa.
+</Warning>
+
+## Request Format
+
+All requests and responses are JSON over HTTPS. Set the following headers on every call:
+
+```http
+token: YOUR_SECRET_KEY
+Content-Type: application/json
+```
+
+## Authentication
+
+Youverify authenticates server-to-server calls with a single `token` header. There is no OAuth handshake — possession of the secret key is authority, so it must **never** leave your backend. See the [Authentication reference](/api-reference/authentication) for full details, key types, and security best practices.
+
+## Response Envelope
+
+Every successful response shares the same shape, so you write your deserialization logic once:
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Human-readable outcome.",
+  "data": {},
+  "links": []
+}
+```
+
+<ResponseField name="success" type="boolean">
+  `true` on all successful responses.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP status code mirrored in the body, e.g. `200`, `201`.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  A human-readable description of the outcome.
+</ResponseField>
+
+<ResponseField name="data" type="object | array">
+  The primary payload — an object for single-resource endpoints, an array for list endpoints.
+</ResponseField>
+
+<ResponseField name="links" type="array">
+  Hypermedia links for navigation (pagination cursors, related resources).
+</ResponseField>
+
+## Error Envelope
+
+When a request fails, the response uses the same skeleton with `success: false` and a machine-readable error `name`:
+
+```json
+{
+  "success": false,
+  "statusCode": 404,
+  "name": "ResourceNotFoundError",
+  "message": "Entity with ID ent_abc123 was not found."
+}
+```
+
+<ResponseField name="success" type="boolean">
+  Always `false` for error responses.
+</ResponseField>
+
+<ResponseField name="statusCode" type="integer">
+  The HTTP status code for the error.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  A machine-readable error identifier, e.g. `ResourceNotFoundError`, `ValidationError`, `UnauthorizedError`.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  A human-readable explanation of what went wrong.
+</ResponseField>
+
+### Common HTTP Status Codes
+
+| Code | Meaning |
+|---|---|
+| `200 OK` | Request succeeded |
+| `201 Created` | Resource was created successfully |
+| `400 Bad Request` | Invalid request body or missing required parameter |
+| `401 Unauthorized` | Missing or invalid `token` header |
+| `403 Forbidden` | Valid token but insufficient plan or permission |
+| `404 Not Found` | The requested resource does not exist |
+| `422 Unprocessable Entity` | Request is well-formed but semantically invalid |
+| `429 Too Many Requests` | Rate limit exceeded — retry after the `Retry-After` header |
+| `500 Internal Server Error` | Unexpected server error |
+
+## Pagination
+
+### Offset Pagination
+
+Most list endpoints support offset-based pagination via `page` and `limit` query parameters:
+
+```http
+GET /v2/api/entities?page=2&limit=50
+```
+
+<ParamField query="page" type="integer" default="1">
+  The page number to retrieve.
+</ParamField>
+
+<ParamField query="limit" type="integer" default="20">
+  Number of results per page. Maximum is `100`.
+</ParamField>
+
+The paginated response includes metadata alongside the `data` array:
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entities retrieved successfully.",
+  "data": {
+    "total": 342,
+    "page": 2,
+    "limit": 50,
+    "list": []
+  },
+  "links": []
+}
+```
+
+### Cursor Pagination
+
+High-volume streams such as Signals support cursor-based pagination, which is preferred for production polling because it handles real-time data without skipping or duplicating records. Pass the `cursor` value returned in `links` as a query parameter on the next request.
+
+## Entity IDs
+
+All entities carry a stable, globally unique identifier prefixed with `ent_`:
+
+```
+ent_685c73c8519d82bd21a42fae
+```
+
+This ID is permanent for the lifetime of the entity. Reference it across KYC, KYB, AML, KYT, and case management calls so every result attaches to the entity's 360 record rather than existing as an orphaned report.
+
+## Rate Limits
+
+Youverify enforces per-workspace rate limits. When you exceed them, the API returns `429 Too Many Requests` with a `Retry-After` header indicating how many seconds to wait before retrying:
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 30
+```
+
+<Tip>
+  Implement exponential backoff with jitter in your retry logic to avoid thundering-herd problems when operating near your rate limit.
+</Tip>
+
+## Resource Groups
+
+The API is organized around the following resource groups:
+
+<CardGroup cols={2}>
+  <Card title="Entities" icon="user">
+    Create, retrieve, and manage individual and business entities. The central object everything else references.
+  </Card>
+  <Card title="KYC" icon="id-card">
+    Run identity checks against government ID databases — BVN, NIN, passport, driver's license, and more.
+  </Card>
+  <Card title="KYB" icon="building">
+    Verify businesses against company registries. Retrieve registration details, directors, shareholders, and UBOs.
+  </Card>
+  <Card title="AML" icon="shield-halved">
+    Screen entities against PEP lists, global sanctions databases, and adverse media sources.
+  </Card>
+  <Card title="KYT" icon="arrow-right-arrow-left">
+    Ingest transactions and receive real-time risk evaluations and fraud signals for transaction monitoring.
+  </Card>
+  <Card title="Cases" icon="folder-open">
+    Open, update, and close investigation cases linked to entities. The human-in-the-loop layer.
+  </Card>
+  <Card title="Signals" icon="bell">
+    Retrieve detected events, patterns, and alerts generated by fraud traps and monitoring rules.
+  </Card>
+  <Card title="Risk" icon="chart-line">
+    Access risk scores, scoring breakdowns, and risk model configuration for your workspace.
+  </Card>
+</CardGroup>

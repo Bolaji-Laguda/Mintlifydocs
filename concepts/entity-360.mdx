@@ -1,0 +1,168 @@
+---
+title: "The Entity 360: Youverify's Unified Customer Record"
+sidebarTitle: "Entity 360"
+description: "The Entity 360 is Youverify's core data model — a single, continuously-updated record of everything known about a customer or business."
+---
+
+Most compliance stacks are check-centric: KYC lives in one system, sanctions screening in another, and transaction monitoring in a third. Reconciling those siloed outputs when something goes wrong — or proving to a regulator that you did your job — is slow, fragile, and expensive. Youverify inverts that model with the **Entity 360**: a single, continuously-enriched record that anchors every verification, screening result, transaction signal, and case to one identifier. Instead of chasing reports across systems, your compliance team gets one canvas that shows the complete picture.
+
+## What is an entity?
+
+An entity is any subject your team needs to track, verify, or monitor: an individual (a natural person) or a business (a legal entity). The entity is the central object in Youverify — every check, alert, and case references it rather than standing alone as an orphaned report.
+
+Entities carry a unique `ent_…` identifier that you use to associate all subsequent activity. Create an entity once, then reference it forever.
+
+<CardGroup cols={2}>
+  <Card title="Individual" icon="user">
+    A natural person. Carries identity data such as name, date of birth, and government ID, enriched over time through KYC verifications.
+  </Card>
+  <Card title="Business" icon="building">
+    A legal entity with incorporation details and a full ownership graph — UBOs, directors, shareholders, and PSCs with share percentages.
+  </Card>
+</CardGroup>
+
+## How little data do you need to start?
+
+You can create an entity with remarkably thin data. For a standard individual, a name, phone number, and date of birth complete a basic profile. For a business, an incorporation name and number are sufficient. In the downstream-entity (payment-processor customer) case, you can create an entity from **just an email address** — the platform scores on whatever is present and tightens the score as you enrich the record over time.
+
+<Note>
+  The only hard requirements are **entity type** and a **consent flag**. Everything else can be added progressively.
+</Note>
+
+## Two ways to create an entity
+
+<Tabs>
+  <Tab title="Manual">
+    You supply the data yourself — name, contact details, document numbers, or whatever you have. This is the most common path when you already hold your customer's information.
+  </Tab>
+  <Tab title="Authoritative Government Data">
+    You create the entity from an official source such as a national ID registry or company registry. Youverify dynamically retrieves the individual's identity data or, for a business, its UBOs directly from the authoritative source and populates the profile automatically.
+  </Tab>
+</Tabs>
+
+## Entity ID format
+
+Every entity receives an identifier with the `ent_` prefix — for example, `ent_01j9xkp4f8e3q2wr5td6mnbc7a`. Store this ID in your own database alongside your internal customer reference so you can always look up or update the entity later.
+
+## Entity status lifecycle
+
+An entity moves through clearly separated stages. Keeping creation and decisioning separate lets you start monitoring an entity and building its history **before** any onboarding decision has been made.
+
+<Steps>
+  <Step title="Created">
+    The entity is added — manually or from authoritative data — and an initial risk score is computed immediately from whatever data is present. This is a tracking state, not an approval.
+  </Step>
+  <Step title="Enriched">
+    As more data and checks arrive (all referencing the entity ID), the profile fills out and the score tightens. Verifications, transactions, and AML results fold into the 360 automatically.
+  </Step>
+  <Step title="Decisioned">
+    The entity is approved, rejected, restricted, or escalated — driven by an AI-agent workflow. Edge cases are escalated to a human reviewer or a case.
+  </Step>
+  <Step title="Monitored">
+    The entity stays live. Ongoing re-screening and transaction monitoring continue to raise signals and alerts over time, keeping the 360 current.
+  </Step>
+</Steps>
+
+## What attaches to an entity
+
+The Entity 360 is not a separate object — it is the entity viewed through everything attached to it. Retrieving an entity gives you its profile and, for a business, its full ownership graph. From there you traverse to every linked object:
+
+<CardGroup cols={2}>
+  <Card title="Verifications" icon="shield-check">
+    Every KYC, KYB, and AML result ever run on this entity, with outcomes and evidence.
+  </Card>
+  <Card title="AML Screening Results" icon="magnifying-glass">
+    PEP hits, sanctions matches, adverse-media findings, and custom watchlist results.
+  </Card>
+  <Card title="Transaction Signals" icon="chart-line">
+    Financial activity and its KYT evaluations — transaction rhythm, counterparties, and anomaly flags.
+  </Card>
+  <Card title="Alerts" icon="bell">
+    Monitoring outputs generated when signal thresholds are crossed, ready for triage.
+  </Card>
+  <Card title="Cases" icon="folder-open">
+    Investigations opened from alerts, with AI-generated summaries and evidence collection.
+  </Card>
+  <Card title="Risk Score" icon="gauge">
+    A continuously-updated 0–100 score computed from all available signals and check results.
+  </Card>
+</CardGroup>
+
+## The 360 canvas
+
+The **360 canvas** in the Youverify Cowork dashboard gives your compliance team a single-screen view of all activity for an entity: profile data, ownership graph, verifications, transactions, signals, alerts, and open cases. Nothing needs reconciling — every object shares the entity as its anchor.
+
+## Entity object structure
+
+<ResponseField name="id" type="string" required>
+  Unique entity identifier with the `ent_…` prefix. Use this ID to reference the entity in all subsequent API calls.
+</ResponseField>
+
+<ResponseField name="entityType" type="string" required>
+  Classification of the entity. One of `individual` or `business`.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current lifecycle status of the entity — for example `not_approved` or `approved`. The `profileStatus` field (e.g. `pending`) tracks enrichment progress separately.
+</ResponseField>
+
+<ResponseField name="riskScore" type="number">
+  Computed risk score from 0 (lowest risk) to 100 (highest risk). Updated continuously as new signals arrive.
+</ResponseField>
+
+<ResponseField name="firstName" type="string">
+  First name of the individual. Present on `individual` entities only.
+</ResponseField>
+
+<ResponseField name="lastName" type="string">
+  Last name of the individual. Present on `individual` entities only.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Email address. May be the only field present on a thinly-created downstream entity.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  ISO 8601 timestamp of when the entity record was created.
+</ResponseField>
+
+<ResponseField name="updatedAt" type="string">
+  ISO 8601 timestamp of the most recent update to the entity record.
+</ResponseField>
+
+## Example: a newly created entity
+
+The response below shows what Youverify returns immediately after you create an individual entity. Note the `ent_…` identifier, the initial `riskScore`, and the `not_approved` status — the entity is tracked and scored, but no approval decision has been made yet.
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entity created successfully.",
+  "data": {
+    "id": "ent_01j9xkp4f8e3q2wr5td6mnbc7a",
+    "entityType": "individual",
+    "status": "not_approved",
+    "profileStatus": "pending",
+    "riskScore": 12,
+    "firstName": "Amara",
+    "lastName": "Osei",
+    "email": "amara.osei@example.com",
+    "createdAt": "2025-01-15T09:32:11.000Z",
+    "updatedAt": "2025-01-15T09:32:11.000Z"
+  },
+  "links": []
+}
+```
+
+## Creating an entity is not an approval decision
+
+<Warning>
+  Adding an entity creates a tracked, scored record — it does **not** approve or reject the subject. The outcome of `POST /v2/api/entities` is always a **Created** entity. The approval decision runs separately as an AI-agent workflow that applies your configured rules to the score, signals, and check results. Never treat entity creation as sign-off on a customer.
+</Warning>
+
+This separation is intentional: it lets you begin monitoring an entity and building an audit trail from the very first interaction, long before your onboarding workflow reaches a decision point. Every check and signal you add along the way references the entity ID, so the full history is always available when a decision is finally made.
+
+<Tip>
+  Once an entity exists, do not recreate it for subsequent interactions. Search for or fetch the existing entity and continue operating on it. Any check or activity that references the entity ID folds its result into the 360 automatically — **create once, reference forever**.
+</Tip>

@@ -1,0 +1,177 @@
+{
+  "projectType": "api-service",
+  "projectName": "Youverify",
+  "projectDescription": "Youverify is a FRAML (fraud and anti-money-laundering) platform providing KYC, KYB, AML screening, transaction monitoring, and case management APIs for fintechs, payment processors, and compliance teams.",
+  "theme": "luma",
+  "primaryColor": "#ef7025",
+  "lightColor": "#eec9bc",
+  "darkColor": "#4fa1ab",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "get-started/quickstart",
+              "get-started/authentication",
+              "get-started/response-codes",
+              "get-started/test-data"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/entity-360",
+              "concepts/risk-scoring",
+              "concepts/monitoring-model",
+              "concepts/plans-and-billing"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/onboard-by-email",
+              "guides/onboard-by-phone",
+              "guides/onboard-by-government-id",
+              "guides/tiered-kyc-digital-banking",
+              "guides/corporate-kyb-ubo"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "webhooks/overview",
+              "webhooks/kyc-webhooks",
+              "webhooks/kyt-webhooks"
+            ]
+          },
+          {
+            "group": "SDKs",
+            "pages": [
+              "sdks/overview",
+              "sdks/web-sdk",
+              "sdks/android-sdk",
+              "sdks/ios-sdk",
+              "sdks/liveness-sdk"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api-reference/overview",
+              "api-reference/authentication"
+            ]
+          },
+          {
+            "group": "Entity Management",
+            "pages": [
+              "api-reference/entities/create-entity",
+              "api-reference/entities/get-entities",
+              "api-reference/entities/get-entity-by-id",
+              "api-reference/entities/verify-entity-kyc",
+              "api-reference/entities/verify-entity-kyb",
+              "api-reference/entities/verify-entity-aml"
+            ]
+          },
+          {
+            "group": "KYC — Identity Verification",
+            "pages": [
+              "api-reference/kyc/id-data-matching",
+              "api-reference/kyc/facial-comparison",
+              "api-reference/kyc/address-verification",
+              "api-reference/kyc/retrieve-identity",
+              "api-reference/kyc/identity-history"
+            ]
+          },
+          {
+            "group": "KYB — Business Verification",
+            "pages": [
+              "api-reference/kyb/business-verification",
+              "api-reference/kyb/search-businesses",
+              "api-reference/kyb/retrieve-business",
+              "api-reference/kyb/business-address-verification"
+            ]
+          },
+          {
+            "group": "AML Screening",
+            "pages": [
+              "api-reference/aml/pep-sanction-screening",
+              "api-reference/aml/adverse-media",
+              "api-reference/aml/custom-watchlist"
+            ]
+          },
+          {
+            "group": "Transaction Monitoring",
+            "pages": [
+              "api-reference/kyt/create-client",
+              "api-reference/kyt/create-transaction",
+              "api-reference/kyt/retrieve-evaluation"
+            ]
+          },
+          {
+            "group": "Case & Signal Management",
+            "pages": [
+              "api-reference/cases/create-case",
+              "api-reference/cases/retrieve-cases",
+              "api-reference/cases/get-case-summary",
+              "api-reference/signals/list-signals"
+            ]
+          },
+          {
+            "group": "Risk & Credit",
+            "pages": [
+              "api-reference/risk/risk-intelligence",
+              "api-reference/risk/credit-report"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Entity 360 — unified record of every customer across KYC, KYB, AML, and transaction history",
+    "KYC Identity Verification — government ID matching, biometric liveness, and facial comparison",
+    "KYB Business Verification — company search, UBO verification, and business address checks",
+    "AML Screening — PEP & sanctions screening, adverse media intelligence, and custom watchlists",
+    "Transaction Monitoring (KYT) — real-time transaction risk evaluation and alert management",
+    "Risk Scoring — configurable, weighted risk model per entity updated continuously",
+    "Case Management — create, triage, and resolve compliance cases with AI summaries",
+    "Webhooks — real-time event notifications for KYC, KYT, and alert lifecycle events",
+    "Mobile & Web SDKs — Android, iOS, and Web SDKs for liveness detection and document capture",
+    "Multi-country Support — Africa, EMEA, and global coverage with country-specific ID types",
+    "Sandbox & Production Environments — isolated test environment with dedicated base URLs",
+    "SOC 2 Type II, ISO 27001 / 27018 / 42001, GDPR compliant"
+  ],
+  "publicApiSurface": [
+    "POST /v2/api/entities — Create Entity",
+    "GET /v2/api/entities — Get All Entities",
+    "GET /v2/api/entities/{id} — Get Entity by ID",
+    "POST /v2/api/entities/{id}/verify/kyc — Verify Entity (KYC)",
+    "POST /v2/api/entities/{id}/verify/kyb — Verify Entity (KYB)",
+    "POST /v2/api/entities/{id}/verify/aml — Verify Entity (AML)",
+    "POST /v2/api/identity/verify — ID Data Matching (eIDV)",
+    "POST /v2/api/identity/facial-comparison — Facial Comparison",
+    "POST /v2/api/address/verify — Address Verification",
+    "POST /v2/api/aml/search — PEP & Sanction Screening",
+    "POST /v2/api/aml/adverse-media — Adverse Media Search",
+    "POST /v2/api/watchlist — Custom AML Watchlist Upload",
+    "POST /v2/api/kyt/clients — Create KYT Client",
+    "POST /v2/api/kyt/transactions — Create Transaction",
+    "GET /v2/api/kyt/evaluations/{id} — Retrieve Evaluation",
+    "POST /v2/api/cases — Create Case",
+    "GET /v2/api/cases — Retrieve All Cases",
+    "GET /v2/api/cases/{id}/summary — Get Case AI Summary",
+    "GET /v2/api/signals — List Signals by Entity",
+    "POST /v2/api/risk/check — Initialise Risk Intelligence Check",
+    "POST /v2/api/sdk/liveness-token — Generate SDK Liveness Token",
+    "POST /v2/api/sdk/session-id — Generate SDK Session ID"
+  ]
+}

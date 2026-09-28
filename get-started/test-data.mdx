@@ -1,0 +1,203 @@
+---
+title: 'Sandbox Test Data for the Youverify API Environment'
+sidebarTitle: 'Test Data'
+description: 'Use these test IDs and credentials to simulate identity verifications in the Youverify sandbox without consuming real credits or querying live sources.'
+---
+
+The Youverify sandbox environment is a fully isolated testing environment that uses synthetic data rather than live government sources. You can create entities, run KYC verifications, test AML screening, and simulate the full compliance workflow without spending production credits or exposing real PII.
+
+## Sandbox vs production
+
+Understanding the boundary between environments keeps your integration safe and predictable.
+
+| | Sandbox | Production |
+|---|---|---|
+| **Base URL** | `https://api.sandbox.youverify.co` | `https://api.youverify.co` |
+| **Data sources** | Synthetic / test data | Authoritative government sources |
+| **Billing** | Free — never billed | Billed per check |
+| **Credentials** | Sandbox API keys only | Production API keys only |
+| **Field coverage** | May return partial or mock fields | Full response from live data sources |
+| **Use case** | Development, CI/CD, QA | Real subjects and live compliance |
+
+<Warning>
+  Sandbox and production use separate API keys. A sandbox key will be rejected by the production endpoint, and a production key will be rejected by the sandbox endpoint. Always confirm which environment is selected in your [workspace settings](https://cowork.youverify.co) before copying a key.
+</Warning>
+
+<Tip>
+  Set your sandbox base URL as a named constant or environment variable (`YV_BASE_URL=https://api.sandbox.youverify.co`) so you can swap environments by changing a single value at deployment time.
+</Tip>
+
+## Test entity creation
+
+You can create a test entity with minimal fields. The only hard requirements are `entityType` and `isSubjectConsent`. For a sandbox individual entity, the combination below is enough to get a scored, tracked record:
+
+```bash
+curl -X POST "https://api.sandbox.youverify.co/v2/api/entities" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityType": "individual",
+    "isSubjectConsent": true,
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "testuser@example.com"
+  }'
+```
+
+The response includes a stable `ent_…` entity ID you can reference in all subsequent calls — verifications, transactions, cases, and signals all attach to the same ID.
+
+<Note>
+  Creating an entity from just an email is supported in sandbox and production, but is reserved for entities tagged as **downstream entities** (the payment-processor customer model, where only an email is initially known). For standard individual onboarding, provide at minimum a name.
+</Note>
+
+## Test IDs for Nigerian identity verification
+
+Use the following synthetic IDs when testing KYC verification endpoints against Nigerian government document types. These values are recognised by the sandbox and return predictable mock responses without querying live government databases.
+
+<Tabs>
+  <Tab title="BVN">
+    The **Bank Verification Number (BVN)** is an 11-digit identifier issued by the Central Bank of Nigeria.
+
+    | Field | Test Value |
+    |---|---|
+    | BVN | `12345678901` |
+    | Expected sandbox result | Verification accepted; returns mock name and date of birth |
+
+    Submit this test BVN via the entity KYC verification endpoint, replacing `{entityId}` with the `ent_…` ID you received when you created your test entity:
+
+    ```bash
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "bvn",
+        "bvn": "12345678901"
+      }'
+    ```
+  </Tab>
+
+  <Tab title="NIN">
+    The **National Identification Number (NIN)** is an 11-digit identifier issued by the National Identity Management Commission (NIMC).
+
+    | Field | Test Value |
+    |---|---|
+    | NIN | `12345678901` |
+    | Expected sandbox result | Verification accepted; returns mock identity profile |
+
+    Submit this test NIN via the entity KYC verification endpoint, replacing `{entityId}` with your test entity's `ent_…` ID:
+
+    ```bash
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "nin",
+        "nin": "12345678901"
+      }'
+    ```
+  </Tab>
+
+  <Tab title="Driver's License">
+    Nigerian driver's licenses follow the format `AAA00000000000` — two or three uppercase letters followed by a numeric sequence.
+
+    | Field | Test Value |
+    |---|---|
+    | License number | `ABC1234567890` |
+    | State of issue | `Lagos` |
+    | Expected sandbox result | Verification accepted; returns mock license data |
+
+    Submit this test license number via the entity KYC verification endpoint, replacing `{entityId}` with your test entity's `ent_…` ID:
+
+    ```bash
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "drivers_license",
+        "licenseNumber": "ABC1234567890",
+        "stateOfIssue": "Lagos"
+      }'
+    ```
+  </Tab>
+
+  <Tab title="Passport">
+    Nigerian international passports follow the format `A00000000` — one uppercase letter followed by eight digits.
+
+    | Field | Test Value |
+    |---|---|
+    | Passport number | `A12345678` |
+    | Expected sandbox result | Verification accepted; returns mock passport data |
+
+    Submit this test passport number via the entity KYC verification endpoint, replacing `{entityId}` with your test entity's `ent_…` ID:
+
+    ```bash
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "passport",
+        "passportNumber": "A12345678"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## Sandbox response behaviour
+
+Keep these differences in mind as you build and test:
+
+<AccordionGroup>
+  <Accordion title="Partial field coverage">
+    Sandbox responses may return fewer fields than production. For example, a BVN lookup in production returns a full identity profile enriched from live NIBSS data; the sandbox equivalent returns a smaller mock payload. Build your integration to handle optional or absent fields gracefully.
+  </Accordion>
+
+  <Accordion title="Predictable risk scores">
+    Sandbox entities are scored on the synthetic data you provide. An entity with only an email receives a low but non-zero risk score reflecting the limited profile. Add more fields — name, date of birth, phone — to see the score adjust as the profile enriches.
+  </Accordion>
+
+  <Accordion title="AML screening results">
+    PEP, sanctions, and adverse-media screening in sandbox returns mock results. Use test names known to return a hit (e.g. `"firstName": "Sanctioned", "lastName": "Person"` in specific test scenarios) if your integration needs to handle AML alerts. Refer to the AML testing guide for a full list of trigger values.
+  </Accordion>
+
+  <Accordion title="No real checks fired">
+    The sandbox never contacts live government databases, credit bureaus, or watchlist providers. You can run as many verifications as you need without any compliance or billing consequence.
+  </Accordion>
+</AccordionGroup>
+
+## Recommended sandbox workflow
+
+Follow this sequence when setting up a new integration or testing a new verification type:
+
+<Steps>
+  <Step title="Set your environment variables">
+    ```bash
+    export YV_SECRET_KEY="your_sandbox_api_key"
+    export YV_BASE_URL="https://api.sandbox.youverify.co"
+    ```
+  </Step>
+  <Step title="Create a test entity">
+    Use the minimal payload (entity type, consent, name, email) to get an `ent_…` ID.
+  </Step>
+  <Step title="Run the verification you want to test">
+    Use the test IDs from the tables above. Pass the `entityId` so the verification result attaches to the entity's 360.
+  </Step>
+  <Step title="Read the Entity 360">
+    Call `GET /v2/api/entities/{id}` to confirm the verification result has folded into the entity's profile, risk score, and activity log.
+  </Step>
+  <Step title="Repeat with edge-case inputs">
+    Test missing fields, invalid ID formats, and duplicate submissions to confirm your error handling is robust before going to production.
+  </Step>
+</Steps>
+
+## Moving to production
+
+When your sandbox integration is working correctly, switching to production requires two changes only:
+
+1. Replace your sandbox API key with the production API key from [cowork.youverify.co](https://cowork.youverify.co) **Settings → API Keys → Production**.
+2. Replace the sandbox base URL with the production base URL: `https://api.youverify.co`.
+
+No code changes to request shapes, headers, or response parsing are needed — the API contract is identical between environments.
+
+<Note>
+  Production checks query authoritative government data sources and are billed. Run a small smoke test with one real subject before enabling high-volume production traffic.
+</Note>

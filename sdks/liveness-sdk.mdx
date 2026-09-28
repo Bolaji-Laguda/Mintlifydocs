@@ -1,0 +1,232 @@
+---
+title: 'Generate Session Tokens for Youverify SDK Integrations'
+sidebarTitle: 'Liveness SDK'
+description: 'Learn how to generate server-side session tokens required to initialize Youverify Web, Android, and iOS SDK flows securely.'
+---
+
+Every Youverify SDK flow — whether on web, Android, or iOS — requires a short-lived token generated from your backend before you can initialize the SDK on the client. This design ensures your secret API key never leaves your server and cannot be extracted from a web page or decompiled app.
+
+## Why server-side token generation is required
+
+The Youverify SDK uses two separate tokens to authenticate a session:
+
+1. **Session ID** — a short-lived identifier that scopes the session and links it to a specific user or entity record on your account.
+2. **Liveness token** — an authentication token that authorizes the SDK to submit liveness data to Youverify's verification infrastructure.
+
+Both tokens are minted by the Youverify API using your secret API key. By generating them on your server, you keep the secret key out of client code entirely.
+
+<Warning>
+  Do not generate these tokens in your mobile app or browser. Do not cache tokens across sessions. Generate fresh tokens immediately before each SDK initialization.
+</Warning>
+
+## Endpoint 1 — Generate SDK Session ID
+
+Use this endpoint for Web SDK flows and document capture sessions.
+
+**`POST /v2/api/sdk/session-id`**
+
+### Request
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "publicMerchantID": "YOUR_PUBLIC_MERCHANT_ID",
+    "ttlSeconds": 120,
+    "metadata": {}
+  }'
+```
+
+```javascript Node.js
+const response = await fetch(
+  'https://api.youverify.co/v2/api/sdk/session-id',
+  {
+    method: 'POST',
+    headers: {
+      'token': process.env.YV_SECRET_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      publicMerchantID: 'YOUR_PUBLIC_MERCHANT_ID',
+      ttlSeconds: 120,
+      metadata: {}
+    })
+  }
+);
+const { data } = await response.json();
+const sessionId = data.sessionId;
+```
+
+```python Python
+import requests, os
+
+resp = requests.post(
+    'https://api.youverify.co/v2/api/sdk/session-id',
+    headers={
+        'token': os.environ['YV_SECRET_KEY'],
+        'Content-Type': 'application/json'
+    },
+    json={
+        'publicMerchantID': 'YOUR_PUBLIC_MERCHANT_ID',
+        'ttlSeconds': 120,
+        'metadata': {}
+    }
+)
+session_id = resp.json()['data']['sessionId']
+```
+</CodeGroup>
+
+### Request parameters
+
+<ParamField body="publicMerchantID" type="string" required>
+  Your public merchant key from the Cowork dashboard.
+</ParamField>
+
+<ParamField body="ttlSeconds" type="number" default="120">
+  How long the session ID remains valid, in seconds. Must be between `30` and `600`. Defaults to `120`.
+</ParamField>
+
+<ParamField body="metadata" type="object" default="{}">
+  Optional key-value metadata to attach to the session, for example your internal user ID.
+</ParamField>
+
+### Response
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "SDK session generated",
+  "data": {
+    "sessionId": "200f5a883713b7ff26f22f489d716ca3",
+    "expiresAt": "2025-10-05T23:56:48.821Z",
+    "status": "active"
+  },
+  "links": []
+}
+```
+
+<ResponseField name="data.sessionId" type="string">
+  The session ID to pass to the SDK constructor.
+</ResponseField>
+
+<ResponseField name="data.expiresAt" type="string">
+  ISO 8601 timestamp when this session ID expires.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Always `active` on a successful response.
+</ResponseField>
+
+---
+
+## Endpoint 2 — Generate SDK Liveness Token
+
+Use this endpoint for liveness detection flows on all platforms (Web, Android, iOS).
+
+**`POST /v2/api/sdk/liveness-token`**
+
+### Request
+
+<CodeGroup>
+```bash cURL
+curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "publicMerchantID": "YOUR_PUBLIC_MERCHANT_ID",
+    "deviceCorrelationId": "UNIQUE_DEVICE_OR_SESSION_ID"
+  }'
+```
+
+```javascript Node.js
+const response = await fetch(
+  'https://api.youverify.co/v2/api/sdk/liveness-token',
+  {
+    method: 'POST',
+    headers: {
+      'token': process.env.YV_SECRET_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      publicMerchantID: 'YOUR_PUBLIC_MERCHANT_ID',
+      deviceCorrelationId: 'UNIQUE_DEVICE_OR_SESSION_ID'
+    })
+  }
+);
+const { data } = await response.json();
+const livenessToken = data.authToken;
+```
+
+```python Python
+import requests, os
+
+resp = requests.post(
+    'https://api.youverify.co/v2/api/sdk/liveness-token',
+    headers={
+        'token': os.environ['YV_SECRET_KEY'],
+        'Content-Type': 'application/json'
+    },
+    json={
+        'publicMerchantID': 'YOUR_PUBLIC_MERCHANT_ID',
+        'deviceCorrelationId': 'UNIQUE_DEVICE_OR_SESSION_ID'
+    }
+)
+liveness_token = resp.json()['data']['authToken']
+```
+</CodeGroup>
+
+### Request parameters
+
+<ParamField body="publicMerchantID" type="string" required>
+  Your public merchant key from the Cowork dashboard.
+</ParamField>
+
+<ParamField body="deviceCorrelationId" type="string">
+  A unique identifier for this device or user session. Use a UUID generated per session. This helps Youverify detect and prevent token reuse across devices.
+</ParamField>
+
+<ParamField body="deviceId" type="string">
+  An alternative device identifier from which Youverify can derive `deviceCorrelationId`. Use either `deviceCorrelationId` or `deviceId`, not both.
+</ParamField>
+
+### Response
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Liveness token fetched successfully!",
+  "data": {
+    "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "sessionId": "b15a8d20-c602-4f89-9d3a-1c3e4e5f6a7b"
+  },
+  "links": []
+}
+```
+
+<ResponseField name="data.authToken" type="string">
+  The liveness token to pass as `sessionToken` in the SDK constructor.
+</ResponseField>
+
+<ResponseField name="data.sessionId" type="string">
+  A session ID associated with this liveness token.
+</ResponseField>
+
+---
+
+## Token expiry and caching
+
+<Note>
+  Tokens are short-lived by design. Generate a fresh pair of tokens immediately before each SDK initialization. Do not store tokens in a database or cache for reuse across sessions.
+</Note>
+
+If a token expires before the user completes the flow, the SDK's `onFailure` callback fires with `error.key = "invalid_or_expired_session"`. Your app should generate new tokens and re-initialize the SDK.
+
+| Scenario | What to do |
+|---|---|
+| `invalid_or_expired_session` | Generate a new session ID and liveness token; re-initialize the SDK |
+| `session_token_error` | Generate a new liveness token; re-initialize the SDK |
+| User retries after failure | The current session ID may still be valid; generate only a new liveness token |

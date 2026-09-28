@@ -1,0 +1,197 @@
+---
+title: 'KYC Webhook Events for Identity and Address Verification'
+sidebarTitle: 'KYC Webhooks'
+description: 'Subscribe to identity verification and address verification webhook events to react instantly when KYC checks complete.'
+---
+
+Youverify fires KYC webhooks the moment an identity check or address verification is resolved — whether that happens in seconds (for database lookups) or hours (for physical address verification requiring a field agent). Listening to these events means you never have to poll for results.
+
+## KYC event types
+
+| Event | Trigger |
+|---|---|
+| `identity.verification.completed` | An identity (eIDV) verification check has finished |
+| `address.verification.completed` | An address verification task has been completed by a field agent or digital check |
+
+## Identity verification: `identity.verification.completed`
+
+Youverify delivers this event when an identity check against a government-issued ID — such as a BVN, NIN, or national ID — finishes processing. The `data` object contains the full verified record, including all validated fields.
+
+### Example payload
+
+```json
+{
+  "event": "identity.verification.completed",
+  "apiVersion": "v2",
+  "data": {
+    "address": {
+      "town": "SULEJA",
+      "lga": "Suleja",
+      "state": "Niger",
+      "addressLine": "13B Fake Street, Ilupeju Niger State"
+    },
+    "validations": {
+      "data": {
+        "lastName": { "validated": true, "value": "Doe" },
+        "dateOfBirth": { "validated": true, "value": "1988-04-04" },
+        "firstName": { "validated": true, "value": "Sarah" }
+      },
+      "validationMessages": ""
+    },
+    "status": "found",
+    "dataValidation": true,
+    "selfieValidation": false,
+    "firstName": "Sarah",
+    "middleName": "Jane",
+    "lastName": "Doe",
+    "mobile": "08000000000",
+    "dateOfBirth": "1988-04-04",
+    "idNumber": "11111111111",
+    "type": "nin",
+    "allValidationPassed": true,
+    "gender": "f",
+    "country": "NG",
+    "businessId": "62b2e8b281442b03187f7896",
+    "requestedAt": "2024-03-27T08:30:02.809Z",
+    "createdAt": "2024-03-27T08:30:03.367Z"
+  }
+}
+```
+
+### Identity verification payload fields
+
+<ResponseField name="event" type="string">
+  Always `identity.verification.completed` for this event type.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Result of the verification. See [status values](#verification-status-values) below.
+</ResponseField>
+
+<ResponseField name="data.type" type="string">
+  The ID type checked, for example `nin`, `bvn`, `drivers_license`, `passport`.
+</ResponseField>
+
+<ResponseField name="data.country" type="string">
+  ISO 3166-1 alpha-2 country code, for example `NG`.
+</ResponseField>
+
+<ResponseField name="data.dataValidation" type="boolean">
+  `true` if all submitted fields matched the authoritative record.
+</ResponseField>
+
+<ResponseField name="data.allValidationPassed" type="boolean">
+  `true` if every individual field validation passed.
+</ResponseField>
+
+<ResponseField name="data.validations" type="object">
+  <Expandable title="Nested validation results per field">
+    <ResponseField name="data" type="object">
+      Each key is a field name (e.g. `firstName`, `lastName`, `dateOfBirth`). Each value has `validated` (boolean) and `value` (string).
+    </ResponseField>
+    <ResponseField name="validationMessages" type="string">
+      Human-readable validation message, if any.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Address verification: `address.verification.completed`
+
+Youverify fires this event when a physical or digital address verification task is completed. The `data` object includes the full agent report, geo-coordinates, property details, and images.
+
+### Example payload (individual)
+
+```json
+{
+  "event": "address.verification.completed",
+  "apiVersion": "v2",
+  "data": {
+    "candidate": {
+      "candidateId": "620861ac0972f71ec8caf07d",
+      "firstName": "Famous",
+      "lastName": "Ehichioya",
+      "email": "famous@youverify.co",
+      "mobile": "08030000000"
+    },
+    "address": {
+      "buildingNumber": "350",
+      "street": "Borno Way",
+      "city": "Yaba",
+      "state": "Lagos",
+      "country": "Nigeria",
+      "latlong": { "lat": "6.5009833", "lon": "3.376612" }
+    },
+    "status": "awaiting_qa",
+    "taskStatus": "VERIFIED",
+    "referenceId": "620865a2cae6f",
+    "verificationId": "620865a2cae6f",
+    "completedAt": "2022-02-13T02:20:03.000Z",
+    "submittedAt": "2022-02-13T02:20:03.000Z",
+    "isFlagged": false,
+    "notes": [
+      {
+        "createdAt": "2022-02-13 03:20:02",
+        "note": "Candidate confirmed to reside at the stated address."
+      }
+    ],
+    "downloadUrl": "https://api.youverify.co/v1/reports/reports_xxx/download/pdf",
+    "businessId": "61d880f1e8e15aaf24558f1a",
+    "type": "individual",
+    "createdAt": "2022-02-13T01:58:07.159Z"
+  }
+}
+```
+
+### Address verification payload fields
+
+<ResponseField name="data.taskStatus" type="string">
+  Agent-reported outcome. Common values: `VERIFIED`, `NOT_VERIFIED`, `UNABLE_TO_VERIFY`.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Workflow status of the report, for example `completed`, `awaiting_qa`.
+</ResponseField>
+
+<ResponseField name="data.isFlagged" type="boolean">
+  `true` if the agent flagged something notable at the address during the visit.
+</ResponseField>
+
+<ResponseField name="data.downloadUrl" type="string">
+  URL to download the full PDF address verification report.
+</ResponseField>
+
+<ResponseField name="data.type" type="string">
+  Verification subject type: `individual`, `guarantor`, or `business`.
+</ResponseField>
+
+## Verification status values
+
+The `data.status` field on identity events can hold the following values:
+
+| Value | Meaning |
+|---|---|
+| `found` | Record was found and data matched |
+| `not_found` | No record found for the supplied ID |
+| `pending` | Upstream provider temporarily unavailable; result will arrive via a follow-up webhook |
+| `failed` | Verification could not be completed due to an error |
+
+<Note>
+  When `status` is `pending`, do not treat the check as failed. Youverify will deliver a follow-up `identity.verification.completed` webhook once the upstream provider responds.
+</Note>
+
+## Common use cases
+
+<AccordionGroup>
+  <Accordion title="Unlock account features on verification">
+    Listen for `identity.verification.completed` with `allValidationPassed: true` to automatically promote a user to a verified tier in your platform — enabling higher transaction limits, wallet top-ups, or other gated features.
+  </Accordion>
+  <Accordion title="Send real-time notifications to your user">
+    On receipt of either KYC event, trigger an in-app notification or email to your user informing them whether their verification succeeded or failed.
+  </Accordion>
+  <Accordion title="Update internal records">
+    Persist the `verificationId`, `status`, and validated fields from the webhook payload to your own database so you have an auditable record of every KYC outcome alongside your user record.
+  </Accordion>
+  <Accordion title="Handle pending checks gracefully">
+    If a user's identity check returns `status: pending`, show them an "in progress" state in your UI and flip it to verified or failed once the follow-up webhook arrives.
+  </Accordion>
+</AccordionGroup>

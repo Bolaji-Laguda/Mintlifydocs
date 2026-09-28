@@ -1,0 +1,75 @@
+---
+title: 'Youverify SDKs for Web, Android, and iOS'
+sidebarTitle: 'Overview'
+description: 'Embed biometric liveness detection and document capture natively in your web or mobile app using Youverify SDKs.'
+---
+
+Youverify provides first-party SDKs for web browsers, Android, and iOS that let you embed biometric liveness detection and document capture directly inside your product. Rather than redirecting users to a hosted page, the SDK flows run natively within your app — giving you full control over the UI while Youverify handles the fraud-detection logic.
+
+## Available SDKs
+
+<CardGroup cols={2}>
+  <Card title="Web SDK" icon="globe" href="/sdks/web-sdk">
+    Embed liveness detection and document capture in any browser-based application using a CDN script or npm package.
+  </Card>
+  <Card title="Android SDK" icon="android" href="/sdks/android-sdk">
+    Integrate real-time liveness detection and document capture into your Android application using Jetpack Compose.
+  </Card>
+  <Card title="iOS SDK" icon="apple" href="/sdks/ios-sdk">
+    Add liveness detection and document capture to your iOS application using Swift, via CocoaPods or Swift Package Manager.
+  </Card>
+  <Card title="Session Tokens" icon="key" href="/sdks/liveness-sdk">
+    Generate the server-side session tokens required to initialize any Youverify SDK flow securely.
+  </Card>
+</CardGroup>
+
+## How SDK flows work
+
+Every Youverify SDK follows the same two-step security pattern:
+
+<Steps>
+  <Step title="Generate a session token server-side">
+    Your backend calls the Youverify API (using your secret API key) to generate a short-lived session token. Your secret key never leaves your server.
+  </Step>
+  <Step title="Initialize the SDK client-side with the token">
+    Pass the session token to the SDK on your web page or mobile app. The SDK uses the token — not your secret key — to authenticate with Youverify's verification infrastructure.
+  </Step>
+</Steps>
+
+<Warning>
+  Never embed your secret API key in a web page, Android app, or iOS app. It will be exposed to end users. Always generate session tokens server-side and pass them to the SDK.
+</Warning>
+
+## Two types of session token
+
+| Token | Endpoint | Used for |
+|---|---|---|
+| SDK Session ID | `POST /v2/api/sdk/session-id` | Web SDK document capture and general verification flows |
+| SDK Liveness Token | `POST /v2/api/sdk/liveness-token` | Anti-deepfake liveness detection flows (all platforms) |
+
+See [Session Tokens](/sdks/liveness-sdk) for full request and response details on both endpoints.
+
+## Credential reference
+
+| Credential | Where used | Security |
+|---|---|---|
+| **API secret key** | Server-to-server only, `token` header | Never expose client-side |
+| **Public merchant key** | SDK initialization (client-safe) | Scoped to session initiation; safe to embed in apps |
+
+Your **public merchant key** is the credential you pass to the SDK constructor. It is a read-only identifier scoped to starting sessions and is safe to embed in your web or mobile app. Your **API secret key** must stay on your server.
+
+To retrieve your public merchant key, see [Authentication](/get-started/authentication).
+
+## Use cases
+
+<AccordionGroup>
+  <Accordion title="Biometric liveness for KYC onboarding">
+    Use the Android, iOS, or Web SDK to run an anti-deepfake liveness check as part of your customer onboarding flow. The SDK prompts the user to perform a head-movement task (complete the circle, blink, yes/no) to confirm a live human is present.
+  </Accordion>
+  <Accordion title="Document capture for ID verification">
+    Use the Document Capture SDK to photograph a government-issued ID (passport, national ID card, driver's licence) from within your app. The captured image is automatically submitted for extraction and verification.
+  </Accordion>
+  <Accordion title="Fraud signal collection">
+    The Fraud Insight SDK collects passive device and behavioural signals during the session, enriching the risk score computed by the Youverify platform without adding friction for the user.
+  </Accordion>
+</AccordionGroup>

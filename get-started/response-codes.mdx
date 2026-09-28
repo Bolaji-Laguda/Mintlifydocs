@@ -1,0 +1,221 @@
+---
+title: 'Youverify API HTTP Response Codes and Error Handling'
+sidebarTitle: 'Response Codes'
+description: 'Understand Youverify API HTTP status codes, the standard response envelope, machine-readable error names, and retry guidance for failures.'
+---
+
+Every response from the Youverify API — success or failure — follows the same JSON envelope shape. Designing your integration around this consistent structure means you write your response-handling code once and it works across every endpoint.
+
+## Standard response envelope
+
+A successful response always has `success: true`, an HTTP `2xx` status, and a `data` object containing the result. The `links` array carries pagination or related-resource links when applicable.
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entity retrieved successfully.",
+  "data": {
+    "id": "ent_685c73c8519d82bd21a42fae",
+    "entityType": "individual",
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "status": "not_approved",
+    "riskScore": 12,
+    "riskLevel": "low"
+  },
+  "links": []
+}
+```
+
+<ResponseField name="success" type="boolean" required>
+  `true` for every successful response.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer" required>
+  Mirrors the HTTP status code (e.g. `200`, `201`).
+</ResponseField>
+
+<ResponseField name="message" type="string" required>
+  A human-readable description of the outcome.
+</ResponseField>
+
+<ResponseField name="data" type="object | array">
+  The payload for this response. An object for single-resource endpoints; an array for list endpoints.
+</ResponseField>
+
+<ResponseField name="links" type="array">
+  Pagination cursors or related-resource links. Empty (`[]`) when not applicable.
+</ResponseField>
+
+## Error envelope
+
+When a request fails, `success` is `false` and the envelope adds a machine-readable `name` field you can use to drive error-handling logic without parsing the `message` string.
+
+```json
+{
+  "success": false,
+  "statusCode": 404,
+  "name": "ResourceNotFoundError",
+  "message": "Entity with the provided ID does not exist."
+}
+```
+
+<ResponseField name="success" type="boolean" required>
+  Always `false` for error responses.
+</ResponseField>
+
+<ResponseField name="statusCode" type="integer" required>
+  The HTTP status code. Note the camelCase spelling (`statusCode`) on error responses, compared to `status_code` on success responses.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  A machine-readable error identifier. Use this field — not the `message` — to branch your error-handling logic.
+</ResponseField>
+
+<ResponseField name="message" type="string" required>
+  A human-readable description of what went wrong. Useful for logging; do not parse this string programmatically.
+</ResponseField>
+
+## HTTP status codes
+
+| Status | Name | When you see it |
+|---|---|---|
+| `200 OK` | Success | The request succeeded and the resource was returned. |
+| `201 Created` | Created | A new resource (e.g. entity, case) was created successfully. |
+| `400 Bad Request` | Bad Request | The request body is malformed or contains invalid JSON. |
+| `401 Unauthorized` | Unauthorized | The `token` header is missing, incorrect, or the key is for the wrong environment. |
+| `403 Forbidden` | Forbidden | The key is valid but lacks permission for this action (e.g. using a public key on a server endpoint). |
+| `404 Not Found` | Not Found | The requested resource (entity ID, check ID, etc.) does not exist in this environment. |
+| `422 Unprocessable Entity` | Validation Error | The request is well-formed but fails business-logic validation (e.g. missing required field, invalid enum value). |
+| `429 Too Many Requests` | Rate Limited | You have exceeded the rate limit for this endpoint. |
+| `500 Internal Server Error` | Server Error | An unexpected error occurred on Youverify's side. |
+
+## Machine-readable error names
+
+Use the `name` field in your application code to handle specific error conditions without relying on message strings, which may change.
+
+| `name` | HTTP status | Typical cause |
+|---|---|---|
+| `UnauthorizedError` | `401` | Missing or invalid `token` header; mismatched environment. |
+| `ForbiddenError` | `403` | Insufficient key scope; action not permitted for your plan. |
+| `ResourceNotFoundError` | `404` | Entity ID, verification ID, or case ID does not exist. |
+| `ValidationError` | `422` | Required field missing, wrong type, or invalid enum value in request body. |
+| `ConflictError` | `409` | Duplicate resource — the entity or record already exists. |
+| `RateLimitError` | `429` | Too many requests in the current time window. |
+| `InternalServerError` | `500` | Unexpected server-side failure. |
+
+## Handling errors in code
+
+<CodeGroup>
+
+```javascript Node.js
+async function callYouverify(url, options) {
+  const response = await fetch(url, options);
+  const body = await response.json();
+
+  if (!body.success) {
+    switch (body.name) {
+      case "UnauthorizedError":
+        throw new Error("Check your API key and environment base URL.");
+      case "ResourceNotFoundError":
+        throw new Error(`Resource not found: ${body.message}`);
+      case "ValidationError":
+        throw new Error(`Validation failed: ${body.message}`);
+      case "RateLimitError":
+        // Retry after back-off — see guidance below
+        throw new Error("Rate limit reached. Back off and retry.");
+      default:
+        throw new Error(`Youverify API error [${body.name}]: ${body.message}`);
+    }
+  }
+
+  return body.data;
+}
+```
+
+```python Python
+import requests, time
+
+def call_youverify(url, **kwargs):
+    response = requests.request(url=url, **kwargs)
+    body = response.json()
+
+    if not body.get("success"):
+        name = body.get("name", "UnknownError")
+        message = body.get("message", "")
+
+        if name == "UnauthorizedError":
+            raise PermissionError("Check your API key and environment base URL.")
+        elif name == "ResourceNotFoundError":
+            raise LookupError(f"Resource not found: {message}")
+        elif name == "ValidationError":
+            raise ValueError(f"Validation failed: {message}")
+        elif name == "RateLimitError":
+            raise RuntimeError("Rate limit reached. Back off and retry.")
+        else:
+            raise RuntimeError(f"Youverify API error [{name}]: {message}")
+
+    return body["data"]
+```
+
+</CodeGroup>
+
+## Retry guidance
+
+Not all errors warrant a retry. Use this table to decide when to retry automatically and when to surface the error to the operator.
+
+| Status | Retry? | Strategy |
+|---|---|---|
+| `400 Bad Request` | ❌ No | Fix the request payload before retrying. |
+| `401 Unauthorized` | ❌ No | Rotating to a new key is a manual action, not an automatic retry. |
+| `403 Forbidden` | ❌ No | A permission or scope issue — retrying with the same key will not help. |
+| `404 Not Found` | ❌ No | The resource does not exist; verify the ID. |
+| `422 Unprocessable Entity` | ❌ No | Correct the invalid field values before retrying. |
+| `429 Too Many Requests` | ✅ Yes | Retry with exponential back-off (see below). |
+| `500 Internal Server Error` | ✅ Yes | Retry up to 3 times with exponential back-off. |
+| `503 Service Unavailable` | ✅ Yes | Retry with exponential back-off; check [status.youverify.co](https://status.youverify.co) for incidents. |
+
+### Exponential back-off for 429 and 5xx
+
+When you encounter a `429` or `5xx` response, wait before retrying. A simple exponential back-off strategy:
+
+```python Python
+import time, requests
+
+def fetch_with_retry(url, headers, max_retries=4):
+    for attempt in range(max_retries):
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 429 or response.status_code >= 500:
+            if attempt < max_retries - 1:
+                wait = 2 ** attempt  # 1s, 2s, 4s, 8s
+                print(f"Retrying in {wait}s (attempt {attempt + 1}/{max_retries})...")
+                time.sleep(wait)
+                continue
+
+        return response.json()
+
+    raise RuntimeError(f"Request failed after {max_retries} attempts.")
+```
+
+<Note>
+  For `429 Too Many Requests`, check whether the response includes a `Retry-After` header specifying exactly how many seconds to wait before sending the next request.
+</Note>
+
+## Pagination on list endpoints
+
+List endpoints (e.g. `GET /v2/api/entities`) use offset pagination. The `links` array in the response envelope contains `next` and `prev` cursor URLs when additional pages are available. High-volume streams such as signals also support cursor-based pagination, which is preferred for production polling workloads.
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entities retrieved successfully.",
+  "data": [ ],
+  "links": [
+    { "rel": "next", "href": "/v2/api/entities?page=2&limit=20" },
+    { "rel": "prev", "href": null }
+  ]
+}
+```
