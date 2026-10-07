@@ -49,11 +49,12 @@
               "concepts/entity-360",
               "concepts/risk-scoring",
               "concepts/monitoring-model",
-              "concepts/plans-and-billing"
+              "concepts/plans-and-billing",
+              "concepts/object-model"
             ]
           },
           {
-            "group": "Guides",
+            "group": "Implementation Guides",
             "pages": [
               "guides/onboard-by-email",
               "guides/onboard-by-phone",
@@ -63,7 +64,7 @@
             ]
           },
           {
-            "group": "Webhooks",
+            "group": "Webhooks & Events",
             "pages": [
               "webhooks/overview",
               "webhooks/kyc-webhooks",
@@ -79,6 +80,13 @@
               "sdks/ios-sdk",
               "sdks/liveness-sdk"
             ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/coverage",
+              "resources/rate-limits"
+            ]
           }
         ]
       },
@@ -88,8 +96,7 @@
           {
             "group": "Overview",
             "pages": [
-              "api-reference/overview",
-              "api-reference/authentication"
+              "api-reference/overview"
             ]
           },
           {
