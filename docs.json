@@ -39,7 +39,7 @@
               "introduction",
               "get-started/quickstart",
               "get-started/authentication",
-              "get-started/response-codes",
+              "api-reference/overview",
               "get-started/test-data"
             ]
           },
@@ -60,7 +60,11 @@
               "guides/onboard-by-phone",
               "guides/onboard-by-government-id",
               "guides/tiered-kyc-digital-banking",
-              "guides/corporate-kyb-ubo"
+              "guides/corporate-kyb-ubo",
+              "guides/fraud-insights",
+              "guides/transaction-monitoring",
+              "guides/case-management",
+              "guides/regulatory-reporting"
             ]
           },
           {
@@ -68,7 +72,9 @@
             "pages": [
               "webhooks/overview",
               "webhooks/kyc-webhooks",
-              "webhooks/kyt-webhooks"
+              "webhooks/kyt-webhooks",
+              "webhooks/signature-verification",
+              "webhooks/retry-behaviour"
             ]
           },
           {
@@ -85,7 +91,10 @@
             "group": "Resources",
             "pages": [
               "resources/coverage",
-              "resources/rate-limits"
+              "get-started/response-codes",
+              "resources/rate-limits",
+              "resources/changelog",
+              "resources/migration-legacy-apis"
             ]
           }
         ]
@@ -95,9 +104,7 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": [
-              "api-reference/overview"
-            ]
+            "pages": []
           },
           {
             "group": "Cowork API",
