@@ -3224,6 +3224,177 @@
         }
       }
     },
+    "/v2/api/identity/ke/kra-pin": {
+      "post": {
+        "tags": [
+          "KYC - Kenya"
+        ],
+        "summary": "Verify KRA PIN",
+        "description": "Look up a Kenya Revenue Authority (KRA) PIN using a taxpayer national ID.",
+        "operationId": "verifyKraPinKenya",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Taxpayer national ID number"
+                  },
+                  "isSubjectConsent": {
+                    "type": "boolean",
+                    "description": "Indicate subject has given consent. Must be true"
+                  },
+                  "taxpayerType": {
+                    "type": "string",
+                    "description": "Type of taxpayer. Default: KE.",
+                    "enum": [
+                      "KE",
+                      "NKE",
+                      "NKENR",
+                      "COMP"
+                    ],
+                    "default": "KE"
+                  }
+                },
+                "required": [
+                  "id",
+                  "isSubjectConsent"
+                ]
+              },
+              "examples": {
+                "Found": {
+                  "summary": "Sample Request",
+                  "value": {
+                    "id": "12345678",
+                    "isSubjectConsent": true
+                  }
+                },
+                "Not Found": {
+                  "summary": "Not Found Sample Request",
+                  "value": {
+                    "id": "99999999",
+                    "isSubjectConsent": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Found": {
+                    "summary": "Found Response",
+                    "value": {
+                      "success": true,
+                      "statusCode": 200,
+                      "message": "success",
+                      "data": {
+                        "id": "6416e5258c8eb062f325a87c",
+                        "parentId": null,
+                        "status": "found",
+                        "reason": null,
+                        "dataValidation": false,
+                        "selfieValidation": false,
+                        "pin": "A123456789Z",
+                        "pinStatus": "Active",
+                        "taxpayerName": "JOHN DOE SAMPLE",
+                        "taxpayerType": "Individual",
+                        "isConsent": true,
+                        "businessId": "628b38f03ae28a14f52d4bf7",
+                        "type": "keKraPin",
+                        "allValidationPassed": true,
+                        "idNumber": "12345678",
+                        "requestedAt": "2023-03-19T10:34:14.297Z",
+                        "requestedById": "628b38f03ae28a5a122d4bf3",
+                        "country": "KE",
+                        "createdAt": "2023-03-19T10:34:14.485Z",
+                        "lastModifiedAt": "2023-03-19T10:34:14.485Z",
+                        "metadata": {},
+                        "requestedBy": {
+                          "firstName": "API",
+                          "lastName": "User",
+                          "middleName": "",
+                          "id": "628b38f03ae28a5a122d4bf3"
+                        }
+                      },
+                      "links": []
+                    }
+                  },
+                  "Not Found": {
+                    "summary": "Not Found Response",
+                    "value": {
+                      "success": true,
+                      "statusCode": 200,
+                      "message": "success",
+                      "data": {
+                        "id": "6416e618d34a0c637adbef4f",
+                        "parentId": null,
+                        "status": "not_found",
+                        "reason": "KRA PIN Not Found",
+                        "dataValidation": false,
+                        "selfieValidation": false,
+                        "pin": null,
+                        "pinStatus": null,
+                        "taxpayerName": null,
+                        "taxpayerType": null,
+                        "isConsent": true,
+                        "businessId": "628b38f03ae28a14f52d4bf7",
+                        "type": "keKraPin",
+                        "allValidationPassed": false,
+                        "idNumber": "99999999",
+                        "requestedAt": "2023-03-19T10:38:42.145Z",
+                        "requestedById": "628b38f03ae28a5a122d4bf3",
+                        "country": "KE",
+                        "createdAt": "2023-03-19T10:38:42.359Z",
+                        "lastModifiedAt": "2023-03-19T10:38:42.359Z",
+                        "metadata": {},
+                        "requestedBy": {
+                          "firstName": "API",
+                          "lastName": "User",
+                          "middleName": "",
+                          "id": "628b38f03ae28a5a122d4bf3"
+                        }
+                      },
+                      "links": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
+        }
+      }
+    },
     "/v2/api/identity/gh/passport": {
       "post": {
         "tags": [
