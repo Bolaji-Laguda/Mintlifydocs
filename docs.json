@@ -103,10 +103,6 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "Overview",
-            "pages": []
-          },
-          {
             "group": "Cowork API",
             "openapi": {
               "source": "api-reference/specs/cowork.json",
