@@ -1,0 +1,45 @@
+---
+title: "Rate Limits for Enterprise Customers"
+sidebarTitle: "Rate Limits"
+description: "How Youverify limits repeated identical API calls for Enterprise customers, what happens when you hit the limit, and who to contact with questions."
+---
+
+To prevent run-off calls, which are billable, Youverify applies a rate limit to repeated identical requests on Enterprise accounts.
+
+## The rule
+
+If the same call is made **more than 3 times within 1 minute**, further attempts are blocked and you cannot make that call for **10 minutes**.
+
+| Setting | Value |
+| --- | --- |
+| Threshold | More than 3 identical calls within 1 minute |
+| Block duration | 10 minutes |
+| Blocked response | `429 Too Many Requests` |
+| Applies to | Enterprise customers |
+
+### What counts as the same call
+
+Two calls are the same when they carry the **same payload**, which in practice means they are made with the **same ID**. Calls with a different ID or payload are counted separately.
+
+### Why this exists
+
+Repeated identical calls usually come from retry loops, duplicated jobs or integration bugs. Each call is billable, so the limit stops these run-off calls from accumulating charges.
+
+## What happens when you are blocked
+
+A blocked call returns `429 Too Many Requests`. The 10-minute block starts when the limit is hit. **The timer does not restart** if you keep calling during the block, so the block ends 10 minutes after it began.
+
+<Warning>
+Retrying a blocked call immediately does not shorten the block and is not needed. Wait for the block to end, then retry once.
+</Warning>
+
+## Recommended practice
+
+- Store the result of a verification and reuse it instead of calling again with the same ID.
+- Do not retry in a tight loop. When you receive a `429`, stop and wait.
+- Use [Test Data](/get-started/test-data) in the sandbox so that testing does not trigger the limit.
+- See [Errors](/get-started/response-codes) for how to handle other error responses.
+
+## Questions
+
+For concerns or more questions about rate limits, contact [support@youverify.co](mailto:support@youverify.co).

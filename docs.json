@@ -39,35 +39,42 @@
               "introduction",
               "get-started/quickstart",
               "get-started/authentication",
-              "get-started/response-codes",
+              "api-reference/overview",
               "get-started/test-data"
             ]
           },
           {
-            "group": "Core Concepts",
+            "group": "Platform Concepts",
             "pages": [
               "concepts/entity-360",
               "concepts/risk-scoring",
               "concepts/monitoring-model",
-              "concepts/plans-and-billing"
+              "concepts/plans-and-billing",
+              "concepts/object-model"
             ]
           },
           {
-            "group": "Guides",
+            "group": "Implementation Guides",
             "pages": [
               "guides/onboard-by-email",
               "guides/onboard-by-phone",
               "guides/onboard-by-government-id",
               "guides/tiered-kyc-digital-banking",
-              "guides/corporate-kyb-ubo"
+              "guides/corporate-kyb-ubo",
+              "guides/fraud-insights",
+              "guides/transaction-monitoring",
+              "guides/case-management",
+              "guides/regulatory-reporting"
             ]
           },
           {
-            "group": "Webhooks",
+            "group": "Webhooks & Events",
             "pages": [
               "webhooks/overview",
               "webhooks/kyc-webhooks",
-              "webhooks/kyt-webhooks"
+              "webhooks/kyt-webhooks",
+              "webhooks/signature-verification",
+              "webhooks/retry-behaviour"
             ]
           },
           {
@@ -79,19 +86,22 @@
               "sdks/ios-sdk",
               "sdks/liveness-sdk"
             ]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/coverage",
+              "get-started/response-codes",
+              "resources/rate-limits",
+              "resources/changelog",
+              "resources/migration-legacy-apis"
+            ]
           }
         ]
       },
       {
         "tab": "API Reference",
         "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "api-reference/overview",
-              "api-reference/authentication"
-            ]
-          },
           {
             "group": "Cowork API",
             "openapi": {
