@@ -92,9 +92,7 @@
             "pages": [
               "resources/coverage",
               "get-started/response-codes",
-              "resources/rate-limits",
-              "resources/changelog",
-              "resources/migration-legacy-apis"
+              "resources/rate-limits"
             ]
           }
         ]
