@@ -350,7 +350,7 @@
         }
       }
     },
-    "/v2/api/identity/sdk/liveness/session/generate": {
+    "/v2/api/identity/sdk/session/generate": {
       "post": {
         "tags": [
           "SDK Utilities"
