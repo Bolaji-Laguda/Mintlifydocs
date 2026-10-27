@@ -129,7 +129,47 @@
         ]
       },
       {
-        "language": "fr"
+        "language": "fr",
+        "tabs": [
+          {
+            "tab": "Guide produit",
+            "groups": [
+              {
+                "group": "Démarrage",
+                "pages": []
+              },
+              {
+                "group": "Concepts de la plateforme",
+                "pages": []
+              },
+              {
+                "group": "Guides d'implémentation",
+                "pages": []
+              },
+              {
+                "group": "Webhooks et événements",
+                "pages": []
+              },
+              {
+                "group": "SDK",
+                "pages": []
+              },
+              {
+                "group": "Ressources",
+                "pages": []
+              }
+            ]
+          },
+          {
+            "tab": "Référence API",
+            "groups": [
+              {
+                "group": "Vue d'ensemble de l'API",
+                "pages": []
+              }
+            ]
+          }
+        ]
       }
     ]
   }
