@@ -1,0 +1,200 @@
+---
+title: "Données de test pour l'environnement sandbox de l'API Youverify"
+sidebarTitle: "Sandbox / Données de test"
+description: "Utilisez ces identifiants de test pour simuler des vérifications d'identité dans le sandbox Youverify, sans consommer de crédits réels ni interroger de sources en production."
+---
+
+L'environnement sandbox de Youverify est un environnement de test totalement isolé, qui utilise des données synthétiques plutôt que des sources gouvernementales en production. Vous pouvez y créer des entités, lancer des vérifications KYC, tester le filtrage AML et simuler l'ensemble du parcours de conformité sans dépenser de crédits de production ni exposer de données personnelles réelles.
+
+## Sandbox et production
+
+Comprendre la frontière entre les environnements garantit une intégration sûre et prévisible.
+
+|  | Sandbox | Production |
+| --- | --- | --- |
+| **URL de base** | `https://api.sandbox.youverify.co` | `https://api.youverify.co` |
+| **Sources de données** | Données synthétiques / de test | Sources gouvernementales officielles |
+| **Facturation** | Gratuit, jamais facturé | Facturé par vérification |
+| **Identifiants** | Clés d'API sandbox uniquement | Clés d'API de production uniquement |
+| **Couverture des champs** | Peut renvoyer des champs partiels ou fictifs | Réponse complète issue des sources de données réelles |
+| **Cas d'usage** | Développement, CI/CD, QA | Sujets réels et conformité en production |
+
+<Warning>
+  Le sandbox et la production utilisent des clés d'API distinctes. Une clé sandbox sera rejetée par l'endpoint de production, et une clé de production sera rejetée par l'endpoint sandbox. Confirmez toujours quel environnement est sélectionné dans les [paramètres de votre espace de travail](https://cowork.youverify.co) avant de copier une clé.
+</Warning>
+
+<Tip>
+  Définissez l'URL de base du sandbox comme une constante nommée ou une variable d'environnement (`YV_BASE_URL=https://api.sandbox.youverify.co`) afin de pouvoir changer d'environnement en modifiant une seule valeur au moment du déploiement.
+</Tip>
+
+## Création d'une entité de test
+
+Vous pouvez créer une entité de test avec un minimum de champs. Les seules exigences strictes sont `entityType` et `isSubjectConsent`. Pour une entité de type particulier dans le sandbox, la combinaison ci-dessous suffit à obtenir un enregistrement noté et suivi :
+
+```bash
+curl -X POST "https://api.sandbox.youverify.co/v2/api/entities" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityType": "individual",
+    "isSubjectConsent": true,
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "testuser@example.com"
+  }'
+```
+
+La réponse inclut un identifiant d'entité stable `ent_…` que vous pouvez référencer dans tous les appels suivants : vérifications, transactions, dossiers et signaux se rattachent tous au même identifiant.
+
+<Note>
+  La création d'une entité à partir d'une simple adresse e-mail est prise en charge dans le sandbox comme en production, mais elle est réservée aux entités marquées comme **downstream entities** (le modèle client des processeurs de paiement, où seule l'adresse e-mail est connue au départ). Pour l'intégration standard d'un particulier, fournissez au minimum un nom.
+</Note>
+
+## Identifiants de test pour la vérification d'identité au Nigéria
+
+Utilisez les identifiants synthétiques suivants pour tester les endpoints de vérification KYC avec les types de documents officiels nigérians. Ces valeurs sont reconnues par le sandbox et renvoient des réponses fictives prévisibles, sans interroger les bases de données gouvernementales réelles.
+
+<Tabs>
+  <Tab title="BVN">
+    Le **Bank Verification Number (BVN)** est un identifiant à 11 chiffres délivré par la Banque centrale du Nigéria.
+
+    | Champ | Valeur de test |
+    | --- | --- |
+    | BVN | `12345678901` |
+    | Résultat attendu dans le sandbox | Vérification acceptée ; renvoie un nom et une date de naissance fictifs |
+
+    Soumettez ce BVN de test via l'endpoint de vérification KYC de l'entité, en remplaçant `{entityId}` par l'identifiant `ent_…` reçu lors de la création de votre entité de test :
+
+    ```bash
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "bvn",
+        "bvn": "12345678901"
+      }'
+    ```
+  </Tab>
+  <Tab title="NIN">
+    Le **National Identification Number (NIN)** est un identifiant à 11 chiffres délivré par la National Identity Management Commission (NIMC).
+
+    | Champ | Valeur de test |
+    | --- | --- |
+    | NIN | `12345678901` |
+    | Résultat attendu dans le sandbox | Vérification acceptée ; renvoie un profil d'identité fictif |
+
+    Soumettez ce NIN de test via l'endpoint de vérification KYC de l'entité, en remplaçant `{entityId}` par l'identifiant `ent_…` de votre entité de test :
+
+    ```bash
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "nin",
+        "nin": "12345678901"
+      }'
+    ```
+  </Tab>
+  <Tab title="Permis de conduire">
+    Les permis de conduire nigérians suivent le format `AAA00000000000` : deux ou trois lettres majuscules suivies d'une séquence numérique.
+
+    | Champ | Valeur de test |
+    | --- | --- |
+    | Numéro de permis | `ABC1234567890` |
+    | État de délivrance | `Lagos` |
+    | Résultat attendu dans le sandbox | Vérification acceptée ; renvoie des données de permis fictives |
+
+    Soumettez ce numéro de permis de test via l'endpoint de vérification KYC de l'entité, en remplaçant `{entityId}` par l'identifiant `ent_…` de votre entité de test :
+
+    ```bash
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "drivers_license",
+        "licenseNumber": "ABC1234567890",
+        "stateOfIssue": "Lagos"
+      }'
+    ```
+  </Tab>
+  <Tab title="Passeport">
+    Les passeports internationaux nigérians suivent le format `A00000000` : une lettre majuscule suivie de huit chiffres.
+
+    | Champ | Valeur de test |
+    | --- | --- |
+    | Numéro de passeport | `A12345678` |
+    | Résultat attendu dans le sandbox | Vérification acceptée ; renvoie des données de passeport fictives |
+
+    Soumettez ce numéro de passeport de test via l'endpoint de vérification KYC de l'entité, en remplaçant `{entityId}` par l'identifiant `ent_…` de votre entité de test :
+
+    ```bash
+    curl -X POST "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "type": "passport",
+        "passportNumber": "A12345678"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## Comportement des réponses du sandbox
+
+Gardez ces différences à l'esprit pendant le développement et les tests :
+
+<AccordionGroup>
+  <Accordion title="Couverture partielle des champs">
+    Les réponses du sandbox peuvent contenir moins de champs qu'en production. Par exemple, une recherche BVN en production renvoie un profil d'identité complet enrichi à partir des données NIBSS en direct ; l'équivalent dans le sandbox renvoie une charge utile fictive plus réduite. Concevez votre intégration pour gérer avec souplesse les champs optionnels ou absents.
+  </Accordion>
+
+  <Accordion title="Scores de risque prévisibles">
+    Les entités du sandbox sont notées à partir des données synthétiques que vous fournissez. Une entité dotée uniquement d'une adresse e-mail reçoit un score de risque faible mais non nul, reflétant la pauvreté du profil. Ajoutez davantage de champs (nom, date de naissance, téléphone) pour voir le score évoluer à mesure que le profil s'enrichit.
+  </Accordion>
+
+  <Accordion title="Résultats du filtrage AML">
+    Le filtrage PEP, sanctions et médias négatifs renvoie des résultats fictifs dans le sandbox. Utilisez des noms de test connus pour déclencher une correspondance (par exemple `"firstName": "Sanctioned", "lastName": "Person"` dans certains scénarios de test) si votre intégration doit gérer des alertes AML. Reportez-vous au guide de test AML pour la liste complète des valeurs de déclenchement.
+  </Accordion>
+
+  <Accordion title="Aucune vérification réelle déclenchée">
+    Le sandbox ne contacte jamais les bases de données gouvernementales, les bureaux de crédit ni les fournisseurs de listes de surveillance réels. Vous pouvez lancer autant de vérifications que nécessaire sans aucune conséquence en matière de conformité ou de facturation.
+  </Accordion>
+</AccordionGroup>
+
+## Workflow sandbox recommandé
+
+Suivez cette séquence lors de la mise en place d'une nouvelle intégration ou du test d'un nouveau type de vérification :
+
+<Steps>
+  <Step title="Définissez vos variables d'environnement">
+    ```bash
+    export YV_SECRET_KEY="your_sandbox_api_key"
+    export YV_BASE_URL="https://api.sandbox.youverify.co"
+    ```
+  </Step>
+  <Step title="Créez une entité de test">
+    Utilisez la charge utile minimale (type d'entité, consentement, nom, e-mail) pour obtenir un identifiant `ent_…`.
+  </Step>
+  <Step title="Lancez la vérification que vous souhaitez tester">
+    Utilisez les identifiants de test des tableaux ci-dessus. Transmettez l'`entityId` afin que le résultat de la vérification se rattache à l'Entity 360.
+  </Step>
+  <Step title="Lisez l'Entity 360">
+    Appelez `GET /v2/api/entities/{id}` pour confirmer que le résultat de la vérification a été intégré au profil, au score de risque et au journal d'activité de l'entité.
+  </Step>
+  <Step title="Répétez avec des cas limites">
+    Testez les champs manquants, les formats d'identifiant invalides et les soumissions en double pour vous assurer que votre gestion des erreurs est robuste avant de passer en production.
+  </Step>
+</Steps>
+
+## Passage en production
+
+Lorsque votre intégration sandbox fonctionne correctement, le passage en production ne nécessite que deux changements :
+
+1. Remplacez votre clé d'API sandbox par la clé d'API de production disponible sur [cowork.youverify.co](https://cowork.youverify.co), dans **Settings → API Keys → Production**.
+2. Remplacez l'URL de base du sandbox par celle de production : `https://api.youverify.co`.
+
+Aucune modification de code n'est nécessaire pour la forme des requêtes, les headers ou l'analyse des réponses : le contrat d'API est identique d'un environnement à l'autre.
+
+<Note>
+  Les vérifications en production interrogent des sources de données gouvernementales officielles et sont facturées. Effectuez un petit test de bon fonctionnement avec un seul sujet réel avant d'activer un trafic de production à fort volume.
+</Note>

@@ -1,0 +1,316 @@
+---
+title: "Mettre en place des parcours KYC par paliers pour la banque numérique"
+sidebarTitle: "KYC par paliers"
+description: "Mettez en œuvre des paliers de vérification d'identité progressifs qui débloquent des plafonds de transaction plus élevés à mesure que les clients fournissent davantage de preuves d'identité, le tout sur un seul dossier d'entité."
+---
+
+Les banques numériques et les fintechs sont tenues par les régulateurs d'appliquer une vigilance proportionnée : des plafonds plus bas pour les clients faiblement vérifiés, des plafonds plus élevés à mesure que la vérification s'approfondit. Le modèle d'entité de Youverify rend cela naturel : vous créez l'entité une seule fois, exécutez chaque palier de vérification sur le même identifiant `ent_…`, et le score de risque s'affine à mesure que le profil se complète. Pas de doublons, pas de travail de réconciliation.
+
+Ce guide vous montre comment mettre en œuvre un parcours KYC en quatre paliers, de l'e-mail ou du téléphone seul jusqu'à la détection de vivacité biométrique et à la vérification d'adresse, et comment utiliser les webhooks et les seuils de score de risque pour automatiser les montées en palier.
+
+## À quoi ressemble le KYC par paliers
+
+<CardGroup cols={4}>
+  <Card title="Palier 0" icon="envelope">
+    **E-mail ou téléphone seul**
+
+    Plafonds de transaction les plus bas. Entité créée avec un minimum de données. Le contrôle AML s'exécute automatiquement à la création.
+  </Card>
+
+  <Card title="Palier 1" icon="id-card">
+    **Correspondance avec une pièce d'identité officielle**
+
+    BVN, NIN, carte d'identité nationale ou équivalent. Identité vérifiée auprès du registre faisant autorité. Plafonds intermédiaires débloqués.
+  </Card>
+
+  <Card title="Palier 2" icon="camera">
+    **Vivacité biométrique + capture de document**
+
+    Le client réussit un contrôle de vivacité et capture son document d'identité. Plafonds plus élevés débloqués.
+  </Card>
+
+  <Card title="Palier 3" icon="house">
+    **Vérification d'adresse**
+
+    Adresse physique ou numérique confirmée. Plafonds complets débloqués.
+  </Card>
+</CardGroup>
+
+---
+
+## Prérequis
+
+- Un compte Youverify sur [cowork.youverify.co](https://cowork.youverify.co)
+- Votre clé secrète d'API (appels côté serveur) et votre clé publique de marchand (appels SDK/côté client)
+- Des webhooks configurés pour recevoir les événements de fin de vérification
+- Des seuils de score de risque configurés dans le tableau de bord sous **Settings → Risk Scoring**
+
+---
+
+## Étapes
+
+<Steps>
+  ### Palier 0 — Créer l'entité (données minimales)
+
+  Intégrez le client dès son inscription, même avec seulement un e-mail ou un numéro de téléphone. La plateforme crée l'entité et exécute immédiatement un contrôle AML automatique.
+
+  <CodeGroup>
+    ```bash cURL — email only
+    curl -X POST "https://api.youverify.co/v2/api/entities" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "email": "jane@example.com"
+      }'
+    ```
+
+    ```bash cURL — name + phone
+    curl -X POST "https://api.youverify.co/v2/api/entities" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "phone": "+2348012345678",
+        "nationality": "NG"
+      }'
+    ```
+  </CodeGroup>
+
+  ```json Response
+  {
+    "success": true,
+    "status_code": 201,
+    "message": "Entity created successfully.",
+    "data": {
+      "id": "ent_684f5cc5a47a3926763b83a7",
+      "businessId": "61d880f1e8e15aaf24558f1a",
+      "createdBy": {
+        "firstName": "Timothy",
+        "lastName": "Akinyelu",
+        "middleName": "",
+        "id": "61f162ec1fd251c3a63f31c2"
+      }
+    },
+    "links": []
+  }
+  ```
+
+  Conservez l'identifiant `ent_…`. C'est l'identifiant unique de toutes les étapes suivantes du cycle de vie de ce client.
+
+  <Tip>
+    Appliquez vos plafonds de transaction du **Palier 0** dès réception de la réponse `201`. Vous n'avez pas besoin d'attendre la fin du contrôle AML : l'entité est surveillée dès sa création.
+  </Tip>
+
+  ### Palier 1 — Vérifier avec une pièce d'identité officielle (eIDV)
+
+  Lorsque le client souhaite augmenter son plafond, demandez-lui une pièce d'identité officielle. Lancez la vérification KYC sur le même identifiant d'entité avec `POST /v2/api/entities/{id}/verify/kyc`. Recoupez le nom et la date de naissance pour détecter rapidement les discordances.
+
+  <Tabs>
+    <Tab title="Nigeria — BVN">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "22222222222",
+            "countryCode": "NG",
+            "idType": "bvn"
+          },
+          "validations": {
+            "data": {
+              "firstName": "Jane",
+              "lastName": "Doe",
+              "dateOfBirth": "1990-06-15"
+            }
+          }
+        }'
+      ```
+    </Tab>
+
+    <Tab title="Nigeria — NIN">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "90899740000",
+            "countryCode": "NG",
+            "idType": "nin"
+          }
+        }'
+      ```
+    </Tab>
+
+    <Tab title="Kenya — Carte d'identité nationale">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "23772148",
+            "countryCode": "KE",
+            "idType": "keNationalId"
+          }
+        }'
+      ```
+    </Tab>
+
+    <Tab title="Afrique du Sud — SAID">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "8012185201081",
+            "countryCode": "ZA",
+            "idType": "zaSAID"
+          }
+        }'
+      ```
+    </Tab>
+  </Tabs>
+
+  Un résultat `"status": "found"` avec un nom et une date de naissance concordants confirme le Palier 1. Mettez à niveau les plafonds du client dans votre système lorsque vous recevez le webhook `entity.verification_completed`.
+
+  ### Palier 2 — Vivacité biométrique + capture de document (SDK)
+
+  Pour le Palier 2, lancez le Anti-Deepfake Liveness SDK ou le Document Capture SDK de Youverify depuis votre application mobile ou web. Ils utilisent votre **clé publique de marchand** (et non la clé secrète) et s'exécutent côté client.
+
+  **Côté serveur : générer un jeton de session de vivacité**
+
+  ```bash cURL
+  curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
+    -H "token: $YV_SECRET_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "entityId": "ent_684f5cc5a47a3926763b83a7"
+    }'
+  ```
+
+  Transmettez le `sessionToken` renvoyé à votre SDK côté client. Le SDK gère l'accès à la caméra, les contrôles de vivacité et la capture de document. Les résultats sont automatiquement renvoyés vers le dossier de l'entité à la fin de la session.
+
+  <Note>
+    La clé publique de marchand peut être exposée sans risque dans du code côté client. La clé secrète ne doit **jamais** quitter votre backend : elle dispose de pleins pouvoirs sur l'API.
+  </Note>
+
+  **Écouter le webhook de fin de session :**
+
+  ```json Webhook — liveness.completed
+  {
+    "event": "liveness.completed",
+    "data": {
+      "entityId": "ent_684f5cc5a47a3926763b83a7",
+      "sessionId": "sess_abc123",
+      "livenessStatus": "passed",
+      "faceMatchScore": 0.97
+    }
+  }
+  ```
+
+  Lorsque `livenessStatus` vaut `"passed"` et que `faceMatchScore` atteint votre seuil, faites passer le client au Palier 2.
+
+  ### Palier 3 — Vérification d'adresse
+
+  Pour obtenir les plafonds complets, vérifiez l'adresse résidentielle du client. Youverify prend en charge la vérification d'adresse physique (agent de terrain) et numérique.
+
+  **Vérification d'adresse numérique :**
+
+  ```bash cURL
+  curl -X POST "https://api.youverify.co/v2/api/address/verify" \
+    -H "token: $YV_SECRET_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "entityId": "ent_684f5cc5a47a3926763b83a7",
+      "addressLine1": "12 Marina Street",
+      "city": "Lagos",
+      "state": "Lagos",
+      "country": "NG",
+      "verificationType": "digital"
+    }'
+  ```
+
+  Les résultats de la vérification d'adresse sont rattachés au dossier de l'entité. Écoutez le webhook `address.verification_completed` et passez au Palier 3 lorsque le résultat est confirmé.
+
+  ### Utiliser les webhooks pour automatiser les montées en palier
+
+  Plutôt que d'interroger l'API en continu, abonnez-vous aux événements de fin de vérification et mettez à jour vos affectations de paliers de manière réactive. Configurez votre point de terminaison webhook dans le tableau de bord sous **Settings → Webhooks**.
+
+  ```json Webhook — entity.verification_completed
+  {
+    "event": "entity.verification_completed",
+    "data": {
+      "entityId": "ent_684f5cc5a47a3926763b83a7",
+      "verificationType": "kyc",
+      "status": "found",
+      "idType": "bvn",
+      "riskScore": 18,
+      "riskLevel": "low"
+    }
+  }
+  ```
+
+  Votre gestionnaire de webhook recherche le palier actuel de l'entité, vérifie le résultat de la vérification et met à niveau le palier dans votre système :
+
+  ```javascript Node.js webhook handler
+  app.post('/webhooks/youverify', async (req, res) => {
+    const { event, data } = req.body;
+
+    if (event === 'entity.verification_completed' && data.status === 'found') {
+      if (data.verificationType === 'kyc') {
+        await upgradeTier(data.entityId, 1);
+      }
+    }
+
+    if (event === 'liveness.completed' && data.livenessStatus === 'passed') {
+      await upgradeTier(data.entityId, 2);
+    }
+
+    if (event === 'address.verification_completed' && data.status === 'confirmed') {
+      await upgradeTier(data.entityId, 3);
+    }
+
+    res.sendStatus(200);
+  });
+  ```
+</Steps>
+
+---
+
+## La progression des paliers en un coup d'œil
+
+| Palier | Vérification | Données collectées | Point de terminaison |
+| --- | --- | --- | --- |
+| 0 | Aucune (AML automatique) | E-mail ou téléphone | `POST /v2/api/entities` |
+| 1 | Correspondance avec une pièce d'identité officielle | BVN / NIN / carte d'identité nationale | `POST /v2/api/entities/{id}/verify/kyc` |
+| 2 | Vivacité biométrique | Selfie + capture de document | SDK → `POST /v2/api/sdk/liveness-token` |
+| 3 | Vérification d'adresse | Adresse résidentielle | `POST /v2/api/address/verify` |
+
+<Tip>
+  Configurez des seuils de score de risque dans le tableau de bord sous **Settings → Risk Scoring** pour automatiser l'affectation des paliers. Lorsque le score d'une entité franchit un seuil, à la baisse (plus sûr) comme à la hausse (plus risqué), la plateforme peut déclencher un workflow d'agents IA pour approuver, restreindre ou escalader sans intervention manuelle.
+</Tip>
+
+---
+
+## Et ensuite
+
+- Consultez la [référence complète de l'API KYC](/api-reference/entities/verify-entity-kyc)
+- Intégrez le [Anti-Deepfake Liveness SDK](/fr/sdks/liveness-sdk) pour le Palier 2
+- Configurez les [webhooks](/fr/webhooks/overview) pour la gestion des événements en temps réel
+- Intégrez des clients entreprises avec la [vérification KYB et UBO](/fr/guides/corporate-kyb-ubo)

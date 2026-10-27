@@ -1,0 +1,201 @@
+---
+title: "Événements webhook KYC pour la vérification d'identité et d'adresse"
+sidebarTitle: "Webhooks KYC"
+description: "Abonnez-vous aux événements webhook de vérification d'identité et d'adresse pour réagir instantanément à la fin des vérifications KYC."
+---
+
+Youverify émet des webhooks KYC dès qu'une vérification d'identité ou d'adresse est résolue, que cela prenne quelques secondes (pour les consultations de bases de données) ou plusieurs heures (pour une vérification d'adresse physique nécessitant un agent de terrain). L'écoute de ces événements vous évite d'avoir à interroger l'API pour obtenir les résultats.
+
+## Types d'événements KYC
+
+| Événement | Déclencheur |
+| --- | --- |
+| `identity.verification.completed` | Une vérification d'identité (eIDV) est terminée |
+| `address.verification.completed` | Une tâche de vérification d'adresse a été réalisée par un agent de terrain ou via un contrôle numérique |
+
+## Vérification d'identité : `identity.verification.completed`
+
+Youverify transmet cet événement lorsqu'une vérification d'identité sur une pièce d'identité officielle, telle qu'un BVN, un NIN ou une carte d'identité nationale, a fini d'être traitée. L'objet `data` contient l'enregistrement vérifié complet, y compris tous les champs validés.
+
+### Exemple de charge utile
+
+```json
+{
+  "event": "identity.verification.completed",
+  "apiVersion": "v2",
+  "data": {
+    "address": {
+      "town": "SULEJA",
+      "lga": "Suleja",
+      "state": "Niger",
+      "addressLine": "13B Fake Street, Ilupeju Niger State"
+    },
+    "validations": {
+      "data": {
+        "lastName": { "validated": true, "value": "Doe" },
+        "dateOfBirth": { "validated": true, "value": "1988-04-04" },
+        "firstName": { "validated": true, "value": "Sarah" }
+      },
+      "validationMessages": ""
+    },
+    "status": "found",
+    "dataValidation": true,
+    "selfieValidation": false,
+    "firstName": "Sarah",
+    "middleName": "Jane",
+    "lastName": "Doe",
+    "mobile": "08000000000",
+    "dateOfBirth": "1988-04-04",
+    "idNumber": "11111111111",
+    "type": "nin",
+    "allValidationPassed": true,
+    "gender": "f",
+    "country": "NG",
+    "businessId": "62b2e8b281442b03187f7896",
+    "requestedAt": "2024-03-27T08:30:02.809Z",
+    "createdAt": "2024-03-27T08:30:03.367Z"
+  }
+}
+```
+
+### Champs de la charge utile de vérification d'identité
+
+<ResponseField name="event" type="string">
+  Toujours `identity.verification.completed` pour ce type d'événement.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Résultat de la vérification. Voir les [valeurs de statut](#valeurs-de-statut-de-verification) ci-dessous.
+</ResponseField>
+
+<ResponseField name="data.type" type="string">
+  Le type de pièce d'identité contrôlée, par exemple `nin`, `bvn`, `drivers_license`, `passport`.
+</ResponseField>
+
+<ResponseField name="data.country" type="string">
+  Code pays ISO 3166-1 alpha-2, par exemple `NG`.
+</ResponseField>
+
+<ResponseField name="data.dataValidation" type="boolean">
+  `true` si tous les champs soumis correspondaient à l'enregistrement faisant autorité.
+</ResponseField>
+
+<ResponseField name="data.allValidationPassed" type="boolean">
+  `true` si chaque validation de champ individuelle a réussi.
+</ResponseField>
+
+<ResponseField name="data.validations" type="object">
+  <Expandable title="Résultats de validation imbriqués par champ">
+    <ResponseField name="data" type="object">
+      Chaque clé est un nom de champ (par ex. `firstName`, `lastName`, `dateOfBirth`). Chaque valeur contient `validated` (booléen) et `value` (chaîne).
+    </ResponseField>
+
+    <ResponseField name="validationMessages" type="string">
+      Message de validation lisible par un humain, le cas échéant.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Vérification d'adresse : `address.verification.completed`
+
+Youverify émet cet événement lorsqu'une tâche de vérification d'adresse physique ou numérique est terminée. L'objet `data` comprend le rapport complet de l'agent, les coordonnées géographiques, les détails du bien et les images.
+
+### Exemple de charge utile (particulier)
+
+```json
+{
+  "event": "address.verification.completed",
+  "apiVersion": "v2",
+  "data": {
+    "candidate": {
+      "candidateId": "620861ac0972f71ec8caf07d",
+      "firstName": "Famous",
+      "lastName": "Ehichioya",
+      "email": "famous@youverify.co",
+      "mobile": "08030000000"
+    },
+    "address": {
+      "buildingNumber": "350",
+      "street": "Borno Way",
+      "city": "Yaba",
+      "state": "Lagos",
+      "country": "Nigeria",
+      "latlong": { "lat": "6.5009833", "lon": "3.376612" }
+    },
+    "status": "awaiting_qa",
+    "taskStatus": "VERIFIED",
+    "referenceId": "620865a2cae6f",
+    "verificationId": "620865a2cae6f",
+    "completedAt": "2022-02-13T02:20:03.000Z",
+    "submittedAt": "2022-02-13T02:20:03.000Z",
+    "isFlagged": false,
+    "notes": [
+      {
+        "createdAt": "2022-02-13 03:20:02",
+        "note": "Candidate confirmed to reside at the stated address."
+      }
+    ],
+    "downloadUrl": "https://api.youverify.co/v1/reports/reports_xxx/download/pdf",
+    "businessId": "61d880f1e8e15aaf24558f1a",
+    "type": "individual",
+    "createdAt": "2022-02-13T01:58:07.159Z"
+  }
+}
+```
+
+### Champs de la charge utile de vérification d'adresse
+
+<ResponseField name="data.taskStatus" type="string">
+  Résultat communiqué par l'agent. Valeurs courantes : `VERIFIED`, `NOT_VERIFIED`, `UNABLE_TO_VERIFY`.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Statut du rapport dans le workflow, par exemple `completed`, `awaiting_qa`.
+</ResponseField>
+
+<ResponseField name="data.isFlagged" type="boolean">
+  `true` si l'agent a signalé un élément notable à l'adresse lors de sa visite.
+</ResponseField>
+
+<ResponseField name="data.downloadUrl" type="string">
+  URL permettant de télécharger le rapport PDF complet de vérification d'adresse.
+</ResponseField>
+
+<ResponseField name="data.type" type="string">
+  Type de sujet de la vérification : `individual`, `guarantor` ou `business`.
+</ResponseField>
+
+## Valeurs de statut de vérification
+
+Le champ `data.status` des événements d'identité peut prendre les valeurs suivantes :
+
+| Valeur | Signification |
+| --- | --- |
+| `found` | L'enregistrement a été trouvé et les données correspondent |
+| `not_found` | Aucun enregistrement trouvé pour l'identifiant fourni |
+| `pending` | Fournisseur en amont temporairement indisponible ; le résultat arrivera via un webhook de suivi |
+| `failed` | La vérification n'a pas pu être menée à terme en raison d'une erreur |
+
+<Note>
+  Lorsque `status` vaut `pending`, ne considérez pas la vérification comme échouée. Youverify transmettra un webhook `identity.verification.completed` de suivi dès que le fournisseur en amont aura répondu.
+</Note>
+
+## Cas d'usage courants
+
+<AccordionGroup>
+  <Accordion title="Débloquer des fonctionnalités à la suite d'une vérification">
+    Écoutez `identity.verification.completed` avec `allValidationPassed: true` pour faire passer automatiquement un utilisateur à un niveau vérifié sur votre plateforme, en activant des plafonds de transaction plus élevés, des recharges de portefeuille ou d'autres fonctionnalités restreintes.
+  </Accordion>
+
+  <Accordion title="Envoyer des notifications en temps réel à votre utilisateur">
+    À la réception de l'un ou l'autre événement KYC, déclenchez une notification dans l'application ou un e-mail pour informer votre utilisateur que sa vérification a réussi ou échoué.
+  </Accordion>
+
+  <Accordion title="Mettre à jour les enregistrements internes">
+    Conservez le `verificationId`, le `status` et les champs validés de la charge utile du webhook dans votre propre base de données afin de disposer d'une trace auditable de chaque résultat KYC à côté de l'enregistrement de votre utilisateur.
+  </Accordion>
+
+  <Accordion title="Gérer correctement les vérifications en attente">
+    Si la vérification d'identité d'un utilisateur renvoie `status: pending`, affichez-lui un état « en cours » dans votre interface et passez-le à vérifié ou échoué dès l'arrivée du webhook de suivi.
+  </Accordion>
+</AccordionGroup>

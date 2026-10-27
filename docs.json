@@ -136,23 +136,48 @@
             "groups": [
               {
                 "group": "Démarrage",
-                "pages": []
+                "pages": [
+                  "fr/introduction",
+                  "fr/get-started/quickstart",
+                  "fr/get-started/authentication",
+                  "fr/get-started/test-data"
+                ]
               },
               {
                 "group": "Concepts de la plateforme",
-                "pages": []
+                "pages": [
+                  "fr/concepts/entity-360",
+                  "fr/concepts/risk-scoring",
+                  "fr/concepts/monitoring-model",
+                  "fr/concepts/plans-and-billing",
+                  "fr/concepts/object-model"
+                ]
               },
               {
                 "group": "Guides d'implémentation",
-                "pages": []
+                "pages": [
+                  "fr/guides/onboard-by-email",
+                  "fr/guides/onboard-by-phone",
+                  "fr/guides/onboard-by-government-id",
+                  "fr/guides/tiered-kyc-digital-banking"
+                ]
               },
               {
                 "group": "Webhooks et événements",
-                "pages": []
+                "pages": [
+                  "fr/webhooks/overview",
+                  "fr/webhooks/kyc-webhooks",
+                  "fr/webhooks/kyt-webhooks",
+                  "fr/webhooks/signature-verification",
+                  "fr/webhooks/retry-behaviour"
+                ]
               },
               {
                 "group": "SDK",
-                "pages": []
+                "pages": [
+                  "fr/sdks/overview",
+                  "fr/sdks/web-sdk"
+                ]
               },
               {
                 "group": "Ressources",
@@ -165,7 +190,9 @@
             "groups": [
               {
                 "group": "Vue d'ensemble de l'API",
-                "pages": []
+                "pages": [
+                  "fr/api-reference/overview"
+                ]
               }
             ]
           }

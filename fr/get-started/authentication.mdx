@@ -1,0 +1,190 @@
+---
+title: "Authentification à l'API Youverify : clés, environnements et headers"
+sidebarTitle: "Authentification"
+description: "Découvrez comment obtenir votre clé d'API Youverify, la transmettre dans le header token et cibler correctement l'environnement sandbox ou de production pour chaque appel."
+---
+
+Chaque requête adressée à l'API Youverify est authentifiée par une unique clé secrète transmise dans le header `token` : il n'y a ni handshake OAuth, ni cookie de session, ni préfixe bearer. La possession de la clé vaut autorisation ; la conserver côté serveur, hors du code client, est donc la mesure de sécurité la plus importante que vous puissiez prendre.
+
+## Types d'identifiants
+
+Youverify délivre deux identifiants distincts par environnement d'espace de travail. Ils répondent à des usages différents et ne doivent jamais être interchangés.
+
+<CardGroup cols={2}>
+  <Card title="API Secret Key" icon="key">
+    Utilisée pour tous les appels d'API **de serveur à serveur**. Transmettez-la dans le header `token`. N'exposez jamais cette clé dans un navigateur, une application mobile ou un dépôt public : toute personne qui la détient peut agir sur votre espace de travail.
+  </Card>
+
+  <Card title="Public Merchant Key" icon="globe">
+    Peut être intégrée en toute sécurité dans les **SDK web et mobiles** ou les parcours hébergés. Limitée au démarrage des sessions de détection de vivacité et de capture de documents. Elle ne permet ni de créer des entités, ni de récupérer des profils, ni de déclencher des vérifications.
+  </Card>
+</CardGroup>
+
+| Identifiant | Utilisation | Header / champ | Peut lire les entités ? |
+| --- | --- | --- | --- |
+| API Secret Key | Backend / serveur | Header `token` | ✅ Oui |
+| Public Merchant Key | Frontend / SDK | Initialisation du SDK | ❌ Non |
+
+<Warning>
+  N'incluez jamais votre API Secret Key dans du JavaScript côté client, dans les packages d'applications Android/iOS, ni dans tout code distribué aux utilisateurs finaux. Si vous pensez qu'une clé secrète a été compromise, effectuez immédiatement sa rotation dans les paramètres de votre espace de travail.
+</Warning>
+
+## Le header `token`
+
+Transmettez votre clé secrète comme valeur du header `token` pour chaque requête de serveur à serveur. Il n'y a pas de préfixe `Bearer` : la valeur est la clé brute.
+
+```http
+POST /v2/api/entities HTTP/1.1
+Host: api.sandbox.youverify.co
+token: YOUR_SECRET_KEY
+Content-Type: application/json
+```
+
+Un exemple cURL minimal :
+
+```bash
+curl -X GET "https://api.sandbox.youverify.co/v2/api/entities/ent_685c73c8519d82bd21a42fae" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json"
+```
+
+<Tip>
+  Stockez votre clé dans une variable d'environnement (`YV_SECRET_KEY`) plutôt que de l'écrire en dur. Cela la garde hors du contrôle de version et simplifie la rotation des identifiants.
+</Tip>
+
+## Environnements
+
+Youverify exploite deux environnements totalement indépendants. Chacun possède sa propre URL de base et son propre jeu d'identifiants d'API. Une clé d'un environnement est rejetée par l'autre.
+
+| Environnement | URL de base | Objectif | Données | Facturation |
+| --- | --- | --- | --- | --- |
+| **Sandbox** | `https://api.sandbox.youverify.co` | Intégration et tests | Données de test synthétiques | Gratuit, jamais facturé |
+| **Production** | `https://api.youverify.co` | Vérifications réelles | Sources gouvernementales officielles | Facturé par vérification |
+
+Utilisez le sandbox tout au long du développement et des tests d'intégration. Ne passez en production que lorsque vous êtes prêt à traiter de vrais sujets.
+
+<Warning>
+  Ne mélangez pas les environnements. Utiliser une clé sandbox sur l'URL de production (ou l'inverse) renvoie une erreur `401 Unauthorized`. Les entités et les données créées dans le sandbox n'apparaissent jamais en production.
+</Warning>
+
+## Où trouver vos clés
+
+Vos clés d'API se trouvent dans les paramètres de votre espace de travail Youverify :
+
+<Steps>
+  <Step title="Ouvrez votre espace de travail">
+    Connectez-vous sur [cowork.youverify.co](https://cowork.youverify.co).
+  </Step>
+  <Step title="Accédez à Settings → API Keys">
+    Dans la barre latérale, ouvrez **Settings**, puis sélectionnez l'onglet **API Keys**.
+  </Step>
+  <Step title="Sélectionnez le bon environnement">
+    Utilisez le sélecteur d'environnement en haut de la page pour basculer entre **Sandbox** et **Production**. Chaque environnement affiche sa propre paire de clés.
+  </Step>
+  <Step title="Copiez et stockez en lieu sûr">
+    Cliquez sur **Copy** à côté de l'API Secret Key et stockez-la dans un gestionnaire de secrets, un fichier `.env` (exclu du contrôle de version) ou les variables d'environnement de votre plateforme de déploiement.
+  </Step>
+</Steps>
+
+## Exemples de requêtes authentifiées
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.sandbox.youverify.co/v2/api/entities" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "entityType": "individual",
+    "isSubjectConsent": true,
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "email": "jane@example.com"
+  }'
+```
+
+```javascript Node.js
+const response = await fetch(
+  "https://api.sandbox.youverify.co/v2/api/entities",
+  {
+    method: "POST",
+    headers: {
+      token: process.env.YV_SECRET_KEY, // ← header token, sans préfixe "Bearer"
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      entityType: "individual",
+      isSubjectConsent: true,
+      firstName: "Jane",
+      lastName: "Doe",
+      email: "jane@example.com",
+    }),
+  }
+);
+```
+
+```python Python
+import os, requests
+
+headers = {
+    "token": os.environ["YV_SECRET_KEY"],   # ← header token, sans préfixe "Bearer"
+    "Content-Type": "application/json",
+}
+
+response = requests.post(
+    "https://api.sandbox.youverify.co/v2/api/entities",
+    headers=headers,
+    json={
+        "entityType": "individual",
+        "isSubjectConsent": True,
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "email": "jane@example.com",
+    },
+)
+```
+
+</CodeGroup>
+
+## Erreurs d'authentification
+
+Lorsque l'authentification échoue, l'API renvoie une enveloppe d'erreur standard comportant un champ `name` lisible par machine. Les deux erreurs d'authentification les plus courantes sont les suivantes :
+
+<AccordionGroup>
+  <Accordion title="401 Unauthorized : clé invalide ou manquante">
+    Votre requête est arrivée sans header `token`, ou la valeur de la clé est incorrecte (mauvaise clé, espace superflu ou clé de production utilisée sur le sandbox).
+
+    ```json
+    {
+      "success": false,
+      "statusCode": 401,
+      "name": "UnauthorizedError",
+      "message": "Invalid or missing API key. Provide your secret key in the token header."
+    }
+    ```
+
+    **Solution :** vérifiez que le header `token` est présent, que la valeur de la clé correspond à celle affichée dans les paramètres de votre espace de travail, et que vous utilisez la clé du bon environnement avec la bonne URL de base.
+  </Accordion>
+
+  <Accordion title="403 Forbidden : droits insuffisants">
+    Votre clé est valide, mais elle n'a pas l'autorisation d'effectuer l'action demandée. Cela se produit généralement lorsqu'une Public Merchant Key est utilisée sur un endpoint qui exige une clé secrète.
+
+    ```json
+    {
+      "success": false,
+      "statusCode": 403,
+      "name": "ForbiddenError",
+      "message": "You do not have permission to access this resource."
+    }
+    ```
+
+    **Solution :** assurez-vous d'utiliser l'API Secret Key (et non la Public Merchant Key) pour les opérations côté serveur. Si vous avez plusieurs rôles ou des permissions restreintes sur l'espace de travail, contactez votre administrateur.
+  </Accordion>
+</AccordionGroup>
+
+## Bonnes pratiques de sécurité
+
+- **Effectuez régulièrement la rotation des clés.** Générez une nouvelle clé dans les paramètres de l'espace de travail et mettez à jour votre déploiement avant de retirer l'ancienne.
+- **Utilisez des variables d'environnement.** Ne commitez jamais de clés dans Git, même dans des dépôts privés.
+- **Limitez les accès.** Utilisez la Public Merchant Key pour tout parcours exposé au client. Réservez la clé secrète exclusivement à votre backend.
+- **Surveillez l'utilisation.** Consultez les journaux d'activité de l'API dans le tableau de bord de votre espace de travail pour détecter rapidement toute utilisation inattendue.

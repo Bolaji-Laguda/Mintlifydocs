@@ -1,0 +1,263 @@
+---
+title: "Intégrer un client que vous ne connaissez que par numéro de téléphone"
+sidebarTitle: "Intégration par téléphone"
+description: "Créez une entité à partir d'un simple numéro de téléphone et vérifiez progressivement l'identité à mesure que de nouvelles données client deviennent disponibles, sans jamais créer de doublon."
+---
+
+Lorsqu'un client s'inscrit avec pour seule information un numéro de téléphone, vous pouvez tout de même créer immédiatement une entité suivie et notée dans Youverify. La plateforme exécute automatiquement un contrôle AML à la création et renvoie un dossier d'entité que vous pouvez enrichir tout au long du cycle de vie du client, sans doublons ni contrôles orphelins.
+
+Ce guide présente trois parcours de création selon le marché et les données dont vous disposez, ainsi que la manière d'ajouter la vérification d'identité lorsque davantage de données deviennent disponibles.
+
+<Note>
+  Les entités créées par téléphone suivent le cycle de vie standard des entités. Vous n'avez jamais besoin de créer une nouvelle entité lorsque le client fournit ultérieurement un nom, une pièce d'identité officielle ou d'autres informations : exécutez simplement les vérifications suivantes sur le même identifiant `ent_…`.
+</Note>
+
+## Prérequis
+
+- Un compte Youverify sur [cowork.youverify.co](https://cowork.youverify.co)
+- Votre clé secrète d'API, disponible dans le tableau de bord sous **Settings → API Keys**
+- Des webhooks configurés pour les événements `entity.created` et `entity.risk_score_updated` (recommandé)
+
+---
+
+## Étapes
+
+<Steps>
+  ### Créer l'entité avec un numéro de téléphone
+
+  Choisissez la méthode de création qui correspond à l'identifiant dont vous disposez. Il s'agit d'alternatives : choisissez-en une selon votre marché et les données disponibles.
+
+  <Tabs>
+    <Tab title="Données personnelles + téléphone (tout marché)">
+      Utilisez cette option lorsque vous disposez d'un numéro de téléphone ainsi que d'un nom. L'entité est créée à partir de ces seules données personnelles et peut être enrichie ultérieurement avec une pièce d'identité officielle.
+
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "firstName": "Jane",
+          "lastName": "Doe",
+          "phone": "+2348012345678",
+          "nationality": "NG"
+        }'
+      ```
+    </Tab>
+
+    <Tab title="NIN par téléphone (Nigeria)">
+      Utilisez cette option lorsque vous disposez d'un numéro de téléphone nigérian et souhaitez que la plateforme résolve automatiquement le dossier d'identité NIN sous-jacent. Créez d'abord l'entité, puis lancez un KYC avec `idType: "nin_phone"` pour résoudre le NIN.
+
+      ```bash cURL — Step 1: Create entity
+      curl -X POST "https://api.youverify.co/v2/api/entities" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "phone": "+2348012345678",
+          "nationality": "NG"
+        }'
+      ```
+
+      ```bash cURL — Step 2: Resolve NIN by phone
+      curl -X POST "https://api.youverify.co/v2/api/entities/ENTITY_ID/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "countryCode": "NG",
+            "idType": "nin_phone",
+            "mobile": "+2348012345678"
+          }
+        }'
+      ```
+
+      <Note>
+        Remplacez `ENTITY_ID` par l'identifiant `ent_…` renvoyé par l'appel `POST /v2/api/entities`.
+      </Note>
+    </Tab>
+
+    <Tab title="SAID (Afrique du Sud)">
+      Utilisez cette option pour intégrer un client sud-africain disposant d'un numéro de carte d'identité nationale. Créez d'abord l'entité, puis lancez un KYC pour résoudre l'identité auprès de la source faisant autorité sud-africaine.
+
+      ```bash cURL — Step 1: Create entity
+      curl -X POST "https://api.youverify.co/v2/api/entities" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "nationality": "ZA"
+        }'
+      ```
+
+      ```bash cURL — Step 2: Verify SAID
+      curl -X POST "https://api.youverify.co/v2/api/entities/ENTITY_ID/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "countryCode": "ZA",
+            "idType": "zaSAID",
+            "id": "8001015009087"
+          }
+        }'
+      ```
+    </Tab>
+  </Tabs>
+
+  Une création réussie renvoie l'identifiant permanent de l'entité :
+
+  ```json Response
+  {
+    "success": true,
+    "status_code": 201,
+    "message": "Entity created successfully.",
+    "data": {
+      "id": "ent_684f5cc5a47a3926763b83a7",
+      "businessId": "61d880f1e8e15aaf24558f1a",
+      "createdBy": {
+        "firstName": "Timothy",
+        "lastName": "Akinyelu",
+        "middleName": "",
+        "id": "61f162ec1fd251c3a63f31c2"
+      }
+    },
+    "links": []
+  }
+  ```
+
+  <Tip>
+    Stockez `data.id` (la valeur `ent_…`) dans votre propre base de données. Tous les appels suivants (enrichissement, KYC, AML, transactions) utilisent cet identifiant unique. Ne créez pas de nouvelle entité si vous détenez déjà un identifiant pour ce client.
+  </Tip>
+
+  ### Comprendre ce qui se passe automatiquement à la création
+
+  Dès que l'entité est créée, Youverify exécute automatiquement un contrôle AML complet (sanctions, PEP, listes de surveillance et médias défavorables) et calcule un score de risque initial. Cette opération s'applique à tous les forfaits et ne requiert aucune action de votre part.
+
+  ```
+  Your system                     Youverify API              AML Engine
+      |                                |                          |
+      |-- POST /entities ------------> |                          |
+      |                                |-- auto-trigger --------> |
+      |<-- 201 entityId --------------- |                          |
+      |                                |<-- Sanctions · PEP ------- |
+      |                                |   Watchlist · Adverse     |
+      |                                |   Media score             |
+      |<-- webhook: risk_score_updated  |                          |
+  ```
+
+  À la création, le score ne reflète que les données AML. Fraud Insight, qui évalue les signaux d'appareil et de comportement, enrichit le score au fil du temps à mesure que l'entité effectue des transactions. Les deux couches s'appliquent au même dossier d'entité.
+
+  ### Exécuter éventuellement une vérification du numéro de téléphone
+
+  Pour les marchés où la vérification du numéro de téléphone est prise en charge, vous pouvez vérifier explicitement le numéro auprès d'un opérateur ou d'une base d'identité afin de confirmer la propriété de la ligne. Utilisez `POST /v2/api/entities/{id}/verify/kyc` avec `idType: "phone"` pour le Nigeria :
+
+  ```bash cURL
+  curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+    -H "token: $YV_SECRET_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "entityType": "individual",
+      "isSubjectConsent": true,
+      "identity": {
+        "countryCode": "NG",
+        "idType": "phone",
+        "mobile": "+2348012345678"
+      }
+    }'
+  ```
+
+  Un contrôle réussi renvoie `"status": "found"` avec le nom et les éventuels champs d'identité associés issus de la recherche auprès de l'opérateur.
+
+  ### Enrichir avec des données supplémentaires dès qu'elles sont disponibles
+
+  À mesure que votre client fournit davantage d'informations, exécutez d'autres vérifications sur le **même identifiant d'entité** : chacune affine le score de risque et enrichit le profil 360.
+
+  <Accordion title="Ajouter une pièce d'identité officielle (BVN — Nigeria)">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "22222222222",
+          "countryCode": "NG",
+          "idType": "bvn"
+        },
+        "validations": {
+          "data": {
+            "firstName": "Jane",
+            "lastName": "Doe",
+            "dateOfBirth": "1990-06-15"
+          }
+        }
+      }'
+    ```
+  </Accordion>
+
+  <Accordion title="Ajouter une pièce d'identité officielle (carte d'identité nationale — Kenya)">
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "identity": {
+          "id": "23772148",
+          "countryCode": "KE",
+          "idType": "keNationalId"
+        }
+      }'
+    ```
+  </Accordion>
+
+  ### Surveiller les signaux
+
+  Abonnez-vous aux événements webhook afin que votre système réagisse automatiquement lorsque le profil de risque de l'entité change, par exemple lorsqu'une étape d'enrichissement fait ressortir une correspondance PEP ou que le score de fraude franchit un seuil.
+
+  ```json Webhook — entity.signal_raised
+  {
+    "event": "entity.signal_raised",
+    "data": {
+      "entityId": "ent_684f5cc5a47a3926763b83a7",
+      "signalType": "pep_match",
+      "severity": "high",
+      "description": "Entity matched against PEP database following NIN enrichment"
+    }
+  }
+  ```
+
+  Configurez votre point de terminaison dans le tableau de bord sous **Settings → Webhooks**.
+</Steps>
+
+---
+
+## Entité créée par téléphone : référence rapide
+
+| Champ | Obligatoire | Remarques |
+| --- | --- | --- |
+| `entityType` | ✅ | Toujours `"individual"` pour l'intégration par téléphone |
+| `isSubjectConsent` | ✅ | Doit être `true` : confirme le consentement de la personne concernée |
+| `phone` | ✅ (parcours données personnelles) | Format E.164 recommandé, par exemple `+2348012345678` |
+| `nationality` | Recommandé | Code pays ISO 3166-1 alpha-2 |
+| `firstName` / `lastName` | Recommandé | Améliore la précision du contrôle AML à la création |
+| `identity.mobile` | ✅ (parcours NIN par téléphone) | Numéro de téléphone nigérian pour la résolution du NIN |
+
+---
+
+## Et ensuite
+
+- Approfondissez la vérification avec l'[intégration par pièce d'identité officielle](/fr/guides/onboard-by-government-id)
+- Construisez un parcours complet avec le [KYC par paliers](/fr/guides/tiered-kyc-digital-banking)
+- Configurez les [webhooks](/fr/webhooks/overview) pour recevoir en temps réel les événements de risque et de signaux
+- Consultez l'[Entity 360](/fr/concepts/entity-360) pour découvrir toutes les données qui s'accumulent sur le dossier d'une entité

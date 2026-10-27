@@ -1,0 +1,210 @@
+---
+title: "Référence de l'API REST Youverify : vue d'ensemble et conventions"
+sidebarTitle: "Conventions de l'API"
+description: "URL de base, format des requêtes, authentification, enveloppe de réponse, codes d'erreur, pagination et limites de débit de l'API REST Youverify."
+---
+
+L'API REST Youverify vous donne un accès programmatique à l'ensemble de la plateforme FRAML : créez et surveillez des entités, lancez des vérifications KYC, KYB et AML, ingérez des transactions pour le KYT, gérez des dossiers et diffusez des signaux, le tout en JSON via HTTPS. Chaque ressource de cette référence suit les mêmes conventions : une fois que vous avez compris l'enveloppe de réponse et le modèle d'authentification, le reste est cohérent de bout en bout.
+
+## URL de base
+
+Youverify propose deux environnements totalement isolés. Utilisez le sandbox pour l'intégration et les tests ; passez en production lorsque vous êtes prêt pour des vérifications réelles et facturées.
+
+| Environnement | URL de base | Objectif |
+| --- | --- | --- |
+| **Sandbox** | `https://api.sandbox.youverify.co` | Intégration et tests : données de test, sans facturation |
+| **Production** | `https://api.youverify.co` | Vérifications réelles auprès de sources officielles, avec facturation |
+
+<Warning>
+  Ne mélangez jamais les identifiants entre les environnements. Une clé sandbox sera rejetée par l'endpoint de production, et inversement.
+</Warning>
+
+## Format des requêtes
+
+Toutes les requêtes et réponses sont en JSON via HTTPS. Définissez les headers suivants pour chaque appel :
+
+```http
+token: YOUR_SECRET_KEY
+Content-Type: application/json
+```
+
+## Authentification
+
+Youverify authentifie les appels de serveur à serveur avec un unique header `token`. Il n'y a pas de handshake OAuth : la possession de la clé secrète vaut autorisation, elle ne doit donc **jamais** quitter votre backend. Consultez la [référence d'authentification](/api-reference/authentication) pour les détails complets, les types de clés et les bonnes pratiques de sécurité.
+
+## Enveloppe de réponse
+
+Chaque réponse réussie partage la même structure, ce qui vous permet d'écrire votre logique de désérialisation une seule fois :
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Human-readable outcome.",
+  "data": {},
+  "links": []
+}
+```
+
+<ResponseField name="success" type="boolean">
+  `true` pour toutes les réponses réussies.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  Code de statut HTTP reproduit dans le corps de la réponse, par exemple `200`, `201`.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Une description lisible du résultat.
+</ResponseField>
+
+<ResponseField name="data" type="object | array">
+  La charge utile principale : un objet pour les endpoints portant sur une seule ressource, un tableau pour les endpoints de liste.
+</ResponseField>
+
+<ResponseField name="links" type="array">
+  Liens hypermedia de navigation (curseurs de pagination, ressources associées).
+</ResponseField>
+
+## Enveloppe d'erreur
+
+Lorsqu'une requête échoue, la réponse reprend la même structure avec `success: false` et un `name` d'erreur lisible par machine :
+
+```json
+{
+  "success": false,
+  "statusCode": 404,
+  "name": "ResourceNotFoundError",
+  "message": "Entity with ID ent_abc123 was not found."
+}
+```
+
+<ResponseField name="success" type="boolean">
+  Toujours `false` pour les réponses d'erreur.
+</ResponseField>
+
+<ResponseField name="statusCode" type="integer">
+  Le code de statut HTTP de l'erreur.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  Un identifiant d'erreur lisible par machine, par exemple `ResourceNotFoundError`, `ValidationError`, `UnauthorizedError`.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Une explication lisible de ce qui s'est mal passé.
+</ResponseField>
+
+### Codes de statut HTTP courants
+
+| Code | Signification |
+| --- | --- |
+| `200 OK` | La requête a réussi |
+| `201 Created` | La ressource a été créée avec succès |
+| `400 Bad Request` | Corps de requête invalide ou paramètre obligatoire manquant |
+| `401 Unauthorized` | Header `token` manquant ou invalide |
+| `403 Forbidden` | Token valide mais offre ou permissions insuffisantes |
+| `404 Not Found` | La ressource demandée n'existe pas |
+| `422 Unprocessable Entity` | La requête est bien formée mais sémantiquement invalide |
+| `429 Too Many Requests` | Limite de débit dépassée : réessayez après le délai indiqué par le header `Retry-After` |
+| `500 Internal Server Error` | Erreur serveur inattendue |
+
+## Pagination
+
+### Pagination par décalage
+
+La plupart des endpoints de liste prennent en charge la pagination par décalage via les paramètres de requête `page` et `limit` :
+
+```http
+GET /v2/api/entities?page=2&limit=50
+```
+
+<ParamField query="page" default="1" type="integer">
+  Le numéro de la page à récupérer.
+</ParamField>
+
+<ParamField query="limit" default="20" type="integer">
+  Nombre de résultats par page. Le maximum est `100`.
+</ParamField>
+
+La réponse paginée inclut des métadonnées en plus du tableau `data` :
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entities retrieved successfully.",
+  "data": {
+    "total": 342,
+    "page": 2,
+    "limit": 50,
+    "list": []
+  },
+  "links": []
+}
+```
+
+### Pagination par curseur
+
+Les flux à fort volume, tels que les Signals, prennent en charge la pagination par curseur, à privilégier pour l'interrogation en production car elle gère les données en temps réel sans omettre ni dupliquer d'enregistrements. Transmettez la valeur `cursor` renvoyée dans `links` comme paramètre de requête lors de l'appel suivant.
+
+## Identifiants d'entité
+
+Toutes les entités portent un identifiant stable et globalement unique, préfixé par `ent_` :
+
+```text
+ent_685c73c8519d82bd21a42fae
+```
+
+Cet identifiant est permanent pendant toute la durée de vie de l'entité. Référencez-le dans vos appels KYC, KYB, AML, KYT et de gestion des dossiers afin que chaque résultat se rattache à l'enregistrement 360 de l'entité au lieu d'exister comme un rapport orphelin.
+
+## Limites de débit
+
+Youverify applique des limites de débit par espace de travail. Lorsque vous les dépassez, l'API renvoie `429 Too Many Requests` avec un header `Retry-After` indiquant le nombre de secondes à attendre avant de réessayer :
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 30
+```
+
+<Tip>
+  Implémentez un backoff exponentiel avec jitter dans votre logique de nouvelle tentative afin d'éviter les effets de rafale (thundering herd) lorsque vous approchez de votre limite de débit.
+</Tip>
+
+## Groupes de ressources
+
+L'API est organisée autour des groupes de ressources suivants :
+
+<CardGroup cols={2}>
+  <Card title="Entities" icon="user">
+    Créez, récupérez et gérez des entités de type particulier et entreprise. L'objet central auquel tout le reste fait référence.
+  </Card>
+
+  <Card title="KYC" icon="id-card">
+    Lancez des vérifications d'identité auprès des bases de pièces d'identité officielles : BVN, NIN, passeport, permis de conduire, etc.
+  </Card>
+
+  <Card title="KYB" icon="building">
+    Vérifiez des entreprises auprès des registres du commerce. Récupérez les informations d'immatriculation, les dirigeants, les actionnaires et les UBO.
+  </Card>
+
+  <Card title="AML" icon="shield-halved">
+    Filtrez les entités par rapport aux listes de PEP, aux bases mondiales de sanctions et aux sources de médias négatifs.
+  </Card>
+
+  <Card title="KYT" icon="arrow-right-arrow-left">
+    Ingérez des transactions et recevez des évaluations de risque et des signaux de fraude en temps réel pour la surveillance des transactions.
+  </Card>
+
+  <Card title="Cases" icon="folder-open">
+    Ouvrez, mettez à jour et clôturez des dossiers d'investigation liés aux entités. La couche avec intervention humaine.
+  </Card>
+
+  <Card title="Signals" icon="bell">
+    Récupérez les événements, schémas et alertes détectés par les pièges à fraude et les règles de surveillance.
+  </Card>
+
+  <Card title="Risk" icon="chart-line">
+    Accédez aux scores de risque, à leur décomposition et à la configuration du modèle de risque de votre espace de travail.
+  </Card>
+</CardGroup>

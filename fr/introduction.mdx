@@ -1,0 +1,85 @@
+---
+title: "Youverify : la plateforme FRAML pour les équipes de conformité modernes"
+sidebarTitle: "Introduction"
+description: "Youverify propose KYC, KYB, filtrage AML et surveillance des transactions au sein d'une plateforme d'API unifiée, conçue pour les fintechs et les processeurs de paiement."
+---
+
+Youverify est une plateforme FRAML (fraude et lutte contre le blanchiment d'argent) unifiée qui vous permet d'intégrer, de vérifier, de surveiller et d'investiguer des particuliers et des entreprises à travers un seul ensemble d'API et d'identifiants. Plutôt que d'assembler des outils distincts de KYC, de filtrage des sanctions et de surveillance des transactions, Youverify vous offre un modèle de données unique et cohérent, l'**Entity 360**, afin que votre équipe de conformité dispose toujours d'une vision complète.
+
+<CardGroup cols={2}>
+  <Card title="Démarrage rapide" icon="rocket" href="/fr/get-started/quickstart">
+    Créez votre première entité et lancez une vérification en moins de 5 minutes.
+  </Card>
+
+  <Card title="Authentification" icon="key" href="/fr/get-started/authentication">
+    Obtenez votre clé d'API et découvrez comment authentifier chaque requête.
+  </Card>
+
+  <Card title="Référence de l'API" icon="code" href="/fr/api-reference/overview">
+    Référence complète des endpoints pour la gestion des entités, le KYC, le KYB, l'AML et plus encore.
+  </Card>
+
+  <Card title="Guides" icon="book-open" href="/fr/guides/onboard-by-email">
+    Tutoriels pas à pas pour les cas d'usage courants de la conformité.
+  </Card>
+</CardGroup>
+
+## Ce que vous pouvez construire
+
+Les API Youverify alimentent des parcours de conformité de bout en bout, à chaque étape du cycle de vie du client :
+
+<CardGroup cols={3}>
+  <Card title="Vérification d'identité" icon="id-card" href="/api-reference/kyc/id-data-matching">
+    Validez les pièces d'identité officielles et les données personnelles au Nigéria, au Kenya, en Afrique du Sud, au Ghana, en Côte d'Ivoire et dans d'autres pays.
+  </Card>
+
+  <Card title="Vérification d'entreprise" icon="building" href="/api-reference/kyb/business-verification">
+    Vérifiez les immatriculations d'entreprises, les structures d'UBO et les adresses professionnelles en Afrique et dans la région EMEA.
+  </Card>
+
+  <Card title="Filtrage AML" icon="shield-halved" href="/api-reference/aml/pep-sanction-screening">
+    Filtrez les particuliers et les entreprises par rapport aux bases mondiales de PEP, de sanctions et de médias négatifs.
+  </Card>
+
+  <Card title="Surveillance des transactions" icon="chart-line" href="/api-reference/kyt/create-transaction">
+    Soumettez des transactions pour une évaluation des risques en temps réel et la génération d'alertes.
+  </Card>
+
+  <Card title="Gestion des dossiers" icon="folder-open" href="/api-reference/cases/create-case">
+    Créez et instruisez des dossiers de conformité avec des synthèses générées par l'IA.
+  </Card>
+
+  <Card title={"SDK mobiles et web"} icon="mobile" href="/fr/sdks/overview">
+    Intégrez la détection de vivacité et la capture de documents directement dans votre application.
+  </Card>
+</CardGroup>
+
+## Comment ça fonctionne
+
+<Steps>
+  <Step title="Obtenez votre clé d'API">
+    Connectez-vous au [tableau de bord Youverify Cowork](https://cowork.youverify.co) et générez une clé d'API secrète depuis les paramètres de votre espace de travail. Vous obtiendrez des clés distinctes pour le sandbox et la production.
+  </Step>
+  <Step title="Créez une entité">
+    Ajoutez n'importe quel particulier ou entreprise à la plateforme. Commencez avec une simple adresse e-mail : Youverify crée immédiatement un enregistrement doté d'un score de risque et vous permet de l'enrichir au fil du temps.
+  </Step>
+  <Step title="Lancez des vérifications">
+    Déclenchez des vérifications d'identité KYC, des recherches d'entreprises KYB, des filtrages AML ou des évaluations du risque transactionnel sur l'entité, avec les mêmes identifiants.
+  </Step>
+  <Step title="Surveillez et agissez">
+    Recevez des notifications webhook à mesure que les résultats de vérification et les signaux de risque arrivent. Escaladez vers des dossiers, examinez-les avec des synthèses IA et prenez des décisions éclairées.
+  </Step>
+</Steps>
+
+## Environnements
+
+Youverify propose deux environnements isolés :
+
+| Environnement | URL de base | Objectif |
+| --- | --- | --- |
+| **Sandbox** | `https://api.sandbox.youverify.co` | Tester vos intégrations avec des données synthétiques, sans facturation |
+| **Production** | `https://api.youverify.co` | Vérifications réelles auprès de sources officielles, avec facturation |
+
+<Note>
+  Utilisez toujours vos identifiants sandbox pour le développement et les tests. N'utilisez jamais une clé sandbox sur l'endpoint de production, ni l'inverse.
+</Note>

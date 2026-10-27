@@ -1,0 +1,157 @@
+---
+title: "Modèle de surveillance continue des entités et des transactions"
+sidebarTitle: "Modèle de surveillance"
+description: "Découvrez comment Youverify surveille en continu les entités pour détecter de nouveaux signaux de risque, et comment les alertes et les dossiers sont générés à partir de l'activité de surveillance."
+---
+
+Un contrôle KYC ponctuel vous indique qui était un client au moment de son intégration. Il ne vous dit rien de ce qu'il est six mois plus tard, ni si son entreprise a fait l'objet de sanctions, ni si le comportement de ses transactions a discrètement basculé vers un schéma de fractionnement. Le modèle de surveillance de Youverify repose sur le principe que la conformité est continue : chaque entité que vous ajoutez reste sous observation, et chaque nouveau signal met automatiquement à jour son dossier et son score de risque.
+
+## Deux types de surveillance
+
+Youverify exerce simultanément la surveillance à deux niveaux :
+
+<CardGroup cols={2}>
+  <Card title="Surveillance au niveau de l'entité" icon="user-shield">
+    Nouveau filtrage KYC et AML continu. Youverify vérifie en continu les entités surveillées par rapport aux listes PEP, aux bases de données mondiales de sanctions, aux sources de médias défavorables et à vos listes de surveillance personnalisées. Une nouvelle inscription ou une correspondance défavorable déclenche immédiatement un signal.
+  </Card>
+
+  <Card title="Surveillance au niveau des transactions (KYT)" icon="arrow-right-arrow-left">
+    Filtrage Know-Your-Transaction appliqué à l'activité financière. Chaque transaction soumise pour une entité est évaluée afin de détecter des anomalies comportementales, du fractionnement, des schémas de vélocité, des contreparties inhabituelles et des correspondances avec des modèles de détection de fraude.
+  </Card>
+</CardGroup>
+
+## Signaux : le concept qui chapeaute la surveillance
+
+Les **signaux** constituent le concept général qui regroupe tout ce que vous surveillez au sujet d'une entité. Un signal est un événement, un schéma ou un déclencheur détecté qui mérite attention. Cinq types de signaux liés sont tous rattachés au même identifiant d'entité :
+
+<AccordionGroup>
+  <Accordion title="Activités">
+    La piste d'audit immuable de chaque action et vérification effectuée sur l'entité. Les activités ne peuvent ni être modifiées ni être supprimées : elles constituent le registre de conformité que vous présentez aux régulateurs.
+  </Accordion>
+
+  <Accordion title="Analyses comportementales">
+    Schémas portant sur la _manière_ dont une entité se comporte au fil du temps : rythme des transactions, canaux utilisés, contreparties, schémas d'appareils et d'accès. Les analyses comportementales font passer la surveillance d'indicateurs ponctuels à une vision complète du risque fondée sur le mode de vie.
+  </Accordion>
+
+  <Accordion title="Transactions">
+    L'activité financière soumise pour l'entité et ses évaluations KYT. Youverify applique vos modèles de détection configurés (Fraud Traps) et le filtrage mondial à chaque transaction.
+  </Accordion>
+
+  <Accordion title="Alertes">
+    Résultats de surveillance générés automatiquement lorsque des seuils de signaux sont franchis. Les alertes doivent être triées : votre équipe les examine, enquête et les résout.
+  </Accordion>
+
+  <Accordion title="Dossiers">
+    Investigations escaladées à partir d'alertes ou ouvertes manuellement. Les dossiers permettent une collecte structurée de preuves et reçoivent une synthèse générée par l'IA de Vyra pour accélérer la revue.
+  </Accordion>
+</AccordionGroup>
+
+## Cycle de vie d'une alerte
+
+Lorsque Youverify détecte un signal qui franchit un seuil configuré, il crée une alerte et la rattache à l'entité concernée. Les alertes suivent un cycle de vie clair :
+
+<Steps>
+  <Step title="Créée">
+    L'alerte est générée automatiquement à partir d'un signal, par exemple une correspondance avec une liste de sanctions, un dépassement de vélocité des transactions ou une correspondance avec un Fraud Trap. Le score de risque de l'entité est mis à jour immédiatement.
+  </Step>
+  <Step title="Triée">
+    Votre équipe conformité (ou un workflow d'agent IA) examine l'alerte, évalue les preuves et détermine si le signal est un vrai positif ou un faux positif.
+  </Step>
+  <Step title="Résolue">
+    L'alerte est clôturée avec une décision enregistrée : levée (faux positif), traitée (par exemple transaction bloquée, entité restreinte) ou escaladée vers un dossier pour une investigation approfondie.
+  </Step>
+</Steps>
+
+## Dossiers : des investigations structurées
+
+Un dossier est une investigation ouverte sur une entité, soit escaladée automatiquement à partir d'une alerte, soit ouverte manuellement par un responsable conformité. Les dossiers constituent la couche **humain dans la boucle** du modèle de surveillance.
+
+Chaque dossier fournit :
+
+- Une chronologie complète des signaux, alertes et activités ayant conduit à l'ouverture du dossier
+- Une **synthèse générée par l'IA** produite par Vyra pour donner immédiatement du contexte au réviseur assigné
+- Une collecte structurée de preuves, afin que les réviseurs puissent joindre des documents, des notes et des décisions
+- Une piste d'audit claire de chaque action réalisée pendant l'investigation
+
+<Note>
+  Les dossiers sont rattachés à l'entité, et non à un incident isolé. Le réviseur voit l'Entity 360 complet (toutes les vérifications, transactions et alertes précédentes) sans changer de système.
+</Note>
+
+## Vyra : le copilote IA de conformité de Youverify
+
+**Vyra** est la couche d'IA intégrée à Youverify qui automatise les workflows de décision pour l'intégration, le filtrage et la surveillance. Au lieu de câbler manuellement une logique de contrôle puis de décision, vous déployez des agents IA propulsés par Vyra qui orchestrent les mêmes capacités d'API et automatisent les décisions de bout en bout dans quatre domaines :
+
+<CardGroup cols={2}>
+  <Card title="Intégration des clients" icon="user-plus">
+    Vérifiez, scorez et approuvez / rejetez / restreignez / escaladez automatiquement les nouvelles entités selon vos règles configurées. Les cas limites sont escaladés vers un humain ou un dossier.
+  </Card>
+
+  <Card title="Filtrage des transactions" icon="shield">
+    Filtrez les parties et les transactions avant qu'elles ne soient finalisées, en bloquant en temps réel les activités à haut risque.
+  </Card>
+
+  <Card title="Surveillance des transactions" icon="chart-bar">
+    Surveillez le comportement au fil du temps et générez automatiquement des signaux et des alertes lorsque des schémas franchissent vos seuils.
+  </Card>
+
+  <Card title="Détection de la fraude" icon="triangle-exclamation">
+    Appliquez des modèles Fraud Trap personnalisés, entraînés sur vos propres données, pour détecter des schémas de fraude en temps réel et dans l'activité historique.
+  </Card>
+</CardGroup>
+
+### Fraud Traps
+
+Les Fraud Traps sont des **modèles de détection IA personnalisés, entraînés sur vos propres données**, et non des règles génériques ou statiques. Chaque Fraud Trap est privé pour votre tenant et reflète vos schémas de fraude spécifiques. Lorsqu'un événement de fraude survient, vous le modélisez sous la forme d'un Fraud Trap afin que la plateforme puisse détecter le même schéma dans l'activité future. Vous pouvez affiner un Fraud Trap à tout moment pour améliorer ses performances à mesure que de nouveaux schémas de fraude apparaissent.
+
+<Tip>
+  Comme les Fraud Traps sont entraînés sur vos données, ils surpassent les moteurs de règles statiques pour votre base de clients spécifique. Commencez avec les modèles de détection intégrés, puis ajoutez des Fraud Traps personnalisés à mesure que vous accumulez un historique de transactions.
+</Tip>
+
+## Réception des signaux via les webhooks
+
+Vous n'avez pas besoin d'interroger l'API pour obtenir les événements de surveillance. Youverify livre les signaux à vos systèmes en temps réel via des webhooks. Configurez vos points de terminaison webhook dans le tableau de bord Cowork pour recevoir :
+
+<CodeGroup>
+
+```json Entity Signal Payload
+{
+  "event": "entity.signal.created",
+  "data": {
+    "entityId": "ent_01j9xkp4f8e3q2wr5td6mnbc7a",
+    "signalType": "aml_hit",
+    "severity": "high",
+    "description": "Sanctions list match detected for entity.",
+    "riskScoreUpdated": 78,
+    "createdAt": "2025-01-15T14:22:05.000Z"
+  }
+}
+```
+
+```json Transaction Alert Payload
+{
+  "event": "transaction.alert.created",
+  "data": {
+    "entityId": "ent_01j9xkp4f8e3q2wr5td6mnbc7a",
+    "transactionId": "txn_09kz2mp7r1t8q4vs6ue3nwcd5b",
+    "alertType": "velocity_breach",
+    "severity": "medium",
+    "description": "Transaction count exceeded threshold within 24-hour window.",
+    "createdAt": "2025-01-15T14:45:18.000Z"
+  }
+}
+```
+
+</CodeGroup>
+
+<Warning>
+  Validez la signature du webhook pour chaque requête entrante. Youverify inclut un en-tête de signature que vous devez vérifier avant de traiter toute charge utile, afin d'empêcher que des événements usurpés n'affectent vos workflows de conformité.
+</Warning>
+
+## Résidence des données et apport de votre propre base de données
+
+Pour le filtrage et la surveillance des transactions, l'endroit où les données résident physiquement peut lui-même constituer une exigence réglementaire. Youverify prend en charge deux approches :
+
+- **Résidence des données par région** : sélectionnez le pays ou la région où vos données sont stockées et traitées, afin que les données générées localement ne quittent jamais la juridiction requise. Les données peuvent être déplacées entre les régions prises en charge sans perdre l'historique ni l'Entity 360.
+- **Apportez votre propre base de données (BYODB)** : connectez votre propre entrepôt de données afin que les workflows de filtrage et de surveillance s'exécutent directement sur vos données. Les résultats (signaux, alertes, scores et dossiers) restent rattachés à l'Entity 360 dans Youverify.
+
+Cela vous donne la flexibilité nécessaire pour respecter les obligations de localisation des données sur plusieurs marchés tout en conservant une vue de conformité unifiée.
