@@ -182,13 +182,17 @@
                 "pages": [
                   "fr/sdks/overview",
                   "fr/sdks/web-sdk",
-                  "fr/sdks/android-sdk"
+                  "fr/sdks/android-sdk",
+                  "fr/sdks/ios-sdk",
+                  "fr/sdks/liveness-sdk"
                 ]
               },
               {
                 "group": "Ressources",
                 "pages": [
-                  "fr/resources/coverage"
+                  "fr/resources/coverage",
+                  "fr/get-started/response-codes",
+                  "fr/resources/rate-limits"
                 ]
               }
             ]
