@@ -71,9 +71,7 @@
                 "pages": [
                   "webhooks/overview",
                   "webhooks/kyc-webhooks",
-                  "webhooks/kyt-webhooks",
-                  "webhooks/signature-verification",
-                  "webhooks/retry-behaviour"
+                  "webhooks/kyt-webhooks"
                 ]
               },
               {
@@ -156,11 +154,7 @@
                   "fr/guides/onboard-by-phone",
                   "fr/guides/onboard-by-government-id",
                   "fr/guides/tiered-kyc-digital-banking",
-                  "fr/guides/corporate-kyb-ubo",
-                  "fr/guides/fraud-insights",
-                  "fr/guides/transaction-monitoring",
-                  "fr/guides/case-management",
-                  "fr/guides/regulatory-reporting"
+                  "fr/guides/corporate-kyb-ubo"
                 ]
               },
               {
@@ -168,9 +162,7 @@
                 "pages": [
                   "fr/webhooks/overview",
                   "fr/webhooks/kyc-webhooks",
-                  "fr/webhooks/kyt-webhooks",
-                  "fr/webhooks/signature-verification",
-                  "fr/webhooks/retry-behaviour"
+                  "fr/webhooks/kyt-webhooks"
                 ]
               },
               {
