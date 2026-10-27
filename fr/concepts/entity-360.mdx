@@ -1,0 +1,174 @@
+---
+title: "L'Entity 360 : le dossier client unifié de Youverify"
+sidebarTitle: "Entity 360"
+description: "L'Entity 360 est le modèle de données central de Youverify : un dossier unique, mis à jour en continu, qui regroupe tout ce que l'on sait d'un client ou d'une entreprise."
+---
+
+La plupart des dispositifs de conformité sont centrés sur les contrôles : le KYC se trouve dans un système, le filtrage des sanctions dans un autre, et la surveillance des transactions dans un troisième. Réconcilier ces résultats cloisonnés lorsqu'un problème survient, ou prouver à un régulateur que vous avez fait votre travail, est long, fragile et coûteux. Youverify inverse ce modèle avec l'**Entity 360** : un dossier unique, enrichi en continu, qui rattache chaque vérification, résultat de filtrage, signal de transaction et dossier d'investigation à un seul identifiant. Au lieu de rechercher des rapports dans plusieurs systèmes, votre équipe conformité dispose d'un seul espace de travail qui présente la situation complète.
+
+## Qu'est-ce qu'une entité ?
+
+Une entité est tout sujet que votre équipe doit suivre, vérifier ou surveiller : un particulier (une personne physique) ou une entreprise (une personne morale). L'entité est l'objet central de Youverify : chaque contrôle, alerte et dossier s'y rapporte au lieu d'exister comme un rapport isolé.
+
+Les entités portent un identifiant unique `ent_…` que vous utilisez pour associer toute l'activité ultérieure. Créez une entité une seule fois, puis référencez-la indéfiniment.
+
+<CardGroup cols={2}>
+  <Card title="Particulier" icon="user">
+    Une personne physique. Elle porte des données d'identité telles que le nom, la date de naissance et la pièce d'identité officielle, enrichies au fil du temps grâce aux vérifications KYC.
+  </Card>
+
+  <Card title="Entreprise" icon="building">
+    Une personne morale avec ses informations d'immatriculation et un graphe de propriété complet : UBO, dirigeants, actionnaires et PSC, avec leurs pourcentages de détention.
+  </Card>
+</CardGroup>
+
+## De combien de données avez-vous besoin pour démarrer ?
+
+Vous pouvez créer une entité avec très peu de données. Pour un particulier standard, un nom, un numéro de téléphone et une date de naissance suffisent à constituer un profil de base. Pour une entreprise, une dénomination sociale et un numéro d'immatriculation suffisent. Dans le cas d'une entité aval (client d'un processeur de paiement), vous pouvez créer une entité à partir **d'une simple adresse e-mail** : la plateforme calcule le score à partir des données disponibles et l'affine à mesure que vous enrichissez le dossier.
+
+<Note>
+  Les seules exigences obligatoires sont le **type d'entité** et un **indicateur de consentement**. Tout le reste peut être ajouté progressivement.
+</Note>
+
+## Deux façons de créer une entité
+
+<Tabs>
+  <Tab title="Manuelle">
+    Vous fournissez vous-même les données : nom, coordonnées, numéros de documents ou toute autre information dont vous disposez. C'est le cas le plus courant lorsque vous détenez déjà les informations de votre client.
+  </Tab>
+  <Tab title="Données gouvernementales officielles">
+    Vous créez l'entité à partir d'une source officielle, comme un registre national d'identité ou un registre des entreprises. Youverify récupère dynamiquement les données d'identité du particulier ou, pour une entreprise, ses UBO directement auprès de la source faisant autorité, et renseigne automatiquement le profil.
+  </Tab>
+</Tabs>
+
+## Format de l'identifiant d'entité
+
+Chaque entité reçoit un identifiant préfixé par `ent_`, par exemple `ent_01j9xkp4f8e3q2wr5td6mnbc7a`. Conservez cet identifiant dans votre propre base de données, à côté de votre référence client interne, afin de pouvoir toujours retrouver ou mettre à jour l'entité par la suite.
+
+## Cycle de vie du statut d'une entité
+
+Une entité traverse des étapes clairement distinctes. Séparer la création de la décision vous permet de commencer à surveiller une entité et à constituer son historique **avant** qu'une décision d'intégration ne soit prise.
+
+<Steps>
+  <Step title="Créée">
+    L'entité est ajoutée, manuellement ou à partir de données officielles, et un score de risque initial est calculé immédiatement à partir des données disponibles. Il s'agit d'un état de suivi, pas d'une approbation.
+  </Step>
+  <Step title="Enrichie">
+    À mesure que de nouvelles données et de nouveaux contrôles arrivent (tous rattachés à l'identifiant de l'entité), le profil se complète et le score s'affine. Les vérifications, transactions et résultats AML sont intégrés automatiquement à la vue 360.
+  </Step>
+  <Step title="Décidée">
+    L'entité est approuvée, rejetée, restreinte ou escaladée, selon un workflow piloté par des agents IA. Les cas limites sont escaladés vers un réviseur humain ou un dossier d'investigation.
+  </Step>
+  <Step title="Surveillée">
+    L'entité reste active. Le nouveau filtrage périodique et la surveillance des transactions continuent de générer des signaux et des alertes au fil du temps, ce qui maintient la vue 360 à jour.
+  </Step>
+</Steps>
+
+## Ce qui se rattache à une entité
+
+L'Entity 360 n'est pas un objet distinct : c'est l'entité vue à travers tout ce qui lui est rattaché. La récupération d'une entité vous donne son profil et, pour une entreprise, son graphe de propriété complet. À partir de là, vous accédez à chaque objet lié :
+
+<CardGroup cols={2}>
+  <Card title="Vérifications" icon="shield-check">
+    Tous les résultats KYC, KYB et AML jamais exécutés sur cette entité, avec leurs résultats et leurs preuves.
+  </Card>
+
+  <Card title="Résultats de filtrage AML" icon="magnifying-glass">
+    Correspondances PEP, correspondances avec des listes de sanctions, résultats de médias défavorables et résultats de listes de surveillance personnalisées.
+  </Card>
+
+  <Card title="Signaux de transaction" icon="chart-line">
+    L'activité financière et ses évaluations KYT : rythme des transactions, contreparties et indicateurs d'anomalie.
+  </Card>
+
+  <Card title="Alertes" icon="bell">
+    Résultats de surveillance générés lorsque des seuils de signaux sont franchis, prêts à être triés.
+  </Card>
+
+  <Card title="Dossiers" icon="folder-open">
+    Investigations ouvertes à partir d'alertes, avec des synthèses générées par l'IA et la collecte de preuves.
+  </Card>
+
+  <Card title="Score de risque" icon="gauge">
+    Un score de 0 à 100, mis à jour en continu, calculé à partir de tous les signaux et résultats de contrôle disponibles.
+  </Card>
+</CardGroup>
+
+## Le canevas 360
+
+Le **canevas 360** du tableau de bord Youverify Cowork offre à votre équipe conformité une vue sur un seul écran de toute l'activité d'une entité : données de profil, graphe de propriété, vérifications, transactions, signaux, alertes et dossiers ouverts. Rien n'a besoin d'être réconcilié, car chaque objet a l'entité pour point d'ancrage.
+
+## Structure de l'objet entité
+
+<ResponseField name="id" type="string" required>
+  Identifiant unique de l'entité, préfixé par `ent_…`. Utilisez cet identifiant pour référencer l'entité dans tous les appels API ultérieurs.
+</ResponseField>
+
+<ResponseField name="entityType" type="string" required>
+  Classification de l'entité. L'une des valeurs `individual` ou `business`.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Statut actuel du cycle de vie de l'entité, par exemple `not_approved` ou `approved`. Le champ `profileStatus` (par exemple `pending`) suit séparément l'avancement de l'enrichissement.
+</ResponseField>
+
+<ResponseField name="riskScore" type="number">
+  Score de risque calculé de 0 (risque le plus faible) à 100 (risque le plus élevé). Mis à jour en continu à mesure que de nouveaux signaux arrivent.
+</ResponseField>
+
+<ResponseField name="firstName" type="string">
+  Prénom du particulier. Présent uniquement sur les entités `individual`.
+</ResponseField>
+
+<ResponseField name="lastName" type="string">
+  Nom de famille du particulier. Présent uniquement sur les entités `individual`.
+</ResponseField>
+
+<ResponseField name="email" type="string">
+  Adresse e-mail. Peut être le seul champ présent sur une entité aval créée avec très peu de données.
+</ResponseField>
+
+<ResponseField name="createdAt" type="string">
+  Horodatage ISO 8601 de la création du dossier de l'entité.
+</ResponseField>
+
+<ResponseField name="updatedAt" type="string">
+  Horodatage ISO 8601 de la dernière mise à jour du dossier de l'entité.
+</ResponseField>
+
+## Exemple : une entité nouvellement créée
+
+La réponse ci-dessous montre ce que Youverify renvoie immédiatement après la création d'une entité de type particulier. Notez l'identifiant `ent_…`, le `riskScore` initial et le statut `not_approved` : l'entité est suivie et scorée, mais aucune décision d'approbation n'a encore été prise.
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entity created successfully.",
+  "data": {
+    "id": "ent_01j9xkp4f8e3q2wr5td6mnbc7a",
+    "entityType": "individual",
+    "status": "not_approved",
+    "profileStatus": "pending",
+    "riskScore": 12,
+    "firstName": "Amara",
+    "lastName": "Osei",
+    "email": "amara.osei@example.com",
+    "createdAt": "2025-01-15T09:32:11.000Z",
+    "updatedAt": "2025-01-15T09:32:11.000Z"
+  },
+  "links": []
+}
+```
+
+## La création d'une entité n'est pas une décision d'approbation
+
+<Warning>
+  L'ajout d'une entité crée un dossier suivi et scoré : il n'approuve **pas** et ne rejette **pas** le sujet. Le résultat de `POST /v2/api/entities` est toujours une entité **Créée**. La décision d'approbation s'exécute séparément, sous la forme d'un workflow d'agent IA qui applique vos règles configurées au score, aux signaux et aux résultats de contrôle. Ne considérez jamais la création d'une entité comme une validation d'un client.
+</Warning>
+
+Cette séparation est volontaire : elle vous permet de commencer à surveiller une entité et de constituer une piste d'audit dès la première interaction, bien avant que votre workflow d'intégration n'atteigne un point de décision. Chaque contrôle et chaque signal que vous ajoutez en cours de route référence l'identifiant de l'entité, de sorte que l'historique complet est toujours disponible lorsqu'une décision est enfin prise.
+
+<Tip>
+  Une fois qu'une entité existe, ne la recréez pas lors des interactions suivantes. Recherchez ou récupérez l'entité existante et continuez à travailler dessus. Tout contrôle ou toute activité qui référence l'identifiant de l'entité intègre automatiquement son résultat à la vue 360 : **créez une fois, référencez toujours**.
+</Tip>

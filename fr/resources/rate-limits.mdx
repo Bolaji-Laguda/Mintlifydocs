@@ -1,0 +1,45 @@
+---
+title: "Limites de débit pour les clients Enterprise"
+sidebarTitle: "Limites de débit"
+description: "Comment Youverify limite les appels d'API identiques répétés pour les clients Enterprise, ce qui se passe lorsque vous atteignez la limite et qui contacter en cas de question."
+---
+
+Afin d'éviter les appels incontrôlés, qui sont facturables, Youverify applique une limite de débit aux requêtes identiques répétées sur les comptes Enterprise.
+
+## La règle
+
+Si le même appel est effectué **plus de 3 fois en 1 minute**, les tentatives suivantes sont bloquées et vous ne pouvez plus effectuer cet appel pendant **10 minutes**.
+
+| Paramètre | Valeur |
+| --- | --- |
+| Seuil | Plus de 3 appels identiques en 1 minute |
+| Durée du blocage | 10 minutes |
+| Réponse en cas de blocage | `429 Too Many Requests` |
+| S'applique à | Clients Enterprise |
+
+### Ce qui constitue un même appel
+
+Deux appels sont identiques lorsqu'ils portent la **même charge utile**, ce qui, en pratique, signifie qu'ils sont effectués avec le **même identifiant**. Les appels avec un identifiant ou une charge utile différents sont comptabilisés séparément.
+
+### Pourquoi cette limite existe
+
+Les appels identiques répétés proviennent généralement de boucles de nouvelle tentative, de tâches dupliquées ou de bogues d'intégration. Chaque appel est facturable : la limite empêche donc ces appels incontrôlés d'accumuler des frais.
+
+## Que se passe-t-il lorsque vous êtes bloqué
+
+Un appel bloqué renvoie `429 Too Many Requests`. Le blocage de 10 minutes démarre lorsque la limite est atteinte. **Le minuteur ne redémarre pas** si vous continuez à appeler pendant le blocage : le blocage prend donc fin 10 minutes après son début.
+
+<Warning>
+  Réessayer immédiatement un appel bloqué ne raccourcit pas le blocage et n'est pas nécessaire. Attendez la fin du blocage, puis réessayez une seule fois.
+</Warning>
+
+## Bonnes pratiques recommandées
+
+- Conservez le résultat d'une vérification et réutilisez-le plutôt que d'appeler à nouveau avec le même identifiant.
+- Ne réessayez pas dans une boucle serrée. Lorsque vous recevez une erreur `429`, arrêtez-vous et attendez.
+- Utilisez les [Données de test](/fr/get-started/test-data) dans le sandbox afin que vos tests ne déclenchent pas la limite.
+- Consultez [Erreurs](/fr/get-started/response-codes) pour savoir comment gérer les autres réponses d'erreur.
+
+## Questions
+
+Pour toute préoccupation ou question complémentaire sur les limites de débit, contactez [support@youverify.co](mailto:support@youverify.co).

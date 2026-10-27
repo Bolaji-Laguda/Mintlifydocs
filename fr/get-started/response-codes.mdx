@@ -1,0 +1,221 @@
+---
+title: "Codes de réponse HTTP de l'API Youverify et gestion des erreurs"
+sidebarTitle: "Erreurs"
+description: "Comprenez les codes de statut HTTP de l'API Youverify, l'enveloppe de réponse standard, les noms d'erreur lisibles par machine et les recommandations de nouvelle tentative en cas d'échec."
+---
+
+Chaque réponse de l'API Youverify, qu'elle soit un succès ou un échec, suit la même structure d'enveloppe JSON. En concevant votre intégration autour de cette structure cohérente, vous n'écrivez votre code de traitement des réponses qu'une seule fois et il fonctionne pour tous les points de terminaison.
+
+## Enveloppe de réponse standard
+
+Une réponse réussie comporte toujours `success: true`, un statut HTTP `2xx` et un objet `data` contenant le résultat. Le tableau `links` contient les liens de pagination ou de ressources associées, le cas échéant.
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entity retrieved successfully.",
+  "data": {
+    "id": "ent_685c73c8519d82bd21a42fae",
+    "entityType": "individual",
+    "firstName": "Jane",
+    "lastName": "Doe",
+    "status": "not_approved",
+    "riskScore": 12,
+    "riskLevel": "low"
+  },
+  "links": []
+}
+```
+
+<ResponseField name="success" type="boolean" required>
+  `true` pour toute réponse réussie.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer" required>
+  Reprend le code de statut HTTP (par exemple `200`, `201`).
+</ResponseField>
+
+<ResponseField name="message" type="string" required>
+  Une description lisible du résultat.
+</ResponseField>
+
+<ResponseField name="data" type="object | array">
+  La charge utile de cette réponse. Un objet pour les points de terminaison à ressource unique ; un tableau pour les points de terminaison de liste.
+</ResponseField>
+
+<ResponseField name="links" type="array">
+  Curseurs de pagination ou liens de ressources associées. Vide (`[]`) lorsque non applicable.
+</ResponseField>
+
+## Enveloppe d'erreur
+
+Lorsqu'une requête échoue, `success` vaut `false` et l'enveloppe ajoute un champ `name` lisible par machine, que vous pouvez utiliser pour piloter la logique de gestion des erreurs sans analyser la chaîne `message`.
+
+```json
+{
+  "success": false,
+  "statusCode": 404,
+  "name": "ResourceNotFoundError",
+  "message": "Entity with the provided ID does not exist."
+}
+```
+
+<ResponseField name="success" type="boolean" required>
+  Toujours `false` pour les réponses d'erreur.
+</ResponseField>
+
+<ResponseField name="statusCode" type="integer" required>
+  Le code de statut HTTP. Notez l'orthographe en camelCase (`statusCode`) sur les réponses d'erreur, contrairement à `status_code` sur les réponses réussies.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Un identifiant d'erreur lisible par machine. Utilisez ce champ, et non `message`, pour orienter votre logique de gestion des erreurs.
+</ResponseField>
+
+<ResponseField name="message" type="string" required>
+  Une description lisible de ce qui s'est mal passé. Utile pour la journalisation ; n'analysez pas cette chaîne par programme.
+</ResponseField>
+
+## Codes de statut HTTP
+
+| Statut | Nom | Quand le rencontrez-vous |
+| --- | --- | --- |
+| `200 OK` | Succès | La requête a réussi et la ressource a été renvoyée. |
+| `201 Created` | Créé | Une nouvelle ressource (par exemple une entité, un dossier) a été créée avec succès. |
+| `400 Bad Request` | Requête incorrecte | Le corps de la requête est mal formé ou contient du JSON invalide. |
+| `401 Unauthorized` | Non autorisé | L'en-tête `token` est absent, incorrect, ou la clé correspond à un autre environnement. |
+| `403 Forbidden` | Interdit | La clé est valide mais n'a pas l'autorisation d'effectuer cette action (par exemple, utilisation d'une clé publique sur un point de terminaison serveur). |
+| `404 Not Found` | Introuvable | La ressource demandée (identifiant d'entité, identifiant de contrôle, etc.) n'existe pas dans cet environnement. |
+| `422 Unprocessable Entity` | Erreur de validation | La requête est bien formée mais échoue à la validation métier (par exemple, champ obligatoire manquant, valeur d'énumération invalide). |
+| `429 Too Many Requests` | Limite de débit atteinte | Vous avez dépassé la limite de débit pour ce point de terminaison. |
+| `500 Internal Server Error` | Erreur serveur | Une erreur inattendue s'est produite du côté de Youverify. |
+
+## Noms d'erreur lisibles par machine
+
+Utilisez le champ `name` dans le code de votre application pour gérer des conditions d'erreur spécifiques sans vous appuyer sur les chaînes de message, qui peuvent changer.
+
+| `name` | Statut HTTP | Cause habituelle |
+| --- | --- | --- |
+| `UnauthorizedError` | `401` | En-tête `token` absent ou invalide ; environnement incompatible. |
+| `ForbiddenError` | `403` | Portée de clé insuffisante ; action non autorisée pour votre offre. |
+| `ResourceNotFoundError` | `404` | L'identifiant d'entité, de vérification ou de dossier n'existe pas. |
+| `ValidationError` | `422` | Champ obligatoire manquant, type incorrect ou valeur d'énumération invalide dans le corps de la requête. |
+| `ConflictError` | `409` | Ressource en double : l'entité ou l'enregistrement existe déjà. |
+| `RateLimitError` | `429` | Trop de requêtes dans la fenêtre de temps actuelle. |
+| `InternalServerError` | `500` | Défaillance inattendue côté serveur. |
+
+## Gérer les erreurs dans le code
+
+<CodeGroup>
+
+```javascript Node.js
+async function callYouverify(url, options) {
+  const response = await fetch(url, options);
+  const body = await response.json();
+
+  if (!body.success) {
+    switch (body.name) {
+      case "UnauthorizedError":
+        throw new Error("Check your API key and environment base URL.");
+      case "ResourceNotFoundError":
+        throw new Error(`Resource not found: ${body.message}`);
+      case "ValidationError":
+        throw new Error(`Validation failed: ${body.message}`);
+      case "RateLimitError":
+        // Retry after back-off — see guidance below
+        throw new Error("Rate limit reached. Back off and retry.");
+      default:
+        throw new Error(`Youverify API error [${body.name}]: ${body.message}`);
+    }
+  }
+
+  return body.data;
+}
+```
+
+```python Python
+import requests, time
+
+def call_youverify(url, **kwargs):
+    response = requests.request(url=url, **kwargs)
+    body = response.json()
+
+    if not body.get("success"):
+        name = body.get("name", "UnknownError")
+        message = body.get("message", "")
+
+        if name == "UnauthorizedError":
+            raise PermissionError("Check your API key and environment base URL.")
+        elif name == "ResourceNotFoundError":
+            raise LookupError(f"Resource not found: {message}")
+        elif name == "ValidationError":
+            raise ValueError(f"Validation failed: {message}")
+        elif name == "RateLimitError":
+            raise RuntimeError("Rate limit reached. Back off and retry.")
+        else:
+            raise RuntimeError(f"Youverify API error [{name}]: {message}")
+
+    return body["data"]
+```
+
+</CodeGroup>
+
+## Recommandations de nouvelle tentative
+
+Toutes les erreurs ne justifient pas une nouvelle tentative. Utilisez ce tableau pour décider quand réessayer automatiquement et quand signaler l'erreur à l'opérateur.
+
+| Statut | Réessayer ? | Stratégie |
+| --- | --- | --- |
+| `400 Bad Request` | ❌ Non | Corrigez la charge utile de la requête avant de réessayer. |
+| `401 Unauthorized` | ❌ Non | Passer à une nouvelle clé est une action manuelle, pas une nouvelle tentative automatique. |
+| `403 Forbidden` | ❌ Non | Il s'agit d'un problème d'autorisation ou de portée : réessayer avec la même clé n'aidera pas. |
+| `404 Not Found` | ❌ Non | La ressource n'existe pas ; vérifiez l'identifiant. |
+| `422 Unprocessable Entity` | ❌ Non | Corrigez les valeurs de champ invalides avant de réessayer. |
+| `429 Too Many Requests` | ✅ Oui | Réessayez avec un back-off exponentiel (voir ci-dessous). |
+| `500 Internal Server Error` | ✅ Oui | Réessayez jusqu'à 3 fois avec un back-off exponentiel. |
+| `503 Service Unavailable` | ✅ Oui | Réessayez avec un back-off exponentiel ; consultez [status.youverify.co](https://status.youverify.co) pour connaître les incidents. |
+
+### Back-off exponentiel pour les erreurs 429 et 5xx
+
+Lorsque vous recevez une réponse `429` ou `5xx`, patientez avant de réessayer. Voici une stratégie simple de back-off exponentiel :
+
+```python Python
+import time, requests
+
+def fetch_with_retry(url, headers, max_retries=4):
+    for attempt in range(max_retries):
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 429 or response.status_code >= 500:
+            if attempt < max_retries - 1:
+                wait = 2 ** attempt  # 1s, 2s, 4s, 8s
+                print(f"Retrying in {wait}s (attempt {attempt + 1}/{max_retries})...")
+                time.sleep(wait)
+                continue
+
+        return response.json()
+
+    raise RuntimeError(f"Request failed after {max_retries} attempts.")
+```
+
+<Note>
+  Pour `429 Too Many Requests`, vérifiez si la réponse inclut un en-tête `Retry-After` indiquant exactement combien de secondes attendre avant d'envoyer la requête suivante.
+</Note>
+
+## Pagination sur les points de terminaison de liste
+
+Les points de terminaison de liste (par exemple `GET /v2/api/entities`) utilisent la pagination par décalage (offset). Le tableau `links` de l'enveloppe de réponse contient les URL de curseur `next` et `prev` lorsque d'autres pages sont disponibles. Les flux à fort volume, tels que les signaux, prennent également en charge la pagination par curseur, à privilégier pour les charges de travail d'interrogation en production.
+
+```json
+{
+  "success": true,
+  "status_code": 200,
+  "message": "Entities retrieved successfully.",
+  "data": [ ],
+  "links": [
+    { "rel": "next", "href": "/v2/api/entities?page=2&limit=20" },
+    { "rel": "prev", "href": null }
+  ]
+}
+```

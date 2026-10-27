@@ -29,97 +29,180 @@
     }
   },
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Product Guide",
-        "groups": [
+        "language": "en",
+        "tabs": [
           {
-            "group": "Get Started",
-            "pages": [
-              "introduction",
-              "get-started/quickstart",
-              "get-started/authentication",
-              "api-reference/overview",
-              "get-started/test-data"
+            "tab": "Product Guide",
+            "groups": [
+              {
+                "group": "Get Started",
+                "pages": [
+                  "introduction",
+                  "get-started/quickstart",
+                  "get-started/authentication",
+                  "api-reference/overview",
+                  "get-started/test-data"
+                ]
+              },
+              {
+                "group": "Platform Concepts",
+                "pages": [
+                  "concepts/entity-360",
+                  "concepts/risk-scoring",
+                  "concepts/monitoring-model",
+                  "concepts/plans-and-billing",
+                  "concepts/object-model"
+                ]
+              },
+              {
+                "group": "Implementation Guides",
+                "pages": [
+                  "guides/onboard-by-email",
+                  "guides/onboard-by-phone",
+                  "guides/onboard-by-government-id",
+                  "guides/tiered-kyc-digital-banking",
+                  "guides/corporate-kyb-ubo"
+                ]
+              },
+              {
+                "group": "Webhooks & Events",
+                "pages": [
+                  "webhooks/overview",
+                  "webhooks/kyc-webhooks",
+                  "webhooks/kyt-webhooks",
+                  "webhooks/signature-verification",
+                  "webhooks/retry-behaviour"
+                ]
+              },
+              {
+                "group": "SDKs",
+                "pages": [
+                  "sdks/overview",
+                  "sdks/web-sdk",
+                  "sdks/android-sdk",
+                  "sdks/ios-sdk",
+                  "sdks/liveness-sdk"
+                ]
+              },
+              {
+                "group": "Resources",
+                "pages": [
+                  "resources/coverage",
+                  "get-started/response-codes",
+                  "resources/rate-limits"
+                ]
+              }
             ]
           },
           {
-            "group": "Platform Concepts",
-            "pages": [
-              "concepts/entity-360",
-              "concepts/risk-scoring",
-              "concepts/monitoring-model",
-              "concepts/plans-and-billing",
-              "concepts/object-model"
-            ]
-          },
-          {
-            "group": "Implementation Guides",
-            "pages": [
-              "guides/onboard-by-email",
-              "guides/onboard-by-phone",
-              "guides/onboard-by-government-id",
-              "guides/tiered-kyc-digital-banking",
-              "guides/corporate-kyb-ubo",
-              "guides/fraud-insights",
-              "guides/transaction-monitoring",
-              "guides/case-management",
-              "guides/regulatory-reporting"
-            ]
-          },
-          {
-            "group": "Webhooks & Events",
-            "pages": [
-              "webhooks/overview",
-              "webhooks/kyc-webhooks",
-              "webhooks/kyt-webhooks",
-              "webhooks/signature-verification",
-              "webhooks/retry-behaviour"
-            ]
-          },
-          {
-            "group": "SDKs",
-            "pages": [
-              "sdks/overview",
-              "sdks/web-sdk",
-              "sdks/android-sdk",
-              "sdks/ios-sdk",
-              "sdks/liveness-sdk"
-            ]
-          },
-          {
-            "group": "Resources",
-            "pages": [
-              "resources/coverage",
-              "get-started/response-codes",
-              "resources/rate-limits"
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Cowork API",
+                "openapi": {
+                  "source": "api-reference/specs/cowork.json",
+                  "directory": "api-reference/cowork"
+                }
+              },
+              {
+                "group": "Quick Check API",
+                "openapi": {
+                  "source": "api-reference/specs/quickcheck.json",
+                  "directory": "api-reference/quickcheck"
+                }
+              },
+              {
+                "group": "SDK API",
+                "openapi": {
+                  "source": "api-reference/specs/sdk.json",
+                  "directory": "api-reference/sdk"
+                }
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
-        "groups": [
+        "language": "fr",
+        "tabs": [
           {
-            "group": "Cowork API",
-            "openapi": {
-              "source": "api-reference/specs/cowork.json",
-              "directory": "api-reference/cowork"
-            }
+            "tab": "Guide produit",
+            "groups": [
+              {
+                "group": "Démarrage",
+                "pages": [
+                  "fr/introduction",
+                  "fr/get-started/quickstart",
+                  "fr/get-started/authentication",
+                  "fr/get-started/test-data"
+                ]
+              },
+              {
+                "group": "Concepts de la plateforme",
+                "pages": [
+                  "fr/concepts/entity-360",
+                  "fr/concepts/risk-scoring",
+                  "fr/concepts/monitoring-model",
+                  "fr/concepts/plans-and-billing",
+                  "fr/concepts/object-model"
+                ]
+              },
+              {
+                "group": "Guides d'implémentation",
+                "pages": [
+                  "fr/guides/onboard-by-email",
+                  "fr/guides/onboard-by-phone",
+                  "fr/guides/onboard-by-government-id",
+                  "fr/guides/tiered-kyc-digital-banking",
+                  "fr/guides/corporate-kyb-ubo",
+                  "fr/guides/fraud-insights",
+                  "fr/guides/transaction-monitoring",
+                  "fr/guides/case-management",
+                  "fr/guides/regulatory-reporting"
+                ]
+              },
+              {
+                "group": "Webhooks et événements",
+                "pages": [
+                  "fr/webhooks/overview",
+                  "fr/webhooks/kyc-webhooks",
+                  "fr/webhooks/kyt-webhooks",
+                  "fr/webhooks/signature-verification",
+                  "fr/webhooks/retry-behaviour"
+                ]
+              },
+              {
+                "group": "SDK",
+                "pages": [
+                  "fr/sdks/overview",
+                  "fr/sdks/web-sdk",
+                  "fr/sdks/android-sdk",
+                  "fr/sdks/ios-sdk",
+                  "fr/sdks/liveness-sdk"
+                ]
+              },
+              {
+                "group": "Ressources",
+                "pages": [
+                  "fr/resources/coverage",
+                  "fr/get-started/response-codes",
+                  "fr/resources/rate-limits"
+                ]
+              }
+            ]
           },
           {
-            "group": "Quick Check API",
-            "openapi": {
-              "source": "api-reference/specs/quickcheck.json",
-              "directory": "api-reference/quickcheck"
-            }
-          },
-          {
-            "group": "SDK API",
-            "openapi": {
-              "source": "api-reference/specs/sdk.json",
-              "directory": "api-reference/sdk"
-            }
+            "tab": "Référence API",
+            "groups": [
+              {
+                "group": "Vue d'ensemble de l'API",
+                "pages": [
+                  "fr/api-reference/overview"
+                ]
+              }
+            ]
           }
         ]
       }

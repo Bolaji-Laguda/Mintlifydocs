@@ -1,0 +1,121 @@
+---
+title: "Score de risque et santé de la conformité dans Youverify FRAML"
+sidebarTitle: "Score de risque"
+description: "Découvrez comment Youverify calcule les scores de risque des entités, quels facteurs les influencent et comment configurer les seuils selon votre appétence au risque."
+---
+
+Chaque entité dans Youverify porte un **score de risque** : un nombre unique compris entre 0 et 100 qui résume tout ce que Youverify sait de ce sujet à un instant donné. Plutôt que de forcer votre équipe à corréler manuellement les résultats KYC, les correspondances AML et les schémas de transactions, le score de risque vous fournit un signal toujours à jour sur lequel vous pouvez agir immédiatement, que vous pouvez acheminer via des workflows automatisés ou afficher dans l'interface de votre propre produit.
+
+## Comment le score de risque est calculé
+
+Youverify calcule un score de risque initial dès la création d'une entité, en exécutant la vigilance à l'égard de la clientèle (CDD) — filtrage PEP, filtrage des sanctions et vérification des médias défavorables — sur les données disponibles. Si vous créez une entité avec une simple adresse e-mail, le score démarre bas (ce qui reflète l'absence de signaux de risque, et non leur absence de pertinence) et s'affine automatiquement à mesure que vous enrichissez le dossier.
+
+Le score est **pondéré et transparent** : chaque score peut être rattaché aux facteurs précis qui l'ont produit, ce qui répond aux exigences d'explicabilité et aux pistes d'audit. Aucun score en boîte noire : votre équipe conformité peut toujours voir pourquoi une entité a obtenu tel score.
+
+<Note>
+  Un score initial bas sur une entité créée avec peu de données ne signifie pas que l'entité est sûre : cela signifie que Youverify dispose de données limitées. Enrichissez l'entité avec des vérifications et un historique de transactions pour fournir au modèle des signaux significatifs.
+</Note>
+
+## Plage de scores et niveaux de risque
+
+Le score de risque va de **0** (risque le plus faible) à **100** (risque le plus élevé), réparti en quatre niveaux que vous pouvez configurer selon l'appétence au risque de votre organisation.
+
+| Niveau | Plage de scores par défaut | Action suggérée |
+| --- | --- | --- |
+| **Faible** | 0 – 24 | Intégration standard ; poursuite de la surveillance |
+| **Moyen** | 25 – 49 | Vigilance renforcée ; demande de documents supplémentaires |
+| **Élevé** | 50 – 74 | Revue manuelle requise avant de poursuivre |
+| **Critique** | 75 – 100 | Blocage ou escalade immédiate |
+
+<Tip>
+  Les limites de niveaux par défaut indiquées ci-dessus constituent un point de départ. Configurez les seuils dans le tableau de bord Youverify Cowork pour refléter votre appétence réelle au risque et vos obligations réglementaires.
+</Tip>
+
+## Quels facteurs influencent le score
+
+Le score de risque est mis à jour en continu. Chacun des signaux suivants alimente le modèle pondéré :
+
+<AccordionGroup>
+  <Accordion title="Statut de vérification d'identité">
+    Indique si l'identité de l'entité a été vérifiée à l'aide d'un document officiel, et si les contrôles de détection du vivant (liveness) et de capture de document ont réussi. Une identité vérifiée réduit l'incertitude et diminue généralement le risque.
+  </Accordion>
+
+  <Accordion title="Résultats de filtrage AML">
+    Correspondances avec les listes PEP, les bases de données mondiales de sanctions et les sources de médias défavorables. Une correspondance confirmée avec une liste de sanctions ou une désignation PEP augmente sensiblement le score. Les correspondances avec des listes de surveillance personnalisées (cibles que vous avez ajoutées vous-même) sont incluses dans ce signal.
+  </Accordion>
+
+  <Accordion title="Correspondances avec des listes de surveillance">
+    Proximité avec des acteurs malveillants connus figurant sur votre liste de surveillance AML personnalisée ou sur des listes mondiales. Même une correspondance partielle ou approximative peut faire monter le score dans l'attente d'une revue.
+  </Accordion>
+
+  <Accordion title="Schémas de transactions">
+    Signaux comportementaux dérivés de l'activité financière : vélocité des transactions, schémas de fractionnement, contreparties inhabituelles, anomalies de canal et écarts par rapport à la base de référence comportementale établie de l'entité.
+  </Accordion>
+
+  <Accordion title="Médias défavorables">
+    Couverture médiatique négative associée au nom de l'entité, à des personnes liées ou à des entreprises affiliées. Youverify filtre en continu les sources mondiales de médias défavorables et intègre les nouvelles correspondances au score.
+  </Accordion>
+</AccordionGroup>
+
+## Mises à jour continues du score
+
+Le score de risque n'est pas un instantané : c'est un **signal en direct**. Chaque fois qu'une nouvelle information est rattachée à une entité, Youverify recalcule le score :
+
+<Steps>
+  <Step title="Entité créée">
+    La CDD initiale s'exécute automatiquement. Le score est calculé à partir des données présentes à la création (PEP, sanctions, médias défavorables).
+  </Step>
+  <Step title="Vérifications ajoutées">
+    Lorsque vous exécutez des contrôles KYC ou KYB référençant l'identifiant de l'entité, le statut de vérification d'identité alimente le modèle et le score est mis à jour.
+  </Step>
+  <Step title="Transactions soumises">
+    Chaque transaction rattachée à l'entité ajoute des signaux comportementaux. Les schémas qui franchissent les seuils de détection déclenchent des alertes et ajustent le score.
+  </Step>
+  <Step title="Nouveau filtrage AML">
+    Youverify refiltre en continu les entités surveillées. Une nouvelle inscription PEP ou un ajout à une liste de sanctions est reflété dans le score quasiment en temps réel.
+  </Step>
+</Steps>
+
+## Santé de la conformité : votre vue au niveau du portefeuille
+
+Au-delà du score de chaque entité, Youverify propose dans le tableau de bord une vue de **santé de la conformité** : un instantané agrégé de toutes les entités de votre compte. Utilisez-la pour :
+
+- Identifier la répartition des entités de niveau Faible / Moyen / Élevé / Critique dans votre portefeuille
+- Repérer des groupes d'entités à haut risque pouvant indiquer un schéma émergent
+- Suivre l'évolution de la santé globale de la conformité au fil du temps, à mesure que votre base clients croît
+
+## Configuration des seuils de risque
+
+Vous définissez vos seuils de risque dans le **tableau de bord Youverify Cowork** sur [cowork.youverify.co](https://cowork.youverify.co). La configuration des seuils vous permet de :
+
+- Définir les limites de score de chaque niveau de risque (Faible / Moyen / Élevé / Critique)
+- Définir des déclencheurs de workflow automatisés par niveau, par exemple approuver automatiquement les entités en dessous de 25, demander une vigilance renforcée entre 25 et 49, et escalader vers un responsable conformité tout ce qui dépasse 74
+- Ajuster les seuils au fil du temps à mesure que votre appétence au risque ou l'environnement réglementaire évolue
+
+<Warning>
+  La modification d'un seuil de risque s'applique aux entités scorées par la suite. Examinez votre portefeuille existant après une modification de seuil afin de réévaluer les entités déjà intégrées selon les nouvelles règles.
+</Warning>
+
+## Agir sur les scores de risque avec des workflows automatisés
+
+Vous n'avez pas besoin d'interroger manuellement les scores des entités. Les workflows d'agents IA de Youverify vous permettent de définir une seule fois la logique par tranche de score et d'automatiser la réponse :
+
+<CardGroup cols={2}>
+  <Card title="Approbation automatique" icon="circle-check">
+    Approuvez automatiquement les entités dont le score est inférieur à votre seuil Faible, ce qui réduit la charge de travail manuelle pour les cas simples.
+  </Card>
+
+  <Card title="Signaler pour revue" icon="flag">
+    Acheminez les entités de score Moyen vers une file de vigilance renforcée, afin que votre équipe collecte des documents supplémentaires.
+  </Card>
+
+  <Card title="Escalader vers un dossier" icon="folder-open">
+    Ouvrez automatiquement un dossier pour les entités de score Élevé, en collectant les preuves et en générant une synthèse IA pour le réviseur assigné.
+  </Card>
+
+  <Card title="Bloquer" icon="ban">
+    Bloquez immédiatement l'intégration ou les transactions des entités de score Critique jusqu'à l'enregistrement d'une décision humaine.
+  </Card>
+</CardGroup>
+
+Comme le score est mis à jour en continu, ces workflows se déclenchent non seulement lors de l'intégration, mais aussi chaque fois qu'un nouveau signal fait passer une entité dans un autre niveau, même plusieurs mois après l'approbation initiale.

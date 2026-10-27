@@ -1,0 +1,80 @@
+---
+title: "SDK Youverify pour le Web, Android et iOS"
+sidebarTitle: "Vue d'ensemble"
+description: "Intégrez nativement la détection de vivacité biométrique et la capture de documents dans votre application web ou mobile grâce aux SDK Youverify."
+---
+
+Youverify fournit des SDK officiels pour les navigateurs web, Android et iOS qui vous permettent d'intégrer la détection de vivacité biométrique et la capture de documents directement dans votre produit. Au lieu de rediriger les utilisateurs vers une page hébergée, les parcours du SDK s'exécutent nativement dans votre application : vous gardez un contrôle total sur l'interface, tandis que Youverify prend en charge la logique de détection de la fraude.
+
+## SDK disponibles
+
+<CardGroup cols={2}>
+  <Card title="SDK Web" icon="globe" href="/fr/sdks/web-sdk">
+    Intégrez la détection de vivacité et la capture de documents dans n'importe quelle application web grâce à un script CDN ou à un package npm.
+  </Card>
+
+  <Card title="SDK Android" icon="android" href="/fr/sdks/android-sdk">
+    Intégrez la détection de vivacité en temps réel et la capture de documents dans votre application Android avec Jetpack Compose.
+  </Card>
+
+  <Card title="SDK iOS" icon="apple" href="/fr/sdks/ios-sdk">
+    Ajoutez la détection de vivacité et la capture de documents à votre application iOS en Swift, via CocoaPods ou Swift Package Manager.
+  </Card>
+
+  <Card title="Jetons de session" icon="key" href="/fr/sdks/liveness-sdk">
+    Générez côté serveur les jetons de session nécessaires pour initialiser en toute sécurité tout parcours SDK Youverify.
+  </Card>
+</CardGroup>
+
+## Fonctionnement des parcours SDK
+
+Chaque SDK Youverify suit le même modèle de sécurité en deux étapes :
+
+<Steps>
+  <Step title="Générer un jeton de session côté serveur">
+    Votre backend appelle l'API Youverify (avec votre clé d'API secrète) pour générer un jeton de session à courte durée de vie. Votre clé secrète ne quitte jamais votre serveur.
+  </Step>
+  <Step title="Initialiser le SDK côté client avec le jeton">
+    Transmettez le jeton de session au SDK sur votre page web ou dans votre application mobile. Le SDK utilise ce jeton, et non votre clé secrète, pour s'authentifier auprès de l'infrastructure de vérification de Youverify.
+  </Step>
+</Steps>
+
+<Warning>
+  N'intégrez jamais votre clé d'API secrète dans une page web, une application Android ou une application iOS : elle serait exposée aux utilisateurs finaux. Générez toujours les jetons de session côté serveur et transmettez-les au SDK.
+</Warning>
+
+## Deux types de jeton de session
+
+| Jeton | Endpoint | Utilisé pour |
+| --- | --- | --- |
+| SDK Session ID | `POST /v2/api/sdk/session-id` | Capture de documents avec le SDK Web et parcours de vérification généraux |
+| SDK Liveness Token | `POST /v2/api/sdk/liveness-token` | Parcours de détection de vivacité anti-deepfake (toutes plateformes) |
+
+Consultez [Jetons de session](/fr/sdks/liveness-sdk) pour le détail complet des requêtes et réponses des deux endpoints.
+
+## Référence des identifiants
+
+| Identifiant | Utilisation | Sécurité |
+| --- | --- | --- |
+| **Clé secrète d'API** | Uniquement de serveur à serveur, en-tête `token` | Ne jamais l'exposer côté client |
+| **Clé marchand publique** | Initialisation du SDK (sans risque côté client) | Limitée au démarrage des sessions ; peut être intégrée en toute sécurité dans les applications |
+
+Votre **clé marchand publique** est l'identifiant que vous transmettez au constructeur du SDK. Il s'agit d'un identifiant en lecture seule, limité au démarrage des sessions, qui peut être intégré en toute sécurité dans votre application web ou mobile. Votre **clé secrète d'API** doit rester sur votre serveur.
+
+Pour récupérer votre clé marchand publique, consultez [Authentification](/fr/get-started/authentication).
+
+## Cas d'usage
+
+<AccordionGroup>
+  <Accordion title="Vivacité biométrique pour l'intégration KYC">
+    Utilisez le SDK Android, iOS ou Web pour effectuer un contrôle de vivacité anti-deepfake dans le cadre de votre parcours d'intégration client. Le SDK invite l'utilisateur à réaliser une tâche de mouvement de la tête (compléter le cercle, cligner des yeux, oui/non) afin de confirmer la présence d'une personne réelle.
+  </Accordion>
+
+  <Accordion title="Capture de documents pour la vérification d'identité">
+    Utilisez le SDK Document Capture pour photographier une pièce d'identité officielle (passeport, carte nationale d'identité, permis de conduire) depuis votre application. L'image capturée est automatiquement soumise pour extraction et vérification.
+  </Accordion>
+
+  <Accordion title="Collecte de signaux de fraude">
+    Le SDK Fraud Insight collecte de manière passive des signaux liés à l'appareil et au comportement pendant la session, enrichissant le score de risque calculé par la plateforme Youverify sans ajouter de friction pour l'utilisateur.
+  </Accordion>
+</AccordionGroup>

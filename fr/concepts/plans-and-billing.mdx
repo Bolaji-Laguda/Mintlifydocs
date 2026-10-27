@@ -1,0 +1,146 @@
+---
+title: "Aperçu des offres, droits et facturation de Youverify"
+sidebarTitle: "Offres et facturation"
+description: "Découvrez comment fonctionne la facturation de Youverify, ce que votre offre vous donne le droit d'utiliser et comment gérer la consommation dans les environnements sandbox et de production."
+---
+
+Le modèle de facturation de Youverify est conçu pour rester prévisible à mesure que vous grandissez. L'unité de mesure principale est **Add Entity** : l'action consistant à intégrer un nouveau sujet à la plateforme. La lecture, la surveillance et l'exécution de contrôles sur des entités existantes ne consomment pas d'allocation d'entités supplémentaire. Planifiez une seule fois en fonction du nombre de nouvelles entités ajoutées par mois, et vos coûts restent clairs.
+
+## Sandbox et production
+
+Avant de dépenser quoi que ce soit, utilisez l'environnement sandbox pour concevoir et tester entièrement votre intégration.
+
+<CardGroup cols={2}>
+  <Card title="Sandbox" icon="flask">
+    Utilisation gratuite. Tous les appels d'API renvoient des données de test réalistes, ne sont jamais facturés et n'affectent jamais de vrais particuliers ou entreprises. Utilisez l'URL de base `https://api.sandbox.youverify.co`.
+  </Card>
+
+  <Card title="Production" icon="server">
+    Facturée par entité ajoutée, selon la tarification de votre offre. Toutes les vérifications s'exécutent sur des sources de données réelles. Utilisez l'URL de base `https://api.youverify.co`.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Chaque environnement possède sa propre clé d'API. N'utilisez jamais une clé d'API de production dans une intégration de test, et n'utilisez jamais une clé sandbox avec l'URL de base de production. Vérifiez quelle clé vous utilisez avant la mise en production.
+</Warning>
+
+## Offres et allocations d'entités
+
+Chaque offre d'abonnement inclut une **allocation d'entités** prépayée (un budget mensuel mutualisé d'entités que vous pouvez ajouter) ainsi qu'une **allocation de jetons Vyra AI** pour les workflows d'agents IA.
+
+| Offre | Allocation d'entités | Jetons Vyra AI |
+| --- | --- | --- |
+| Scale with Vyra AI | Jusqu'à 500 unités/mois | 4 millions de jetons |
+| Growth with Vyra AI | Jusqu'à 1 200 unités/mois | 11 millions de jetons |
+| Pro with Vyra AI | Jusqu'à 2 000 unités/mois | 20 millions de jetons |
+| Enterprise | Illimitée (sur mesure) | Sur mesure |
+
+<Note>
+  L'allocation d'entités est **mutualisée** : un seul budget couvre tous les types d'entités. Une **Base Entity** (particulier ou entreprise ayant fait l'objet d'une vigilance complète) coûte une unité entière. Une **Relationship Entity** (UBO ou entité aval, généralement peu connue à la création) coûte une fraction, environ une demi-unité, car elle démarre avec moins de données. Si vous faites ensuite passer une Relationship Entity à une vérification complète, elle consomme alors une unité entière.
+</Note>
+
+## Ce que votre offre vous permet d'utiliser
+
+Youverify regroupe les capacités plutôt que de les vendre comme des produits sous licence distincts. Si une capacité est documentée, votre offre peut l'utiliser. Concrètement, votre offre détermine :
+
+- **Les capacités d'API disponibles** : notamment les pays, les types de pièces d'identité officielles et les sources de données AML accessibles
+- **Les fonctionnalités AML avancées** : la détection du vivant résistante aux deepfakes, la capture de documents, le filtrage PEP et le filtrage des médias défavorables sont inclus dans toutes les offres et ne sont pas vendus en option
+- **Les workflows d'agents IA** : l'automatisation propulsée par Vyra pour l'intégration des clients, la surveillance des transactions et la détection de la fraude, mesurée en consommation de jetons
+- **Les Fraud Traps personnalisés** : leur disponibilité dépend du niveau d'offre
+
+<Tip>
+  L'utilisation d'un seul outil (consommer une seule capacité de manière isolée, comme la vérification des données gouvernementales seule) est disponible **uniquement avec les offres Enterprise**, avec une tarification au volume négociée dans le cadre d'une grille tarifaire. Les offres d'abonnement couvrent le workflow de bout en bout.
+</Tip>
+
+## Options complémentaires
+
+Vous pouvez étendre n'importe quelle offre avec :
+
+<CardGroup cols={3}>
+  <Card title="Vérifications d'identité" icon="id-card">
+    Vérifications d'identité mondiales supplémentaires au-delà du lot inclus dans votre offre, facturées à la vérification.
+  </Card>
+
+  <Card title="Jetons Vyra AI" icon="robot">
+    Allocation de jetons supplémentaire pour les workflows d'agents IA, au-delà de l'allocation incluse dans votre offre.
+  </Card>
+
+  <Card title="Automatisation des workflows" icon="gears">
+    Automatisation du workflow d'intégration des clients, si elle n'est pas incluse dans le niveau de base de votre offre.
+  </Card>
+</CardGroup>
+
+## Consulter votre consommation
+
+Suivez à tout moment votre consommation d'allocation d'entités et de jetons Vyra AI dans le **tableau de bord Youverify Cowork** sur [cowork.youverify.co](https://cowork.youverify.co). Le tableau de bord de consommation affiche :
+
+- Le nombre d'entités du mois en cours par rapport à votre allocation
+- La consommation de jetons Vyra AI par rapport à l'allocation de votre offre
+- Les dépassements accumulés jusqu'à présent sur la période de facturation
+
+## Comportement en cas de dépassement de quota
+
+Si vous dépassez l'allocation d'entités ou de jetons Vyra AI de votre offre, l'API renvoie une erreur `403`. La réponse suit l'enveloppe d'erreur standard :
+
+```json
+{
+  "success": false,
+  "statusCode": 403,
+  "name": "PlanLimitError",
+  "message": "You have reached your monthly entity allowance. Upgrade your plan or wait for the next billing cycle to continue adding entities."
+}
+```
+
+<Warning>
+  Les erreurs de dépassement de quota bloquent la création de nouvelles entités et les actions d'agents IA facturables. Surveillez votre consommation de manière proactive dans le tableau de bord, en particulier pendant les campagnes d'intégration ou les périodes de fort volume, afin d'éviter toute perturbation de vos workflows.
+</Warning>
+
+## Frais de dépassement
+
+Si vous dépassez votre allocation mensuelle, des frais de dépassement s'appliquent au tarif unitaire publié pour votre offre. Le dépassement est facturé sur le même cycle que votre abonnement de base.
+
+<Accordion title="Détail de la tarification Base Entity et Relationship Entity">
+  Votre allocation d'entités utilise un seul pool partagé, mais les types d'entités le consomment différemment :
+
+  - **Base Entity** (particulier ou entreprise, autonome) : 1 unité entière
+  - **Relationship Entity** (UBO ou entité aval, liée via `parentId`) : environ 0,5 unité
+
+  **Règle anti-contournement** : si une Relationship Entity passe au statut de vérification complète (par exemple, une entité aval peu connue qui termine ensuite un KYC complet), elle est reclassée et consomme une unité entière au moment de la promotion. Vous ne pouvez pas obtenir une vigilance complète au tarif d'une relation.
+</Accordion>
+
+## Cycle de vie de l'abonnement et conservation des données
+
+Si votre abonnement expire, Youverify sépare l'accès de la conservation des données, car vos dossiers de conformité sont des données réglementées, et pas seulement un état applicatif.
+
+<Steps>
+  <Step title="Période de grâce (7 à 14 jours)">
+    L'accès complet est maintenu et des rappels de renouvellement sont envoyés à l'adresse e-mail de votre compte.
+  </Step>
+  <Step title="Accès restreint / lecture seule (30 à 60 jours)">
+    Les actions facturables sont suspendues. Vous conservez un accès en lecture seule à tous les enregistrements existants et pouvez exporter vos données pendant cette période.
+  </Step>
+  <Step title="Dormant / archivé">
+    L'accès au compte est placé derrière un accès payant de réactivation. Toutes les données sont conservées dans un stockage d'archivage : rien n'est supprimé.
+  </Step>
+  <Step title="Suppression">
+    Les données ne sont supprimées qu'à la fin de la période de conservation légale ou contractuelle, ou sur instruction documentée en l'absence de gel juridique, après qu'un dernier export a été proposé.
+  </Step>
+</Steps>
+
+<Note>
+  Les réglementations AML (dont la Recommandation 11 du GAFI et la plupart des lois nationales) exigent généralement que les enregistrements KYC, CDD et de transactions soient conservés pendant au moins **5 ans** après la fin de la relation. Youverify ne supprimera pas vos données de conformité du simple fait qu'un abonnement a expiré.
+</Note>
+
+## Faire évoluer ou ajuster votre offre
+
+Pour faire évoluer votre offre, acheter des options complémentaires ou discuter de la tarification Enterprise, rendez-vous sur [youverify.co](https://youverify.co) ou contactez directement votre responsable de compte. L'offre Enterprise comprend :
+
+- Une allocation d'entités illimitée
+- Une allocation de jetons Vyra AI sur mesure
+- Une grille tarifaire et un SLA négociés
+- Un support de niveau entreprise
+- L'utilisation d'un seul outil pour la consommation de capacités isolées
+
+<Tip>
+  Si vous concevez une intégration à fort volume ou devez isoler certaines capacités (par exemple, exécuter uniquement la vérification des données gouvernementales sans le workflow d'intégration complet), contactez-nous pour discuter d'un accord Enterprise avant de commencer le développement : le modèle de tarification est sensiblement différent de celui des offres d'abonnement.
+</Tip>

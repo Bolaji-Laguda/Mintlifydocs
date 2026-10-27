@@ -1,0 +1,342 @@
+---
+title: "Intégrer un client à l'aide d'une pièce d'identité officielle"
+sidebarTitle: "Intégration par pièce d'identité"
+description: "Vérifiez l'identité d'un client auprès des bases de données gouvernementales à l'aide de son numéro de pièce d'identité et de ses informations personnelles, puis consultez le résultat de la correspondance et le score de risque mis à jour."
+---
+
+Lorsqu'un client fournit une pièce d'identité officielle (BVN, NIN, carte d'identité nationale ou passeport), vous pouvez vérifier son identité directement auprès de la source faisant autorité et intégrer le résultat à son dossier d'entité. Il s'agit du parcours d'intégration offrant le plus haut niveau de confiance : les champs de données personnelles renvoyés proviennent du registre officiel, et une discordance sur le nom ou la date de naissance déclenche automatiquement un signal de fraude.
+
+Ce guide vous accompagne dans la création d'une entité, le déclenchement d'un contrôle KYC avec un numéro de pièce d'identité, l'interprétation du résultat et la compréhension de la mise à jour du score de risque.
+
+## Prérequis
+
+- Un compte Youverify sur [cowork.youverify.co](https://cowork.youverify.co)
+- Votre clé secrète d'API, disponible dans le tableau de bord sous **Settings → API Keys**
+- Le type de pièce d'identité, le numéro de pièce et le pays du client
+
+---
+
+## Types de pièces d'identité pris en charge par pays
+
+<CardGroup cols={2}>
+  <Card title="🇳🇬 Nigeria" icon="id-card">
+    - `bvn` — Bank Verification Number
+    - `nin` — National Identification Number
+    - `nin_phone` — Recherche du NIN par numéro de téléphone
+    - `drivers_license` — Permis de conduire nigérian
+    - `passport` — Passeport international
+    - `pvc` — Carte d'électeur permanente (Permanent Voter's Card)
+  </Card>
+
+  <Card title="🇰🇪 Kenya" icon="id-card">
+    - `keNationalId` — Carte d'identité nationale
+    - `kePassport` — Passeport international
+    - `keAlienId` — Carte d'identité d'étranger (Alien ID)
+    - `keDriversLicense` — Permis de conduire
+  </Card>
+
+  <Card title="🇿🇦 Afrique du Sud" icon="id-card">
+    - `zaSAID` — Numéro de carte d'identité sud-africaine
+  </Card>
+
+  <Card title="🇬🇭 Ghana" icon="id-card">
+    - `ghPassport` — Passeport international
+    - `ghVoter` / `oldGhVoter` — Carte d'électeur ghanéenne (nouvelle/ancienne)
+    - `ssnit` — Social Security and National Insurance Trust
+  </Card>
+
+  <Card title="🇨🇮 Côte d'Ivoire" icon="id-card">
+    - Carte d'identité nationale (nouveaux et anciens formats)
+    - Carte de résident
+  </Card>
+
+  <Card title="🌍 International" icon="globe">
+    De nombreux autres pays sont pris en charge via le point de terminaison eIDV global. Contactez votre équipe de compte Youverify ou consultez le tableau de bord pour obtenir la liste complète des pays pris en charge.
+  </Card>
+</CardGroup>
+
+---
+
+## Étapes
+
+<Steps>
+  ### Créer l'entité avec le nom et les données de pièce d'identité
+
+  Créez d'abord l'entité avec les données personnelles dont vous disposez. Vous pouvez inclure le numéro de pièce d'identité à la création ou l'ajouter à l'étape suivante via le point de terminaison KYC.
+
+  <CodeGroup>
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "individual",
+        "isSubjectConsent": true,
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "phone": "+2348012345678",
+        "nationality": "NG",
+        "dateOfBirth": "1990-06-15"
+      }'
+    ```
+
+    ```javascript Node.js
+    const response = await fetch('https://api.youverify.co/v2/api/entities', {
+      method: 'POST',
+      headers: {
+        'token': process.env.YV_SECRET_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        entityType: 'individual',
+        isSubjectConsent: true,
+        firstName: 'Jane',
+        lastName: 'Doe',
+        phone: '+2348012345678',
+        nationality: 'NG',
+        dateOfBirth: '1990-06-15',
+      }),
+    });
+    const { data } = await response.json();
+    const entityId = data.id;
+    ```
+
+    ```python Python
+    import os, requests
+
+    resp = requests.post(
+        'https://api.youverify.co/v2/api/entities',
+        headers={
+            'token': os.environ['YV_SECRET_KEY'],
+            'Content-Type': 'application/json',
+        },
+        json={
+            'entityType': 'individual',
+            'isSubjectConsent': True,
+            'firstName': 'Jane',
+            'lastName': 'Doe',
+            'phone': '+2348012345678',
+            'nationality': 'NG',
+            'dateOfBirth': '1990-06-15',
+        },
+    )
+    entity_id = resp.json()['data']['id']
+    ```
+  </CodeGroup>
+
+  ### Déclencher la vérification KYC avec la pièce d'identité officielle
+
+  Appelez `POST /v2/api/entities/{id}/verify/kyc` avec le type et le numéro de la pièce d'identité. Transmettez le nom et la date de naissance du client dans le bloc `validations` afin de recouper les données fournies avec celles renvoyées par le registre : une discordance déclenche un signal de fraude automatique.
+
+  Les exemples ci-dessous couvrent les types de pièces d'identité les plus courants. Sélectionnez votre pays :
+
+  <Tabs>
+    <Tab title="Nigeria — BVN">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "22222222222",
+            "countryCode": "NG",
+            "idType": "bvn"
+          },
+          "validations": {
+            "data": {
+              "firstName": "Jane",
+              "lastName": "Doe",
+              "dateOfBirth": "1990-06-15"
+            }
+          }
+        }'
+      ```
+    </Tab>
+
+    <Tab title="Nigeria — NIN">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "90899740000",
+            "countryCode": "NG",
+            "idType": "nin"
+          }
+        }'
+      ```
+    </Tab>
+
+    <Tab title="Nigeria — Permis de conduire">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "SMK86220XXXX",
+            "countryCode": "NG",
+            "idType": "drivers_license"
+          }
+        }'
+      ```
+    </Tab>
+
+    <Tab title="Kenya — Carte d'identité nationale">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "23772148",
+            "countryCode": "KE",
+            "idType": "keNationalId"
+          }
+        }'
+      ```
+    </Tab>
+
+    <Tab title="Afrique du Sud — SAID">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "8012185201081",
+            "countryCode": "ZA",
+            "idType": "zaSAID"
+          }
+        }'
+      ```
+    </Tab>
+
+    <Tab title="Ghana — Passeport">
+      ```bash cURL
+      curl -X POST "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7/verify/kyc" \
+        -H "token: $YV_SECRET_KEY" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "entityType": "individual",
+          "isSubjectConsent": true,
+          "identity": {
+            "id": "G0000575",
+            "countryCode": "GH",
+            "idType": "ghPassport"
+          }
+        }'
+      ```
+    </Tab>
+  </Tabs>
+
+  ### Examiner le résultat de la vérification
+
+  Une vérification réussie renvoie `"status": "found"` avec les champs de données personnelles récupérés depuis le registre faisant autorité. Comparez le nom et la date de naissance renvoyés avec ceux que vous détenez dans vos dossiers.
+
+  ```json Response — match found
+  {
+    "success": true,
+    "status_code": 200,
+    "message": "Identity check successful!",
+    "data": {
+      "id": "ent_684f5cc5a47a3926763b83a7",
+      "entity": {
+        "entityId": "ent_684f5cc5a47a3926763b83a7",
+        "isNew": false,
+        "message": ""
+      },
+      "identityCheck": {
+        "status": "found",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "dateOfBirth": "1990-06-15",
+        "middleName": "Adaeze",
+        "phone": "08012345678",
+        "gender": "Female",
+        "type": "bvn",
+        "nationality": "NG",
+        "idNumber": "22222222222",
+        "isExpired": false,
+        "verificationId": "69da8ae76398f3a575c950e0"
+      }
+    },
+    "links": []
+  }
+  ```
+
+  Si la pièce d'identité est introuvable dans le registre, `"status"` renvoie `"not_found"`. Si le nom ou la date de naissance fournis dans `validations` ne correspondent pas à l'enregistrement du registre, Youverify déclenche automatiquement un signal de fraude sur l'entité.
+
+  <Warning>
+    Un résultat `"not_found"` ne signifie pas nécessairement que le client est frauduleux : la pièce d'identité peut être récente ou le registre temporairement indisponible. Examinez l'historique des signaux de l'entité avant de prendre une décision.
+  </Warning>
+
+  ### Vérifier le score de risque mis à jour de l'entité
+
+  Une fois la vérification KYC terminée, le score de risque de l'entité est réévalué en tenant compte du résultat de la vérification. Récupérez l'entité pour lire le score mis à jour :
+
+  ```bash cURL
+  curl -X GET "https://api.youverify.co/v2/api/entities/ent_684f5cc5a47a3926763b83a7" \
+    -H "token: $YV_SECRET_KEY"
+  ```
+
+  ```json Response — entity with risk score
+  {
+    "success": true,
+    "status_code": 200,
+    "message": "Entity retrieved successfully.",
+    "data": {
+      "id": "ent_684f5cc5a47a3926763b83a7",
+      "entityType": "individual",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "status": "created",
+      "profileStatus": "pending",
+      "riskScore": 18,
+      "riskLevel": "low",
+      "verifications": [
+        {
+          "type": "kyc",
+          "status": "found",
+          "idType": "bvn",
+          "completedAt": "2025-06-15T10:23:00.000Z"
+        }
+      ]
+    },
+    "links": []
+  }
+  ```
+</Steps>
+
+---
+
+## Ce qui se passe en coulisses
+
+Lorsque vous soumettez la vérification KYC, Youverify :
+
+1. Interroge la source faisant autorité (par exemple la base de données BVN du Nigeria, la NIMC pour le NIN)
+2. Compare les données personnelles renvoyées avec le bloc `validations` que vous avez fourni
+3. Rattache le résultat au journal d'activité et au dossier 360 de l'entité
+4. Recalcule le score de risque en intégrant le contrôle AML, le statut de correspondance d'identité et les éventuels signaux de fraude
+
+Tout cela est automatique. Le résultat est conservé sur le dossier de l'entité et non dans un rapport autonome distinct.
+
+---
+
+## Et ensuite
+
+- Lancez explicitement un [contrôle AML](/api-reference/entities/verify-entity-aml) pour comparer l'entité à des listes de surveillance supplémentaires
+- Ajoutez la détection de vivacité (liveness) pour une correspondance biométrique grâce au [Liveness SDK](/fr/sdks/liveness-sdk)
+- Construisez un parcours progressif de [KYC par paliers](/fr/guides/tiered-kyc-digital-banking) sur cette base
+- Intégrez une entreprise grâce à la [vérification KYB et UBO](/fr/guides/corporate-kyb-ubo)

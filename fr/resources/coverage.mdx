@@ -1,0 +1,363 @@
+---
+title: "Couverture par pays et par produit"
+sidebarTitle: "Couverture"
+description: "Pays, types de pièces d'identité et produits de vérification actuellement pris en charge par Youverify, y compris Document Capture et Liveness."
+---
+
+Utilisez cette page pour vérifier ce que Youverify prend en charge dans un pays donné avant de développer. La couverture varie selon le produit : **Liveness** fonctionne dans le monde entier, **Document Capture** prend en charge les pays et les types de documents listés ci-dessous, et chaque point de terminaison de vérification d'**identité (KYC)** et d'**entreprise (KYB)** prend en charge des pays spécifiques.
+
+## Couverture en un coup d'œil
+
+| Produit | Couverture |
+| --- | --- |
+| **Liveness** | Mondiale. Aucune limitation par pays. |
+| **Document Capture** | 119 pays et territoires répartis sur six régions. Voir [Capture de documents](#capture-de-documents) pour les types de documents acceptés dans chacun. |
+| **Vérification d'identité (KYC)** | Points de terminaison spécifiques pour le Nigéria, l'Afrique du Sud, le Kenya, le Ghana et la Côte d'Ivoire, ainsi que Global ID Validation. Voir [Vérification d'identité](#vérification-didentité-kyc). |
+| **Vérification d'entreprise (KYB)** | Points de terminaison spécifiques pour le Nigéria, l'Afrique du Sud et la Côte d'Ivoire, ainsi que la recherche mondiale d'entreprises. Voir [Vérification d'entreprise](#vérification-dentreprise-kyb). |
+| **Filtrage AML** | Non lié à un pays unique. Les points de terminaison de filtrage acceptent un filtre par pays. PEP+ couvre les PEP nationaux du Nigéria. Voir [Filtrage AML](#filtrage-aml). |
+| **Vérification d'adresse** | Nigéria. Voir [Vérification d'adresse](#vérification-dadresse). |
+
+## Liveness
+
+La détection du vivant (Liveness) est un produit mondial sans limitation par pays. Elle n'est restreinte à aucun pays ni aucune région. Consultez les [SDK](/fr/sdks/overview) pour les guides d'intégration.
+
+## Capture de documents
+
+Document Capture prend en charge les pays et les types de documents ci-dessous. Lorsqu'un document est délivré au niveau d'un État ou d'une province, les États pris en charge sont listés après les tableaux régionaux.
+
+<Accordion title="Asie (24 pays et territoires)">
+  | Pays | Types de documents |
+  | --- | --- |
+  | Arménie | Carte d'identité |
+  | Azerbaïdjan | Carte d'identité, Passeport |
+  | Bangladesh | Permis de conduire, Carte d'identité, Passeport |
+  | Brunei | Carte d'identité, Carte d'identité militaire, Titre de séjour, Titre de séjour temporaire |
+  | Cambodge | Permis de conduire, Carte d'identité, Passeport |
+  | Chine | Carte d'identité, Passeport |
+  | Inde | Carte d'identité, PAN Card, Passeport, Carte d'électeur ; ainsi que des documents au niveau des États/provinces (voir ci-dessous) |
+  | Indonésie | Permis de conduire, Carte d'identité, Passeport |
+  | Japon | Permis de conduire, My Number Card, Passeport |
+  | Kazakhstan | Carte d'identité |
+  | Kirghizistan | Carte d'identité |
+  | Malaisie | Permis de conduire, MyKAS, MyKad, MyKid, MyPR, MyPolis, MyTentera, Passeport, Carte de réfugié, i-Kad |
+  | Maldives | Carte d'identité |
+  | Népal | Passeport |
+  | Pakistan | Carte consulaire, Carte d'identité, Passeport ; ainsi que des documents au niveau des États/provinces (voir ci-dessous) |
+  | Philippines | Permis de conduire, Carte d'identité, Carte d'identité polyvalente, Passeport, Carte professionnelle, Carte de sécurité sociale, Numéro d'identification fiscale, Carte d'électeur |
+  | Singapour | Permis de conduire, Employment Pass, Fin Card, Carte d'identité, Passeport, Carte de résident, S Pass, Permis de travail |
+  | Corée du Sud | Permis de conduire, Carte d'identité, Passeport |
+  | Sri Lanka | Permis de conduire, Carte d'identité, Passeport |
+  | Taïwan | Carte d'identité, Titre de séjour temporaire |
+  | Tadjikistan | Passeport |
+  | Thaïlande | Carte d'étranger, Permis de conduire, Carte d'identité, Passeport |
+  | Ouzbékistan | Permis de conduire, Passeport |
+  | Vietnam | Permis de conduire, Carte d'identité |
+</Accordion>
+
+<Accordion title="Europe (40 pays et territoires)">
+  | Pays | Types de documents |
+  | --- | --- |
+  | Albanie | Carte de conducteur, Permis de conduire, Carte d'identité, Passeport, Permis de conduire professionnel |
+  | Autriche | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Belgique | Permis de conduire, Carte d'identité, Carte d'identité de mineur, Passeport, Titre de séjour, Carte de résident |
+  | Bosnie-Herzégovine | Permis de conduire, Carte d'identité, Passeport |
+  | Bulgarie | Permis de conduire, Carte d'identité, Passeport |
+  | Croatie | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Chypre | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Tchéquie | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Danemark | Permis de conduire, Passeport, Titre de séjour |
+  | Estonie | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Finlande | Carte d'étranger, Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | France | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Géorgie | Permis de conduire, Carte d'identité, Passeport |
+  | Allemagne | Permis de conduire, Carte d'identité, Passeport de mineur, Passeport, Titre de séjour |
+  | Grèce | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Hongrie | Carte d'adresse, Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Islande | Permis de conduire, Passeport |
+  | Irlande | Permis de conduire, Passeport, Carte passeport, Carte de services publics |
+  | Italie | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Kosovo | Permis de conduire, Carte d'identité, Passeport |
+  | Lettonie | Carte d'étranger, Passeport d'étranger, Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Lituanie | Permis de conduire, Carte d'identité, Passeport |
+  | Luxembourg | Permis de conduire, Carte d'identité, Titre de séjour |
+  | Malte | Permis de conduire, Carte d'identité, Titre de séjour |
+  | Moldavie | Carte d'identité, Passeport |
+  | Monténégro | Permis de conduire, Carte d'identité, Passeport |
+  | Pays-Bas | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Macédoine du Nord | Permis de conduire, Carte d'identité, Passeport |
+  | Norvège | Permis de conduire, Passeport, Titre de séjour |
+  | Pologne | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Portugal | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Roumanie | Permis de conduire, Carte d'identité, Passeport |
+  | Serbie | Permis de conduire, Carte d'identité, Passeport |
+  | Slovaquie | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Slovénie | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Espagne | Carte d'étranger, Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Suède | Permis de conduire, Carte d'identité, Passeport, Titre de séjour, Carte de sécurité sociale |
+  | Suisse | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Ukraine | Permis de conduire, Carte d'identité, Passeport, Titre de séjour, Titre de séjour temporaire |
+  | Royaume-Uni | Permis de conduire, Passeport, Carte de preuve d'âge, Titre de séjour |
+</Accordion>
+
+<Accordion title="Amérique latine et Caraïbes (21 pays et territoires)">
+  | Pays | Types de documents |
+  | --- | --- |
+  | Antigua-et-Barbuda | Permis de conduire |
+  | Argentine | Carte d'étranger, Permis de conduire, Carte d'identité, Passeport |
+  | Bahamas | Permis de conduire, Carte d'identité |
+  | Bolivie | Permis de conduire, Carte d'identité, Carte d'identité de mineur |
+  | Brésil | Passeport consulaire, Permis de conduire, Carte d'identité, Passeport ; ainsi que des documents au niveau des États/provinces (voir ci-dessous) |
+  | Chili | Carte d'étranger, Permis de conduire, Carte d'identité, Passeport |
+  | Colombie | Carte d'étranger, Permis de conduire, Carte d'identité, Carte d'identité de mineur, Passeport |
+  | Costa Rica | Permis de conduire, Carte d'identité |
+  | République dominicaine | Permis de conduire, Carte d'identité, Passeport |
+  | Équateur | Permis de conduire, Carte d'identité |
+  | Salvador | Permis de conduire, Carte d'identité |
+  | Guatemala | Carte consulaire, Permis de conduire, Carte d'identité, Passeport |
+  | Honduras | Permis de conduire, Carte d'identité, Passeport |
+  | Jamaïque | Permis de conduire |
+  | Mexique | Carte consulaire, Passeport, Permis de conduire professionnel, Carte professionnelle, Titre de séjour, Carte d'électeur ; ainsi que des documents au niveau des États/provinces (voir ci-dessous) |
+  | Panama | Permis de conduire, Carte d'identité, Titre de séjour, Titre de séjour temporaire |
+  | Paraguay | Permis de conduire, Carte d'identité |
+  | Pérou | Permis de conduire, Carte d'identité, Carte d'identité de mineur, Passeport |
+  | Porto Rico | Permis de conduire, Carte d'électeur |
+  | Trinité-et-Tobago | Permis de conduire, Carte d'identité |
+  | Uruguay | Carte d'identité |
+</Accordion>
+
+<Accordion title="Moyen-Orient et Afrique (29 pays et territoires)">
+  | Pays | Types de documents |
+  | --- | --- |
+  | Algérie | Permis de conduire, Carte d'identité, Passeport |
+  | Bahreïn | Carte d'identité |
+  | Botswana | Carte d'identité |
+  | Burkina Faso | Carte d'identité |
+  | Cameroun | Carte d'identité |
+  | Côte d'Ivoire | Permis de conduire, Carte d'identité |
+  | République démocratique du Congo | Permis de conduire |
+  | Égypte | Permis de conduire, Carte d'identité, Passeport |
+  | Eswatini | Passeport |
+  | Ghana | Permis de conduire, Carte d'identité, Passeport |
+  | Israël | Permis de conduire, Carte d'identité, Passeport |
+  | Jordanie | Permis de conduire, Carte d'identité, Passeport |
+  | Kenya | Carte d'identité, Passeport |
+  | Koweït | Permis de conduire, Carte d'identité, Carte de résident |
+  | Maurice | Carte d'identité |
+  | Maroc | Permis de conduire, Carte d'identité, Passeport |
+  | Mozambique | Permis de conduire |
+  | Nigéria | Permis de conduire, Carte d'identité, Passeport, Carte d'électeur |
+  | Oman | Permis de conduire, Carte d'identité, Carte de résident |
+  | Qatar | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Rwanda | Carte d'identité |
+  | Arabie saoudite | Permis de conduire, Carte d'identité, Passeport, Carte de résident |
+  | Sénégal | Carte d'identité |
+  | Afrique du Sud | Permis de conduire, Carte d'identité, Passeport |
+  | Tanzanie | Permis de conduire, Carte d'identité, Carte d'électeur |
+  | Tunisie | Permis de conduire, Carte d'identité, Passeport |
+  | Turquie | Permis de conduire, Carte d'identité, Passeport, Titre de séjour |
+  | Ouganda | Permis de conduire, Carte d'identité |
+  | Émirats arabes unis | Permis de conduire, Carte d'identité, Passeport, Carte de résident |
+</Accordion>
+
+<Accordion title="Amérique du Nord (3 pays et territoires)">
+  | Pays | Types de documents |
+  | --- | --- |
+  | Bermudes | Permis de conduire |
+  | Canada | Certificat de citoyenneté, Passeport, Titre de séjour, Carte de sécurité sociale, Carte d'identité tribale, Permis de port d'arme ; ainsi que des documents au niveau des États/provinces (voir ci-dessous) |
+  | États-Unis | Carte de passage frontalier, Global Entry Card, Green Card, Carte d'identité militaire, Nexus Card, Passeport, Carte passeport, Carte de sécurité sociale, Carte d'ancien combattant, Permis de travail ; ainsi que des documents au niveau des États/provinces (voir ci-dessous) |
+</Accordion>
+
+<Accordion title="Océanie (2 pays et territoires)">
+  | Pays | Types de documents |
+  | --- | --- |
+  | Australie | Passeport ; ainsi que des documents au niveau des États/provinces (voir ci-dessous) |
+  | Nouvelle-Zélande | Permis de conduire, Passeport |
+</Accordion>
+
+### Documents au niveau des États et des provinces
+
+<Accordion title="Afficher la couverture par État et par province">
+  **Inde**
+
+  | État / province | Types de documents |
+  | --- | --- |
+  | Gujarat | Permis de conduire |
+  | Karnataka | Permis de conduire |
+  | Kerala | Permis de conduire |
+  | Madhya Pradesh | Permis de conduire |
+  | Maharashtra | Permis de conduire |
+  | Punjab | Permis de conduire |
+  | Tamil Nadu | Permis de conduire |
+
+  **Pakistan**
+
+  | État / province | Types de documents |
+  | --- | --- |
+  | Punjab | Permis de conduire |
+
+  **Brésil**
+
+  | État / province | Types de documents |
+  | --- | --- |
+  | São Paulo | Carte d'identité |
+
+  **Mexique**
+
+  | État / province | Types de documents |
+  | --- | --- |
+  | Baja California | Permis de conduire |
+  | Baja California Sur | Permis de conduire |
+  | Campeche | Permis de conduire |
+  | Chiapas | Permis de conduire |
+  | Chihuahua | Permis de conduire |
+  | Ciudad de Mexico | Permis de conduire |
+  | Coahuila | Permis de conduire |
+  | Colima | Permis de conduire |
+  | Durango | Permis de conduire |
+  | Guanajuato | Permis de conduire |
+  | Guerrero (Cocula) | Permis de conduire |
+  | Guerrero (Juchitán) | Permis de conduire |
+  | Hidalgo | Permis de conduire |
+  | Jalisco | Permis de conduire |
+  | Mexico | Permis de conduire |
+  | Michoacan | Permis de conduire |
+  | Morelos | Permis de conduire |
+  | Nayarit | Permis de conduire |
+  | Nuevo Leon | Permis de conduire |
+  | Oaxaca | Permis de conduire |
+  | Puebla | Permis de conduire |
+  | Quintana Roo (Cozumel) | Permis de conduire |
+  | Quintana Roo (Solidaridad) | Permis de conduire |
+  | San Luis Potosi | Permis de conduire |
+  | Sinaloa | Permis de conduire |
+  | Sonora | Permis de conduire |
+  | Tabasco | Permis de conduire |
+  | Tamaulipas | Permis de conduire |
+  | Tlaxcala | Permis de conduire |
+  | Veracruz | Permis de conduire |
+  | Yucatan | Permis de conduire |
+  | Zacatecas | Permis de conduire |
+
+  **Canada**
+
+  | État / province | Types de documents |
+  | --- | --- |
+  | Alberta | Permis de conduire, Carte d'identité |
+  | Colombie-Britannique | Permis de conduire/Carte de services publics (combiné), Permis de conduire, Carte d'identité, Carte de services publics pour mineurs, Carte de services publics |
+  | Manitoba | Permis de conduire, Carte d'identité |
+  | Nouveau-Brunswick | Permis de conduire |
+  | Terre-Neuve-et-Labrador | Permis de conduire |
+  | Nouvelle-Écosse | Permis de conduire, Carte d'identité |
+  | Ontario | Permis de conduire, Carte d'identité |
+  | Québec | Permis de conduire |
+  | Saskatchewan | Permis de conduire, Carte d'identité |
+  | Yukon | Permis de conduire |
+
+  **États-Unis**
+
+  | État / province | Types de documents |
+  | --- | --- |
+  | Alabama | Permis de conduire, Carte d'identité |
+  | Alaska | Permis de conduire, Carte d'identité |
+  | Arizona | Permis de conduire, Carte d'identité |
+  | Arkansas | Permis de conduire, Carte d'identité |
+  | Californie | Permis de conduire, Carte d'identité |
+  | Colorado | Permis de conduire, Carte d'identité |
+  | Connecticut | Permis de conduire, Carte d'identité |
+  | Delaware | Permis de conduire |
+  | District de Columbia | Permis de conduire, Carte d'identité |
+  | Floride | Permis de conduire, Carte d'identité |
+  | Géorgie | Permis de conduire, Carte d'identité |
+  | Hawaï | Permis de conduire, Carte d'identité |
+  | Idaho | Permis de conduire, Carte d'identité |
+  | Illinois | Permis de conduire, Carte d'identité |
+  | Indiana | Permis de conduire, Carte d'identité |
+  | Iowa | Permis de conduire, Carte d'identité |
+  | Kansas | Permis de conduire, Carte d'identité |
+  | Kentucky | Permis de conduire, Carte d'identité |
+  | Louisiane | Permis de conduire |
+  | Maine | Permis de conduire, Carte d'identité |
+  | Maryland | Permis de conduire, Carte d'identité |
+  | Massachusetts | Permis de conduire, Carte d'identité |
+  | Michigan | Permis de conduire, Carte d'identité |
+  | Minnesota | Permis de conduire, Carte d'identité |
+  | Mississippi | Permis de conduire, Carte d'identité |
+  | Missouri | Permis de conduire, Carte d'identité |
+  | Montana | Permis de conduire, Carte d'identité |
+  | Nebraska | Permis de conduire, Carte d'identité |
+  | Nevada | Permis de conduire, Carte d'identité |
+  | New Hampshire | Permis de conduire |
+  | New Jersey | Permis de conduire, Carte d'identité |
+  | Nouveau-Mexique | Permis de conduire, Carte d'identité |
+  | New York | Permis de conduire, Carte d'identité |
+  | New York (ville) | Carte d'identité |
+  | Caroline du Nord | Permis de conduire, Carte d'identité |
+  | Dakota du Nord | Permis de conduire, Carte d'identité |
+  | Ohio | Permis de conduire, Carte d'identité |
+  | Oklahoma | Permis de conduire, Carte d'identité |
+  | Oregon | Permis de conduire, Carte d'identité |
+  | Pennsylvanie | Permis de conduire, Carte d'identité |
+  | Rhode Island | Permis de conduire, Carte d'identité |
+  | Caroline du Sud | Permis de conduire, Carte d'identité |
+  | Dakota du Sud | Permis de conduire |
+  | Tennessee | Permis de conduire, Carte d'identité |
+  | Texas | Permis de conduire, Carte d'identité, Permis de port d'arme |
+  | Utah | Permis de conduire, Carte d'identité |
+  | Vermont | Permis de conduire |
+  | Virginie | Permis de conduire, Carte d'identité |
+  | Washington | Permis de conduire, Carte d'identité |
+  | Virginie-Occidentale | Permis de conduire |
+  | Wisconsin | Permis de conduire, Carte d'identité |
+  | Wyoming | Permis de conduire |
+
+  **Australie**
+
+  | État / province | Types de documents |
+  | --- | --- |
+  | Territoire de la capitale australienne | Permis de conduire |
+  | Nouvelle-Galles du Sud | Permis de conduire, Carte d'identité |
+  | Territoire du Nord | Permis de conduire, Carte de preuve d'âge |
+  | Queensland | Permis de conduire |
+  | Australie-Méridionale | Permis de conduire, Carte de preuve d'âge |
+  | Tasmanie | Permis de conduire |
+  | Victoria | Permis de conduire |
+  | Australie-Occidentale | Permis de conduire |
+</Accordion>
+
+## Vérification d'identité (KYC)
+
+Les points de terminaison de vérification d'identité sont organisés par pays. Utilisez le point de terminaison propre au pays (ou le champ `idType` de Verify Entity (KYC)) correspondant au pays de votre client.
+
+| Pays | Vérifications disponibles |
+| --- | --- |
+| **Nigéria** | BVN, BVN Premium, NIN, Permis de conduire, Numéro de téléphone, Advanced Phone Search (titulaire du NIN par téléphone), Identifiant fiscal individuel, Rapport de crédit individuel, Vérification de compte bancaire de base et Premium |
+| **Afrique du Sud** | Numéro d'identité sud-africain (SAID), Numéro de téléphone, Vérification de compte bancaire, Justificatif de domicile |
+| **Kenya** | Carte nationale d'identité, Carte d'étranger, Passeport international, Permis de conduire, Numéro d'identité, Tax PIN, KRA PIN, Numéro de téléphone, Adresse, Numéro de plaque d'immatriculation, Identifiant de garantie, Vérification de compte bancaire (et liste des banques), Historique de crédit, Historique d'emploi |
+| **Ghana** | Passeport international, SSNIT, Carte d'électeur |
+| **Côte d'Ivoire** | Carte nationale d'identité, Ancienne carte nationale d'identité, Carte de résident |
+| **Autres pays** | Global ID Validation compare une pièce d'identité et des données personnelles à des sources de données gouvernementales, officielles et commerciales. Transmettez le pays sous la forme d'un `countryCode` ISO 3166-1 alpha-2. L'option de recherche avancée n'est pas disponible dans tous les pays. |
+
+La comparaison faciale (Facial Comparison) n'est pas liée à un pays. Elle compare deux images et fonctionne pour n'importe quel client.
+
+## Vérification d'entreprise (KYB)
+
+| Périmètre | Vérifications disponibles |
+| --- | --- |
+| **Nigéria** | KYB Basic, Identifiant fiscal d'entreprise, TIN d'entreprise, Vérification de l'identifiant fiscal et de l'entreprise, Vérification de l'adresse de l'entreprise |
+| **Afrique du Sud** | Vérification de compte d'entreprise, Vérification de l'adresse de l'entreprise |
+| **Côte d'Ivoire** | Documents déposés par l'entreprise (Company Filings) |
+| **Mondial** | Recherche d'entreprises par nom avec filtre facultatif par pays, Récupération des détails d'une entreprise, KYB Bulk Upload et Premium Company Search. Les vérifications Premium sont disponibles pour le Nigéria, l'Afrique du Sud et le Kenya. |
+
+Pour obtenir la liste à jour des pays et subdivisions pris en charge pour les contrôles KYB, appelez le point de terminaison Get Supported Countries and Regions (`GET /v2/api/verifications/global/supported-countries-and-region`). Lorsque vous utilisez des subdivisions dans une recherche d'entreprise, utilisez le code de la subdivision plutôt que le code du pays principal.
+
+## Filtrage AML
+
+La référence de l'API ne restreint pas le filtrage AML à des pays spécifiques. Les points de terminaison de filtrage PEP, de sanctions, de médias défavorables et de cryptomonnaies acceptent un filtre facultatif par pays pour affiner les résultats. PEP+ Search est propre aux personnes politiquement exposées nationales du Nigéria.
+
+## Vérification d'adresse
+
+La vérification d'adresse physique (particuliers, garants et entreprises) est actuellement conçue autour des adresses et des États du Nigéria. Le Digital Address Verification Service vérifie une adresse à partir du plus récent achat de services publics du candidat, rapproché par numéro de téléphone.
+
+## Besoin d'une couverture non listée ?
+
+Si vous avez besoin d'un pays ou d'un type de document qui n'est pas listé ici, contactez [support@youverify.co](mailto:support@youverify.co).

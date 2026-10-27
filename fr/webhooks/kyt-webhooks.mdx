@@ -1,0 +1,193 @@
+---
+title: "Événements webhook KYT pour la surveillance des transactions"
+sidebarTitle: "Webhooks KYT"
+description: "Abonnez-vous aux événements webhook de surveillance des transactions pour recevoir des alertes lorsque des transactions sont signalées ou que des évaluations se terminent."
+---
+
+Le service Know Your Transaction (KYT) de Youverify émet des webhooks tout au long du cycle de vie de la surveillance des transactions : de la création d'un enregistrement client aux résultats d'évaluation, puis à la création et au triage des alertes. Abonnez-vous à ces événements pour bâtir des workflows de réponse à la fraude en temps réel dans vos propres systèmes.
+
+## Types d'événements KYT
+
+| Événement | Déclencheur |
+| --- | --- |
+| `tm.client.created` | Un nouveau client KYT (particulier ou entreprise) a été créé |
+| `tm.client.updated` | Un enregistrement client KYT existant a été mis à jour |
+| `tm.evaluation.started` | Une évaluation de transaction a démarré |
+| `tm.evaluation.completed` | Une évaluation de transaction est terminée |
+| `tm.transaction.updated` | Un enregistrement de transaction a été mis à jour |
+| `tm.alert.created` | Une règle de surveillance des transactions s'est déclenchée et a créé une nouvelle alerte |
+| `tm.alert.triage.created` | Un enregistrement de triage a été créé pour une alerte existante |
+| `tm.alert.updated` | Le statut d'une alerte a été mis à jour |
+
+<Note>
+  Toutes les charges utiles de webhooks KYT incluent un champ `eventId` (UUID) de premier niveau que vous pouvez utiliser comme clé d'idempotence pour ignorer en toute sécurité les livraisons en double.
+</Note>
+
+## Événements d'alerte
+
+### `tm.alert.created`
+
+Youverify émet cet événement lorsque le moteur de surveillance des transactions évalue une transaction et qu'un seuil de règle est franchi, ce qui crée une nouvelle alerte. Il s'agit de l'événement principal à suivre pour une réponse à la fraude en temps réel.
+
+#### Exemple de charge utile
+
+```json
+{
+  "businessId": "61d880f1e8e15aaf24558f1a",
+  "eventId": "26800455-009f-479c-a521-7ade761e7542",
+  "event": "tm.alert.created",
+  "apiVersion": "v1",
+  "data": {
+    "id": "659560cdb7cc04aa50134b67",
+    "tag": "Fraud",
+    "ruleId": "653bc228212e5d79592bab1a",
+    "ruleScore": 87,
+    "actorId": "653bbf58d90bc8280c533de6",
+    "ruleAction": "Reject",
+    "riskLevel": "CRITICAL",
+    "valueAtRisk": 710296,
+    "currencyCode": "NGN",
+    "weightedScore": 65.11,
+    "transactionIds": ["65955f85d22a9ec93a0c0dde"],
+    "status": "UN_ACTIONED",
+    "detectionDate": "2024-01-03T13:26:32.724Z",
+    "createdAt": "2024-01-03T13:27:41.639Z",
+    "businessId": "61d880f1e8e15aaf24558f1a"
+  },
+  "createdAt": 1709851492
+}
+```
+
+#### Champs de la charge utile d'alerte
+
+<ResponseField name="data.id" type="string">
+  Identifiant unique de l'enregistrement d'alerte.
+</ResponseField>
+
+<ResponseField name="data.riskLevel" type="string">
+  Gravité de l'alerte. Voir les [valeurs de gravité des alertes](#valeurs-de-gravite-des-alertes) ci-dessous.
+</ResponseField>
+
+<ResponseField name="data.ruleScore" type="number">
+  Score attribué par la règle déclenchée (0–100).
+</ResponseField>
+
+<ResponseField name="data.weightedScore" type="number">
+  Score de risque pondéré combiné de toutes les règles déclenchées.
+</ResponseField>
+
+<ResponseField name="data.ruleAction" type="string">
+  Action recommandée par la règle : `Reject`, `Warning` ou `Review`.
+</ResponseField>
+
+<ResponseField name="data.tag" type="string">
+  Étiquette de catégorie de risque, par exemple `Fraud`, `AML`, `Structuring`.
+</ResponseField>
+
+<ResponseField name="data.transactionIds" type="array">
+  Identifiants des transactions ayant déclenché cette alerte.
+</ResponseField>
+
+<ResponseField name="data.valueAtRisk" type="number">
+  Valeur cumulée des transactions (en unités monétaires mineures) considérée comme à risque.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Statut actuel de l'alerte. Commence à `UN_ACTIONED`. Les mises à jour sont transmises via `tm.alert.updated`.
+</ResponseField>
+
+## Événements d'évaluation
+
+### `tm.evaluation.completed`
+
+Youverify émet cet événement lorsqu'une évaluation de transaction se termine, soit parce que toutes les règles ont fini d'être traitées, soit parce qu'un franchissement de seuil de règle a été détecté.
+
+#### Exemple de charge utile
+
+```json
+{
+  "eventId": "24242cb7-7bb7-4a51-802a-ff5fde13e792",
+  "event": "tm.evaluation.completed",
+  "apiVersion": "v1",
+  "data": {
+    "id": "65e51c4097c2b9acd520705f",
+    "transactionIds": ["65e51c3f97c2b9acd520705d"],
+    "businessId": "61d880f1e8e15aaf24558f1a",
+    "triggeredTags": [
+      {
+        "tag": "Transaction Status",
+        "ruleScore": 50,
+        "ruleId": "65ca95ca117fae26f1275a71",
+        "ruleAction": "Warning"
+      }
+    ],
+    "valueAtRisk": 593000,
+    "currency": "NGN",
+    "detectionDate": "2024-03-04T01:56:32.072535+01:00",
+    "createdAt": "2024-03-04T00:56:32.726Z"
+  },
+  "createdAt": 1709513793
+}
+```
+
+#### Champs de la charge utile d'évaluation
+
+<ResponseField name="data.triggeredTags" type="array">
+  Liste des règles déclenchées pendant cette évaluation, chacune avec `tag`, `ruleScore`, `ruleId` et `ruleAction`.
+</ResponseField>
+
+<ResponseField name="data.valueAtRisk" type="number">
+  Valeur totale des transactions considérée comme à risque dans cette évaluation.
+</ResponseField>
+
+<ResponseField name="data.currency" type="string">
+  Code de devise ISO 4217 des transactions évaluées.
+</ResponseField>
+
+## Valeurs de gravité des alertes
+
+Le champ `data.riskLevel` utilise les niveaux de gravité suivants :
+
+| Valeur | Description |
+| --- | --- |
+| `LOW` | Anomalie mineure ; à titre informatif uniquement |
+| `MEDIUM` | Schéma notable ; envisagez un examen |
+| `HIGH` | Signal de risque important ; action recommandée |
+| `CRITICAL` | Risque grave ; action immédiate requise |
+
+## Événements client
+
+Youverify émet les événements `tm.client.created` et `tm.client.updated` chaque fois qu'un enregistrement client du service KYT est créé ou modifié. Ces événements vous permettent de maintenir vos propres fiches clients synchronisées avec le service KYT de Youverify.
+
+```json
+{
+  "event": "tm.client.created",
+  "apiVersion": "v1",
+  "eventId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "data": {
+    "clientId": "client_abc123",
+    "businessId": "61d880f1e8e15aaf24558f1a",
+    "type": "individual",
+    "createdAt": "2024-01-15T10:30:00.000Z"
+  },
+  "createdAt": 1705315800
+}
+```
+
+## Comment trier les alertes
+
+Lorsque votre système reçoit un événement `tm.alert.created`, vous disposez de deux options pour le trier :
+
+<CardGroup cols={2}>
+  <Card title="Triage via le tableau de bord" icon="browser">
+    Ouvrez l'alerte dans le tableau de bord Cowork sur [cowork.youverify.co](https://cowork.youverify.co), examinez les détails de la transaction et enregistrez votre décision (approuver, rejeter, escalader ou classer).
+  </Card>
+
+  <Card title="Triage via l'API Cases" icon="code">
+    Utilisez l'API Cases pour ouvrir par programmation un dossier pour l'alerte, l'assigner à un analyste et enregistrer la décision de triage. Consultez la référence Case Management pour le détail des endpoints.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Utilisez le champ `eventId` comme clé d'idempotence lorsque vous écrivez les données d'alerte dans votre base de données. Si Youverify réessaie une livraison, vous pouvez ignorer en toute sécurité les doublons en vérifiant si vous avez déjà traité cet `eventId`.
+</Tip>

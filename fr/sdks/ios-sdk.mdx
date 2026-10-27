@@ -1,0 +1,260 @@
+---
+title: "Intégrer le SDK iOS Youverify dans votre application mobile"
+sidebarTitle: "SDK iOS"
+description: "Intégrez la détection de vivacité en temps réel et la capture de documents dans votre application iOS avec le SDK iOS Youverify."
+---
+
+Le SDK iOS Youverify vous permet d'ajouter une détection de vivacité anti-deepfake à vos applications iPhone et iPad en Swift. Les utilisateurs sont guidés dans une courte tâche de mouvement de la tête qui confirme qu'une personne réelle, et non une image ou une vidéo usurpée, effectue la vérification. Avant d'initialiser le SDK, vous devez générer un identifiant de session et un jeton de vivacité depuis votre backend.
+
+## Version actuelle
+
+La dernière version compacte du SDK iOS Liveness est la **0.1.5**. Une version de compatibilité est également disponible pour les intégrations plus anciennes.
+
+## Prérequis
+
+- Cible de déploiement iOS minimale : **iOS 13.0**
+- Permission caméra déclarée (`NSCameraUsageDescription` dans `Info.plist`)
+- Swift 5.x ou supérieur
+
+## Étape 1 — Ajouter le SDK
+
+<Tabs>
+  <Tab title="CocoaPods">
+    Ajoutez le pod à votre `Podfile` :
+
+    ```ruby
+    pod 'YouverifyLivenessSDKCompat'
+    ```
+
+    Exécutez ensuite :
+
+    ```bash
+    pod install
+    ```
+  </Tab>
+  <Tab title="Swift Package Manager">
+    Dans Xcode, accédez à **File → Add Packages** et saisissez l'URL du dépôt :
+
+    ```text
+    https://github.com/youverify/liveness-ios-sdk
+    ```
+
+    Sélectionnez la version souhaitée et ajoutez le package à votre cible.
+  </Tab>
+</Tabs>
+
+## Étape 2 — Déclarer la permission caméra
+
+Ajoutez la clé suivante à votre `Info.plist` :
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>We need access to your camera to verify your identity.</string>
+```
+
+## Étape 3 — Générer les jetons côté serveur
+
+Avant d'initialiser le SDK, votre backend doit générer un identifiant de session et un jeton de vivacité. Utilisez l'assistant `ApiClient` ci-dessous comme référence pour les appels requis.
+
+**Générer l'identifiant de session** : `POST /v2/api/sdk/session-id` :
+
+```swift
+func generateSessionId(publicMerchantID: String,
+                        apiToken: String,
+                        completion: @escaping (Result<String, Error>) -> Void) {
+
+    let body: [String: Any] = [
+        "publicMerchantID": publicMerchantID,
+        "metadata": [:]
+    ]
+    // POST vers https://api.youverify.co/v2/api/sdk/session-id
+    // En-tête : token: apiToken
+    // Réponse : { "data": { "sessionId": "..." } }
+}
+```
+
+**Générer le jeton de vivacité** : `POST /v2/api/sdk/liveness-token` :
+
+```swift
+func generateSessionToken(publicMerchantID: String,
+                           deviceCorrelationId: String,
+                           apiToken: String,
+                           completion: @escaping (Result<String, Error>) -> Void) {
+
+    let body: [String: Any] = [
+        "publicMerchantID": publicMerchantID,
+        "deviceCorrelationId": deviceCorrelationId
+    ]
+    // POST vers https://api.youverify.co/v2/api/sdk/liveness-token
+    // En-tête : token: apiToken
+    // Réponse : { "data": { "authToken": "..." } }
+}
+```
+
+<Warning>
+  N'intégrez jamais votre clé d'API secrète dans votre application iOS. Effectuez ces requêtes depuis votre serveur et ne transmettez à votre application que les valeurs `sessionId` et `authToken` obtenues.
+</Warning>
+
+## Étape 4 — Initialiser et lancer le SDK
+
+<Steps>
+  <Step title="Importer le package">
+    ```swift
+    import YouverifyLivenessSDK
+    ```
+  </Step>
+  <Step title="Initialiser le SDK avec les jetons">
+    ```swift
+    private func initializeSDK(sessionId: String, authToken: String) {
+        yvLiveness = YVLiveness(
+            publicKey: publicMerchantID,
+            user: YVLivenessUser(firstName: "John"),
+            sandboxEnvironment: false,    // définir à true pour les tests
+            sessionId: sessionId,
+            sessionToken: authToken,
+            onSuccess: { data in
+                print("Liveness passed: \(data.passed)")
+                // Notifiez votre backend
+            },
+            onFailure: { errorData in
+                if let error = errorData.error {
+                    switch error.key {
+                    case "invalid_or_expired_session":
+                        print("Session expired — refreshing tokens")
+                        self.refreshAndRetry()
+                    case "session_token_error":
+                        print("Token error — refreshing tokens")
+                        self.refreshAndRetry()
+                    default:
+                        print("Liveness error: \(error.message ?? "")")
+                    }
+                }
+            }
+        )
+    }
+    ```
+  </Step>
+  <Step title="Démarrer la tâche de vivacité">
+    ```swift
+    private func startLiveness() {
+        guard let yvLiveness = yvLiveness else { return }
+    
+        let tasks = [
+            TaskProperties(task:
+                .completeTheCircle(CompleteTheCircleTask(difficulty: .medium))
+            )
+        ]
+    
+        yvLiveness.startSDK(tasks: tasks)
+        DispatchQueue.main.async {
+            self.addLivenessViewController()
+        }
+    }
+    ```
+  </Step>
+  <Step title="Ajouter le view controller de vivacité">
+    ```swift
+    private var livenessViewController: YVLivenessViewController?
+    
+    private func addLivenessViewController() {
+        guard livenessViewController == nil,
+              let yvLiveness = yvLiveness else { return }
+    
+        let vc = YVLivenessViewController(sdk: yvLiveness)
+        vc.delegate = self
+        addChild(vc)
+        view.addSubview(vc.view)
+        vc.didMove(toParent: self)
+        livenessViewController = vc
+    }
+    
+    private func removeLivenessViewController() {
+        guard let vc = livenessViewController else { return }
+        vc.willMove(toParent: nil)
+        vc.view.removeFromSuperview()
+        vc.removeFromParent()
+        livenessViewController = nil
+    }
+    ```
+  </Step>
+  <Step title="Gérer le delegate de fermeture">
+    ```swift
+    extension MainViewController: YVLivenessViewDelegate {
+        func closeModal() {
+            DispatchQueue.main.async {
+                self.removeLivenessViewController()
+            }
+        }
+    }
+    ```
+  </Step>
+</Steps>
+
+## Tâches de vivacité disponibles
+
+| Tâche | Classe | Description |
+| --- | --- | --- |
+| Complete the Circle | `CompleteTheCircleTask` | L'utilisateur trace un cercle avec un mouvement de la tête |
+| Motions | `MotionsTaskClass` | Hochements de tête, clignements des yeux et ouvertures de la bouche aléatoires |
+| Blink | `BlinkTaskClass` | L'utilisateur cligne des yeux un nombre défini de fois |
+| Yes or No | `YesOrNoTask` | L'utilisateur incline la tête pour répondre à des questions vrai/faux |
+
+Toutes les tâches acceptent un paramètre `difficulty` (`.easy`, `.medium`, `.hard`) et un `timeout` facultatif en millisecondes.
+
+## Options de configuration
+
+<ParamField body="publicKey" type="String">
+  Votre clé marchand publique Youverify. Peut être intégrée sans risque dans votre application.
+</ParamField>
+
+<ParamField body="sessionId" type="String" required>
+  Identifiant de session généré côté serveur via `POST /v2/api/sdk/session-id`.
+</ParamField>
+
+<ParamField body="sessionToken" type="String" required>
+  Jeton de vivacité généré côté serveur via `POST /v2/api/sdk/liveness-token`.
+</ParamField>
+
+<ParamField body="sandboxEnvironment" default="true" type="Bool">
+  Définissez-le sur `false` pour la production. Par défaut, `true`.
+</ParamField>
+
+<ParamField body="user" type="YVLivenessUser">
+  Informations sur l'utilisateur. `firstName` est obligatoire ; `lastName` et `email` sont facultatifs.
+</ParamField>
+
+<ParamField body="allowAudio" default="false" type="Bool">
+  Définissez-le sur `true` pour activer la narration audio des instructions des tâches.
+</ParamField>
+
+## Données de callback (LivenessData)
+
+<ResponseField name="passed" type="Bool">
+  `true` si le contrôle de vivacité a réussi toutes les tâches.
+</ResponseField>
+
+<ResponseField name="faceImage" type="String">
+  URL ou image du visage encodée en Base64, capturée pendant le contrôle.
+</ResponseField>
+
+<ResponseField name="livenessClip" type="String">
+  URL ou clip vidéo encodé en Base64 de l'utilisateur réalisant la tâche de vivacité.
+</ResponseField>
+
+<ResponseField name="error" type="LivenessError">
+  Présent uniquement en cas d'échec. Contient `key` (par ex. `eyes_closed`, `image_capture_failed`, `invalid_or_expired_session`) et `message`.
+</ResponseField>
+
+## Version iOS (Compat)
+
+Une version de compatibilité du SDK est disponible pour les intégrations nécessitant la prise en charge de versions d'iOS plus anciennes ou de bases de code héritées. Installez-la via CocoaPods :
+
+```ruby
+pod 'YouverifyLivenessSDKCompat'
+```
+
+La version compat partage la même API d'initialisation que le SDK compact standard.
+
+<Note>
+  Si vous recevez une erreur `invalid_or_expired_session`, votre identifiant de session a expiré. Générez de nouvelles valeurs `sessionId` et `sessionToken` depuis votre backend et appelez de nouveau `initializeSDK` avec ces valeurs.
+</Note>

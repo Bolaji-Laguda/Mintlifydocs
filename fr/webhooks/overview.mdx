@@ -1,0 +1,124 @@
+---
+title: "Recevez des événements en temps réel avec les webhooks Youverify"
+sidebarTitle: "Vue d'ensemble"
+description: "Configurez les webhooks pour recevoir des notifications instantanées lorsque des vérifications se terminent, que des signaux de risque se déclenchent ou que des alertes de transaction sont émises."
+---
+
+Les webhooks Youverify permettent à votre serveur de recevoir automatiquement des notifications HTTP POST chaque fois qu'un événement important survient dans votre compte : une vérification KYC terminée, une alerte de transaction déclenchée ou une évaluation achevée. Au lieu d'interroger l'API pour connaître l'état d'avancement, vous enregistrez une URL et Youverify vous transmet le résultat dès qu'il est disponible.
+
+## Fonctionnement des webhooks
+
+Lorsqu'un événement déclencheur se produit, Youverify envoie une requête HTTP `POST` à l'URL que vous avez configurée. Le corps de la requête est un objet JSON décrivant l'événement. Votre endpoint doit répondre avec le code HTTP `200` dans un délai raisonnable ; toute autre réponse amène Youverify à réessayer la livraison.
+
+<Note>
+  Les webhooks sont des communications de serveur à serveur. Votre endpoint de webhook doit être accessible publiquement via HTTPS et ne doit exiger aucune authentification du client.
+</Note>
+
+## Enregistrer votre endpoint de webhook
+
+<Steps>
+  <Step title="Ouvrir le tableau de bord Cowork">
+    Connectez-vous à [cowork.youverify.co](https://cowork.youverify.co) et accédez à **Settings → API KEY / Webhook**.
+  </Step>
+  <Step title="Définir votre URL de rappel">
+    Faites défiler jusqu'à la section **Webhook** et saisissez votre URL de rappel HTTPS. Il s'agit de l'endpoint sur lequel Youverify enverra un `POST` pour chaque événement.
+  </Step>
+  <Step title="Enregistrer et tester">
+    Enregistrez la configuration. Vous pouvez envoyer un événement de test depuis le tableau de bord pour vérifier que votre endpoint est accessible et renvoie `200`.
+  </Step>
+</Steps>
+
+## Structure de la charge utile du webhook
+
+Chaque webhook envoyé par Youverify partage la même enveloppe de premier niveau :
+
+```json
+{
+  "event": "identity.verification.completed",
+  "apiVersion": "v2",
+  "data": { },
+  "createdAt": 1709851492
+}
+```
+
+<ResponseField name="event" type="string">
+  Le nom de l'événement, séparé par des points, par exemple `identity.verification.completed` ou `tm.alert.created`.
+</ResponseField>
+
+<ResponseField name="apiVersion" type="string">
+  La version de l'API qui a produit cet événement. Actuellement `v1` (KYT) ou `v2` (KYC).
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  La charge utile complète de l'événement. Sa structure varie selon le type d'événement : consultez les pages dédiées à chaque événement pour plus de détails.
+</ResponseField>
+
+<ResponseField name="createdAt" type="number | string">
+  Horodatage de l'événement. Les événements KYT utilisent un entier epoch Unix ; les événements KYC utilisent une chaîne ISO 8601.
+</ResponseField>
+
+## Accuser réception
+
+Renvoyez le code HTTP `200` dès que vous recevez le webhook, avant tout traitement. Si Youverify ne reçoit pas de réponse `200`, il réessaiera la livraison. Gardez votre gestionnaire rapide : écrivez la charge utile dans une file d'attente et traitez-la de manière asynchrone.
+
+<Warning>
+  Renvoyer un statut autre que `200` ou dépasser le délai d'attente déclenchera des nouvelles tentatives. Concevez votre endpoint de manière idempotente afin que les livraisons en double n'entraînent aucun effet de bord.
+</Warning>
+
+## Valider les signatures des webhooks
+
+Youverify signe chaque charge utile de webhook avec votre clé secrète afin que vous puissiez confirmer que la requête provient bien de Youverify. La signature est envoyée dans l'en-tête de requête `x-yv-signature` sous la forme d'un condensé hexadécimal HMAC-SHA256 du corps brut de la requête.
+
+Vérifiez la signature avant de traiter tout événement :
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhookSignature(req, webhookSecret) {
+  const signature = req.headers['x-yv-signature'];
+  const computed = crypto
+    .createHmac('sha256', webhookSecret)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
+
+  if (signature !== computed) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Signature is valid — process the event
+}
+```
+
+<Tip>
+  Votre secret de webhook est la même clé secrète d'API que vous utilisez pour les appels d'API de serveur à serveur. Ne l'exposez jamais dans du code côté client.
+</Tip>
+
+## Catégories d'événements
+
+Les webhooks Youverify sont regroupés en quatre catégories. Chaque catégorie dispose de sa propre page dédiée :
+
+<CardGroup cols={2}>
+  <Card title="Événements KYC" icon="id-card" href="/fr/webhooks/kyc-webhooks">
+    Événements de vérification d'identité terminée et de vérification d'adresse terminée.
+  </Card>
+
+  <Card title="Événements KYT / Transactions" icon="arrow-right-arrow-left" href="/fr/webhooks/kyt-webhooks">
+    Événements d'évaluation de transaction démarrée, d'évaluation terminée et de transaction mise à jour.
+  </Card>
+
+  <Card title="Événements d'alerte" icon="bell" href="/fr/webhooks/kyt-webhooks">
+    Événements d'alerte créée, de triage d'alerte créé et d'alerte mise à jour, émis par le moteur de surveillance des transactions.
+  </Card>
+
+  <Card title="Événements Client / Évaluation" icon="user-check" href="/fr/webhooks/kyt-webhooks">
+    Événements de client créé, de client mis à jour et de cycle de vie des évaluations provenant du service KYT.
+  </Card>
+</CardGroup>
+
+## Comportement des nouvelles tentatives
+
+Si votre endpoint renvoie une réponse autre que `200` ou ne répond pas dans le délai imparti, Youverify réessaiera la livraison. Concevez votre gestionnaire de manière **idempotente** : utilisez le champ `eventId` (présent sur les événements KYT) ou le champ `data.id` / `data.verificationId` pour détecter et ignorer en toute sécurité les livraisons en double.
+
+<Note>
+  Le statut `PENDING` d'une vérification d'identité indique qu'un fournisseur d'identité en amont est temporairement indisponible. Lorsque la vérification est terminée, Youverify transmet le résultat par webhook. Écoutez toujours le webhook plutôt que de considérer qu'une réponse `PENDING` est définitive.
+</Note>

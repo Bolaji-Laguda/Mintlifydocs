@@ -1,0 +1,158 @@
+---
+title: "Intégrer le SDK Web Youverify pour la vérification dans le navigateur"
+sidebarTitle: "SDK Web"
+description: "Ajoutez la vérification d'identité et la détection de vivacité à votre application web avec le SDK Web Youverify."
+---
+
+Le SDK Web Youverify vous permet d'intégrer la détection de vivacité et la capture de documents directement dans votre application web, sans redirection vers une page hébergée. Le SDK est compatible avec tous les principaux navigateurs et appareils. Avant de lancer un parcours SDK, vous devez générer un jeton de session depuis votre backend afin de garder votre clé d'API secrète hors du client.
+
+## Installation
+
+Choisissez le package npm ou la balise script CDN, selon que votre projet utilise ou non une chaîne de build basée sur Node.js.
+
+<Tabs>
+  <Tab title="npm">
+    Installez le package correspondant à votre parcours :
+
+    ```bash
+    # Liveness detection
+    npm install youverify-liveness-web
+    
+    # Document capture
+    npm install youverify-sdk
+    ```
+  </Tab>
+  <Tab title="CDN (jsDelivr)">
+    Ajoutez directement la balise script à votre HTML si vous n'utilisez pas de chaîne de build Node.js :
+
+    ```html
+    <!-- Liveness Web SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/youverify-liveness-web/dist/index.js"></script>
+    
+    <!-- Document Capture SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/youverify-sdk/dist/index.js"></script>
+    ```
+  </Tab>
+  <Tab title="CDN (UNPKG)">
+    ```html
+    <!-- Liveness Web SDK (latest) -->
+    <script src="https://unpkg.com/youverify-liveness-web/dist/index.js"></script>
+    
+    <!-- Liveness Web SDK (pinned version) -->
+    <script src="https://unpkg.com/youverify-liveness-web@1.0.1/dist/index.js"></script>
+    ```
+  </Tab>
+</Tabs>
+
+## Étapes d'intégration
+
+<Steps>
+  <Step title="Générer un identifiant de session côté serveur">
+    Votre backend appelle l'API Youverify pour générer un identifiant de session à courte durée de vie. Cet appel utilise votre clé d'API secrète : il doit avoir lieu sur votre serveur, et non dans le navigateur.
+
+    ```bash
+    curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "publicMerchantID": "YOUR_PUBLIC_MERCHANT_ID",
+        "metadata": {}
+      }'
+    ```
+
+    Réponse :
+
+    ```json
+    {
+      "success": true,
+      "statusCode": 200,
+      "message": "SDK session generated",
+      "data": {
+        "sessionId": "200f5a883713b7ff26f22f489d716ca3",
+        "expiresAt": "2025-10-05T23:56:48.821Z",
+        "status": "active"
+      },
+      "links": []
+    }
+    ```
+  </Step>
+  <Step title="Transmettre l'identifiant de session à votre front-end">
+    Renvoyez le `sessionId` de votre API backend vers le navigateur. Vous pouvez exposer un endpoint léger sur votre propre serveur que le navigateur appellera, par exemple `GET /api/verification-session`.
+  </Step>
+  <Step title="Initialiser le SDK">
+    Construisez l'instance du SDK avec votre clé marchand publique et l'identifiant de session. Enregistrez vos callbacks avant d'appeler `launch()`.
+
+    ```javascript
+    const yvSDK = new YouverifySDK({
+      publicMerchantKey: 'YOUR_PUBLIC_MERCHANT_KEY',
+      sessionId: sessionId,         // fourni par votre backend
+      sandboxEnvironment: false,    // définir à true pour les tests
+      onSuccess: (data) => {
+        console.log('Verification complete', data);
+        // Mettez à jour votre interface et notifiez votre backend
+      },
+      onError: (error) => {
+        console.error('Verification failed', error);
+      },
+      onClose: () => {
+        console.log('User closed the verification flow');
+      }
+    });
+    ```
+  </Step>
+  <Step title="Lancer le parcours de vérification">
+    Appelez `launch()` lorsque votre utilisateur est prêt à commencer, par exemple lors d'un clic sur un bouton.
+
+    ```javascript
+    document.getElementById('verify-btn').addEventListener('click', () => {
+      yvSDK.launch();
+    });
+    ```
+  </Step>
+</Steps>
+
+## Callbacks
+
+| Callback | Moment de déclenchement | Argument |
+| --- | --- | --- |
+| `onSuccess` | Toutes les tâches de vérification ont été menées à bien | Objet de données de résultat |
+| `onError` | Une tâche a échoué ou une erreur s'est produite | Objet d'erreur avec `key` et `message` |
+| `onClose` | L'utilisateur a fermé la fenêtre modale du SDK | Aucun |
+
+## Options de configuration
+
+<ParamField body="publicMerchantKey" type="string" required>
+  Votre clé marchand publique Youverify. Peut être intégrée sans risque dans le code du navigateur. Récupérez-la dans **Settings → API KEY / Webhook** du tableau de bord Cowork.
+</ParamField>
+
+<ParamField body="sessionId" type="string" required>
+  L'identifiant de session à courte durée de vie généré par votre backend. Voir [Jetons de session](/fr/sdks/liveness-sdk).
+</ParamField>
+
+<ParamField body="sandboxEnvironment" default="false" type="boolean">
+  Définissez-le sur `true` pour exécuter le SDK en mode sandbox avec des données de test. Définissez-le sur `false` pour la production.
+</ParamField>
+
+<ParamField body="onSuccess" type="function">
+  Callback appelé lorsque l'utilisateur termine avec succès le parcours de vérification. Reçoit un objet de données de résultat.
+</ParamField>
+
+<ParamField body="onError" type="function">
+  Callback appelé lorsque la vérification échoue ou qu'une erreur se produit. Reçoit un objet d'erreur.
+</ParamField>
+
+<ParamField body="onClose" type="function">
+  Callback appelé lorsque l'utilisateur ferme la fenêtre modale du SDK sans terminer le parcours.
+</ParamField>
+
+## Comment les résultats sont reliés à votre entité
+
+L'identifiant de session que vous générez est lié au résultat de vérification côté Youverify. Une fois le parcours SDK terminé, appelez votre backend pour récupérer le résultat à l'aide de l'endpoint Liveness History ou en lisant l'enregistrement de l'entité via l'API. L'identifiant de session est la clé de jointure entre les données biométriques collectées par le SDK et l'enregistrement de votre entité.
+
+<Note>
+  Les identifiants de session ont une durée de vie courte (TTL par défaut : 120 secondes, configurable entre 30 et 600 secondes). Générez un nouvel identifiant de session pour chaque tentative de vérification : ne les mettez pas en cache et ne les réutilisez pas.
+</Note>
+
+<Warning>
+  Ne transmettez jamais votre clé d'API secrète au SDK Web. Utilisez uniquement votre clé marchand publique côté client. Votre clé secrète doit rester sur votre serveur.
+</Warning>

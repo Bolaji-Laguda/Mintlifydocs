@@ -1,0 +1,236 @@
+---
+title: "Générer des jetons de session pour les intégrations SDK Youverify"
+sidebarTitle: "SDK Liveness"
+description: "Découvrez comment générer côté serveur les jetons de session nécessaires pour initialiser en toute sécurité les parcours SDK Youverify Web, Android et iOS."
+---
+
+Chaque parcours SDK Youverify, que ce soit sur le web, Android ou iOS, nécessite un jeton à courte durée de vie généré depuis votre backend avant que vous puissiez initialiser le SDK côté client. Cette conception garantit que votre clé d'API secrète ne quitte jamais votre serveur et ne peut pas être extraite d'une page web ni d'une application décompilée.
+
+## Pourquoi la génération des jetons côté serveur est nécessaire
+
+Le SDK Youverify utilise deux jetons distincts pour authentifier une session :
+
+1. **Identifiant de session** : un identifiant à courte durée de vie qui délimite la session et la relie à un utilisateur ou à un enregistrement d'entité spécifique de votre compte.
+2. **Jeton de vivacité** : un jeton d'authentification qui autorise le SDK à soumettre les données de vivacité à l'infrastructure de vérification de Youverify.
+
+Les deux jetons sont émis par l'API Youverify à l'aide de votre clé d'API secrète. En les générant sur votre serveur, vous gardez entièrement la clé secrète hors du code client.
+
+<Warning>
+  Ne générez pas ces jetons dans votre application mobile ni dans le navigateur. Ne mettez pas les jetons en cache d'une session à l'autre. Générez de nouveaux jetons juste avant chaque initialisation du SDK.
+</Warning>
+
+## Endpoint 1 — Générer un SDK Session ID
+
+Utilisez cet endpoint pour les parcours du SDK Web et les sessions de capture de documents.
+
+**`POST /v2/api/sdk/session-id`**
+
+### Requête
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "publicMerchantID": "YOUR_PUBLIC_MERCHANT_ID",
+    "ttlSeconds": 120,
+    "metadata": {}
+  }'
+```
+
+```javascript Node.js
+const response = await fetch(
+  'https://api.youverify.co/v2/api/sdk/session-id',
+  {
+    method: 'POST',
+    headers: {
+      'token': process.env.YV_SECRET_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      publicMerchantID: 'YOUR_PUBLIC_MERCHANT_ID',
+      ttlSeconds: 120,
+      metadata: {}
+    })
+  }
+);
+const { data } = await response.json();
+const sessionId = data.sessionId;
+```
+
+```python Python
+import requests, os
+
+resp = requests.post(
+    'https://api.youverify.co/v2/api/sdk/session-id',
+    headers={
+        'token': os.environ['YV_SECRET_KEY'],
+        'Content-Type': 'application/json'
+    },
+    json={
+        'publicMerchantID': 'YOUR_PUBLIC_MERCHANT_ID',
+        'ttlSeconds': 120,
+        'metadata': {}
+    }
+)
+session_id = resp.json()['data']['sessionId']
+```
+
+</CodeGroup>
+
+### Paramètres de la requête
+
+<ParamField body="publicMerchantID" type="string" required>
+  Votre clé marchand publique, disponible dans le tableau de bord Cowork.
+</ParamField>
+
+<ParamField body="ttlSeconds" default="120" type="number">
+  Durée de validité de l'identifiant de session, en secondes. Doit être comprise entre `30` et `600`. Par défaut, `120`.
+</ParamField>
+
+<ParamField body="metadata" default="{}" type="object">
+  Métadonnées clé-valeur facultatives à associer à la session, par exemple votre identifiant utilisateur interne.
+</ParamField>
+
+### Réponse
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "SDK session generated",
+  "data": {
+    "sessionId": "200f5a883713b7ff26f22f489d716ca3",
+    "expiresAt": "2025-10-05T23:56:48.821Z",
+    "status": "active"
+  },
+  "links": []
+}
+```
+
+<ResponseField name="data.sessionId" type="string">
+  L'identifiant de session à transmettre au constructeur du SDK.
+</ResponseField>
+
+<ResponseField name="data.expiresAt" type="string">
+  Horodatage ISO 8601 de l'expiration de cet identifiant de session.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Toujours `active` pour une réponse réussie.
+</ResponseField>
+
+---
+
+## Endpoint 2 — Générer un SDK Liveness Token
+
+Utilisez cet endpoint pour les parcours de détection de vivacité sur toutes les plateformes (Web, Android, iOS).
+
+**`POST /v2/api/sdk/liveness-token`**
+
+### Requête
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
+  -H "token: $YV_SECRET_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "publicMerchantID": "YOUR_PUBLIC_MERCHANT_ID",
+    "deviceCorrelationId": "UNIQUE_DEVICE_OR_SESSION_ID"
+  }'
+```
+
+```javascript Node.js
+const response = await fetch(
+  'https://api.youverify.co/v2/api/sdk/liveness-token',
+  {
+    method: 'POST',
+    headers: {
+      'token': process.env.YV_SECRET_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      publicMerchantID: 'YOUR_PUBLIC_MERCHANT_ID',
+      deviceCorrelationId: 'UNIQUE_DEVICE_OR_SESSION_ID'
+    })
+  }
+);
+const { data } = await response.json();
+const livenessToken = data.authToken;
+```
+
+```python Python
+import requests, os
+
+resp = requests.post(
+    'https://api.youverify.co/v2/api/sdk/liveness-token',
+    headers={
+        'token': os.environ['YV_SECRET_KEY'],
+        'Content-Type': 'application/json'
+    },
+    json={
+        'publicMerchantID': 'YOUR_PUBLIC_MERCHANT_ID',
+        'deviceCorrelationId': 'UNIQUE_DEVICE_OR_SESSION_ID'
+    }
+)
+liveness_token = resp.json()['data']['authToken']
+```
+
+</CodeGroup>
+
+### Paramètres de la requête
+
+<ParamField body="publicMerchantID" type="string" required>
+  Votre clé marchand publique, disponible dans le tableau de bord Cowork.
+</ParamField>
+
+<ParamField body="deviceCorrelationId" type="string">
+  Un identifiant unique pour cet appareil ou cette session utilisateur. Utilisez un UUID généré par session. Il aide Youverify à détecter et à empêcher la réutilisation de jetons entre appareils.
+</ParamField>
+
+<ParamField body="deviceId" type="string">
+  Un identifiant d'appareil alternatif à partir duquel Youverify peut déduire `deviceCorrelationId`. Utilisez soit `deviceCorrelationId`, soit `deviceId`, mais pas les deux.
+</ParamField>
+
+### Réponse
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Liveness token fetched successfully!",
+  "data": {
+    "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "sessionId": "b15a8d20-c602-4f89-9d3a-1c3e4e5f6a7b"
+  },
+  "links": []
+}
+```
+
+<ResponseField name="data.authToken" type="string">
+  Le jeton de vivacité à transmettre en tant que `sessionToken` dans le constructeur du SDK.
+</ResponseField>
+
+<ResponseField name="data.sessionId" type="string">
+  Un identifiant de session associé à ce jeton de vivacité.
+</ResponseField>
+
+---
+
+## Expiration et mise en cache des jetons
+
+<Note>
+  Les jetons ont une durée de vie courte par conception. Générez une nouvelle paire de jetons juste avant chaque initialisation du SDK. Ne stockez pas les jetons dans une base de données ni dans un cache pour les réutiliser d'une session à l'autre.
+</Note>
+
+Si un jeton expire avant que l'utilisateur ait terminé le parcours, le callback `onFailure` du SDK est déclenché avec `error.key = "invalid_or_expired_session"`. Votre application doit générer de nouveaux jetons et réinitialiser le SDK.
+
+| Scénario | Que faire |
+| --- | --- |
+| `invalid_or_expired_session` | Générer un nouvel identifiant de session et un nouveau jeton de vivacité ; réinitialiser le SDK |
+| `session_token_error` | Générer un nouveau jeton de vivacité ; réinitialiser le SDK |
+| L'utilisateur réessaie après un échec | L'identifiant de session actuel peut encore être valide ; générer uniquement un nouveau jeton de vivacité |
