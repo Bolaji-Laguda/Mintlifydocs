@@ -63,11 +63,7 @@
                   "guides/onboard-by-phone",
                   "guides/onboard-by-government-id",
                   "guides/tiered-kyc-digital-banking",
-                  "guides/corporate-kyb-ubo",
-                  "guides/fraud-insights",
-                  "guides/transaction-monitoring",
-                  "guides/case-management",
-                  "guides/regulatory-reporting"
+                  "guides/corporate-kyb-ubo"
                 ]
               },
               {
