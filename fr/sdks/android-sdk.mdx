@@ -1,0 +1,207 @@
+---
+title: "Intégrer le SDK Android Youverify dans votre application mobile"
+sidebarTitle: "SDK Android"
+description: "Intégrez la détection de vivacité en temps réel et la capture de documents dans votre application Android avec le SDK Android Youverify."
+---
+
+Le SDK Android Youverify vous permet d'ajouter une détection de vivacité anti-deepfake directement à votre application Android avec Jetpack Compose. Les utilisateurs réalisent une courte tâche de mouvement de la tête qui prouve la présence d'une personne réelle, et non d'une photo, d'une vidéo ou d'un deepfake. Avant de lancer le SDK, vous devez générer deux jetons côté serveur (un identifiant de session et un jeton de vivacité) pour authentifier la session en toute sécurité.
+
+## Version actuelle
+
+La dernière version du SDK Android Liveness est la **0.0.12**.
+
+## Prérequis
+
+- SDK Android minimum : API de niveau 24 (Android 7.0)
+- Jetpack Compose activé dans votre projet
+- Permission `CAMERA` déclarée dans votre `AndroidManifest.xml`
+
+## Étape 1 — Ajouter la dépendance
+
+Ajoutez le SDK Youverify Liveness au fichier `build.gradle.kts` du module de votre application :
+
+```kotlin
+dependencies {
+    implementation("co.youverify:liveness-sdk-android:0.0.12")
+}
+```
+
+Ajoutez également la configuration des filtres ABI afin de prendre en charge les architectures natives requises :
+
+```kotlin
+android {
+    defaultConfig {
+        ndk {
+            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86"))
+        }
+    }
+}
+```
+
+## Étape 2 — Déclarer la permission caméra
+
+Ajoutez ce qui suit à votre `AndroidManifest.xml` :
+
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+```
+
+Demandez la permission à l'exécution avant de lancer le SDK si votre application cible l'API de niveau 23 ou supérieur.
+
+## Étape 3 — Générer les jetons côté serveur
+
+Avant d'initialiser le SDK, vous avez besoin de deux jetons générés par votre backend. Aucun des deux ne doit être généré dans votre application Android.
+
+**Générer l'identifiant de session** : appelez `POST /v2/api/sdk/session-id` :
+
+```kotlin
+// Dans votre backend ou LivenessSessionRepository
+val bodyJson = JSONObject().apply {
+    put("publicMerchantID", publicMerchantId)
+    put("metadata", JSONObject())
+}.toString()
+
+val request = Request.Builder()
+    .url("https://api.youverify.co/v2/api/sdk/session-id")
+    .addHeader("token", apiToken)
+    .post(bodyJson.toRequestBody("application/json".toMediaType()))
+    .build()
+// La réponse contient : { "data": { "sessionId": "..." } }
+```
+
+**Générer le jeton de vivacité** : appelez `POST /v2/api/sdk/liveness-token` :
+
+```kotlin
+val bodyJson = JSONObject().apply {
+    put("publicMerchantID", publicMerchantId)
+    put("deviceCorrelationId", deviceCorrelationId)
+}.toString()
+
+val request = Request.Builder()
+    .url("https://api.youverify.co/v2/api/sdk/liveness-token")
+    .addHeader("token", apiToken)
+    .post(bodyJson.toRequestBody("application/json".toMediaType()))
+    .build()
+// La réponse contient : { "data": { "authToken": "..." } }
+```
+
+<Warning>
+  N'intégrez jamais votre clé d'API secrète (`apiToken`) dans votre application Android. Effectuez ces appels depuis votre serveur et ne transmettez à l'application que les valeurs `sessionId` et `authToken` obtenues.
+</Warning>
+
+## Étape 4 — Initialiser et lancer le SDK
+
+Une fois que vous disposez du `sessionId` et du `sessionToken` de votre backend, initialisez le SDK dans un Composable :
+
+```kotlin
+@Composable
+fun LivenessComponent(
+    publicKey: String,
+    sessionId: String,
+    sessionToken: String
+) {
+    val livenessConfig = YVLivenessConfig(
+        publicKey = publicKey,
+        sessionId = sessionId,
+        sessionToken = sessionToken,
+        sandboxEnvironment = false,   // définir à true pour les tests
+        user = SDKUser(
+            firstName = "John",
+            lastName = "Doe"
+        ),
+        onSuccess = { data ->
+            println("Liveness passed: ${data?.passed}")
+            // Transmettez le résultat de la session à votre backend
+        },
+        onFailure = { data ->
+            when (data?.error?.key) {
+                "invalid_or_expired_session" -> {
+                    // Session expirée : actualisez les jetons et réessayez
+                }
+                "session_token_error" -> {
+                    // Erreur de jeton : actualisez les jetons et réessayez
+                }
+            }
+        },
+        onClose = {
+            println("User closed the liveness flow")
+        }
+    )
+
+    val livenessController = remember { YVLivenessSDKController(livenessConfig) }
+
+    YVLivenessSDK(livenessController)
+
+    // Déclencher une tâche de vivacité spécifique
+    LaunchedEffect(Unit) {
+        livenessController.start(tasks = listOf(
+            MotionTaskOptions()
+        ))
+    }
+}
+```
+
+## Tâches de vivacité disponibles
+
+Le SDK prend en charge quatre types de tâches. Transmettez-les à `livenessController.start(tasks = listOf(...))` :
+
+| Classe de tâche | Description |
+| --- | --- |
+| `CTCTaskOptions` | Complete the Circle : l'utilisateur trace un cercle avec un mouvement de la tête |
+| `MotionTaskOptions` | Motions : séquence aléatoire de hochements de tête, de clignements des yeux et d'ouvertures de la bouche |
+| `BlinkTaskOptions` | Blink : l'utilisateur cligne des yeux un nombre défini de fois |
+| `YesOrNoTaskOptions` | Yes or No : l'utilisateur répond à des questions en inclinant la tête |
+
+## Données de callback
+
+`onSuccess` et `onFailure` reçoivent tous deux un objet `LivenessData` :
+
+<ResponseField name="data.passed" type="boolean">
+  `true` si le contrôle de vivacité a réussi.
+</ResponseField>
+
+<ResponseField name="data.faceImage" type="string">
+  Image du visage encodée en Base64, capturée pendant le contrôle.
+</ResponseField>
+
+<ResponseField name="data.livenessClip" type="string">
+  Clip vidéo de l'utilisateur réalisant la tâche de vivacité.
+</ResponseField>
+
+<ResponseField name="data.error" type="object">
+  Présent uniquement en cas d'échec. Contient `key` (par ex. `eyes_closed`, `image_capture_failed`, `invalid_or_expired_session`) et `message`.
+</ResponseField>
+
+## Options de configuration
+
+<ParamField body="publicKey" type="string">
+  Votre clé marchand publique Youverify. Peut être intégrée sans risque dans votre application.
+</ParamField>
+
+<ParamField body="sessionId" type="string" required>
+  Identifiant de session généré côté serveur via `POST /v2/api/sdk/session-id`.
+</ParamField>
+
+<ParamField body="sessionToken" type="string" required>
+  Jeton d'authentification de vivacité généré côté serveur via `POST /v2/api/sdk/liveness-token`.
+</ParamField>
+
+<ParamField body="sandboxEnvironment" default="true" type="boolean">
+  Définissez-le sur `false` pour la production. Par défaut, `true` (mode sandbox).
+</ParamField>
+
+<ParamField body="user" type="SDKUser">
+  Informations sur l'utilisateur pour la session de vivacité. `firstName` est obligatoire ; `lastName` et `email` sont facultatifs.
+</ParamField>
+
+<ParamField body="allowAudio" default="false" type="boolean">
+  Définissez-le sur `true` pour faire lire les instructions des tâches à l'utilisateur par synthèse audio.
+</ParamField>
+
+## Types de documents pris en charge
+
+Lorsque vous utilisez le SDK Document Capture pour Android avec le SDK Liveness, les types de documents suivants sont pris en charge pour la capture : passeports, cartes nationales d'identité, permis de conduire et titres de séjour. Pour la liste complète des pays et des types de documents pris en charge, consultez la [vue d'ensemble des SDK](/fr/sdks/overview).
+
+<Note>
+  Les jetons de session expirent après une courte période. Si vous recevez une erreur `invalid_or_expired_session`, générez de nouvelles valeurs `sessionId` et `sessionToken` depuis votre backend et réinitialisez le SDK.
+</Note>

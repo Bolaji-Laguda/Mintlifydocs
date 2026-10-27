@@ -1,0 +1,361 @@
+---
+title: "Intégrer un client entreprise avec la vérification KYB et UBO"
+sidebarTitle: "KYB entreprise"
+description: "Vérifiez une entité commerciale auprès des registres officiels des sociétés, récupérez sa structure de propriété et lancez un KYC et un contrôle AML sur chaque bénéficiaire effectif ultime."
+---
+
+L'intégration d'un client entreprise exige plus que la vérification du nom de la société : vous devez confirmer que l'entreprise est légalement immatriculée, identifier qui la contrôle, et contrôler ces personnes vis-à-vis des sanctions, de l'exposition PEP et des médias défavorables. Youverify gère l'ensemble de ces étapes grâce à un modèle unique centré sur l'entité : l'entité commerciale porte son graphe de propriété, et chaque UBO peut être promu en entité à part entière afin de bénéficier d'un traitement KYC et AML complet.
+
+Ce guide vous accompagne dans la création d'une entité commerciale, le déclenchement d'un contrôle KYB auprès du registre, le contrôle AML de l'entreprise et de ses UBO, et le rattachement des entités UBO vérifiées à l'entreprise parente.
+
+## Prérequis
+
+- Un compte Youverify sur [cowork.youverify.co](https://cowork.youverify.co)
+- Votre clé secrète d'API, disponible dans le tableau de bord sous **Settings → API Keys**
+- La raison sociale, le numéro d'immatriculation et le pays de constitution de l'entreprise
+
+---
+
+## Pays pris en charge pour le KYB
+
+<Note>
+  Les contrôles KYB auprès des registres sont disponibles pour le **Nigeria**, le **Kenya**, l'**Afrique du Sud** et la **Côte d'Ivoire**, d'autres pays étant disponibles via le point de terminaison global de vérification d'entreprise. Contactez votre équipe de compte Youverify ou consultez le tableau de bord pour obtenir la liste complète et à jour.
+</Note>
+
+---
+
+## Étapes
+
+<Steps>
+  ### Créer l'entité commerciale
+
+  Envoyez une requête `POST /v2/api/entities` avec `entityType: "business"` et les informations de constitution de la société. La plateforme crée l'entité, exécute automatiquement un contrôle AML sur la raison sociale, et renvoie une entité `Created` avec un score de risque initial.
+
+  <CodeGroup>
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "business",
+        "isSubjectConsent": true,
+        "incorporationName": "Acme Payments Ltd",
+        "incorporationNumber": "RC123456",
+        "incorporationCountry": "NG",
+        "incorporationDate": "2015-03-20",
+        "businessType": "Fintech",
+        "address": "12 Marina Street, Lagos"
+      }'
+    ```
+
+    ```javascript Node.js
+    const response = await fetch('https://api.youverify.co/v2/api/entities', {
+      method: 'POST',
+      headers: {
+        'token': process.env.YV_SECRET_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        entityType: 'business',
+        isSubjectConsent: true,
+        incorporationName: 'Acme Payments Ltd',
+        incorporationNumber: 'RC123456',
+        incorporationCountry: 'NG',
+        incorporationDate: '2015-03-20',
+        businessType: 'Fintech',
+        address: '12 Marina Street, Lagos',
+      }),
+    });
+    const { data } = await response.json();
+    const entityId = data.id;
+    ```
+
+    ```python Python
+    import os, requests
+
+    resp = requests.post(
+        'https://api.youverify.co/v2/api/entities',
+        headers={
+            'token': os.environ['YV_SECRET_KEY'],
+            'Content-Type': 'application/json',
+        },
+        json={
+            'entityType': 'business',
+            'isSubjectConsent': True,
+            'incorporationName': 'Acme Payments Ltd',
+            'incorporationNumber': 'RC123456',
+            'incorporationCountry': 'NG',
+            'incorporationDate': '2015-03-20',
+            'businessType': 'Fintech',
+            'address': '12 Marina Street, Lagos',
+        },
+    )
+    entity_id = resp.json()['data']['id']
+    ```
+  </CodeGroup>
+
+  ```json Response
+  {
+    "success": true,
+    "status_code": 201,
+    "message": "Entity created successfully.",
+    "data": {
+      "id": "ent_69dab0119abad240d91071a4",
+      "businessId": "61d880f1e8e15aaf24558f1a",
+      "createdBy": {
+        "firstName": "Timothy",
+        "lastName": "Akinyelu",
+        "middleName": "",
+        "id": "61f162ec1fd251c3a63f31c2"
+      }
+    },
+    "links": []
+  }
+  ```
+
+  ### Lancer le contrôle KYB auprès du registre
+
+  Recoupez les informations de la société avec le registre officiel des sociétés via `POST /v2/api/entities/{id}/verify/kyb`. Fournissez le numéro d'immatriculation, le pays et le type de contrôle. Utilisez `"standard"` dans la plupart des cas ; `"premium"` renvoie des données de propriété supplémentaires lorsqu'elles sont disponibles.
+
+  <CodeGroup>
+    ```bash cURL
+    curl -X POST "https://api.youverify.co/v2/api/entities/ent_69dab0119abad240d91071a4/verify/kyb" \
+      -H "token: $YV_SECRET_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "entityType": "business",
+        "isSubjectConsent": true,
+        "incorporationNumber": "RC123456",
+        "incorporationCountry": "NG",
+        "checkType": "standard"
+      }'
+    ```
+
+    ```javascript Node.js
+    const response = await fetch(
+      `https://api.youverify.co/v2/api/entities/${entityId}/verify/kyb`,
+      {
+        method: 'POST',
+        headers: {
+          'token': process.env.YV_SECRET_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          entityType: 'business',
+          isSubjectConsent: true,
+          incorporationNumber: 'RC123456',
+          incorporationCountry: 'NG',
+          checkType: 'standard',
+        }),
+      }
+    );
+    const result = await response.json();
+    ```
+  </CodeGroup>
+
+  La réponse renvoie l'enregistrement vérifié de la société, y compris le statut d'immatriculation, le type d'entité, la date d'immatriculation et, lorsque le registre les fournit, les dirigeants et les données de propriété :
+
+  ```json Response — KYB found
+  {
+    "success": true,
+    "status_code": 200,
+    "message": "Business check successful!",
+    "data": {
+      "id": "ent_69dab0119abad240d91071a4",
+      "entity": {
+        "entityId": "ent_69dab0119abad240d91071a4",
+        "isNew": false
+      },
+      "businessCheck": {
+        "id": "69dab502682626b4e9e6d77c",
+        "status": "found",
+        "name": "Acme Payments Ltd",
+        "registrationNumber": "RC123456",
+        "companyStatus": "ACTIVE",
+        "typeOfEntity": "PRIVATE COMPANY LIMITED BY SHARES",
+        "registrationDate": "2015-03-20",
+        "country": "Nigeria",
+        "directors": [
+          {
+            "firstName": "Michael",
+            "lastName": "Okonkwo",
+            "designation": "DIRECTOR"
+          }
+        ]
+      }
+    },
+    "links": []
+  }
+  ```
+
+  <Warning>
+    Si `"status": "not_found"` est renvoyé, le numéro d'immatriculation ne correspond à aucun enregistrement actif dans le registre. Vérifiez le numéro auprès du client avant de poursuivre : n'approuvez pas l'entité tant que l'écart n'est pas résolu.
+  </Warning>
+
+  ### Contrôler l'entreprise et ses UBO au regard des risques AML
+
+  Lancez un contrôle AML sur l'entité commerciale avec `POST /v2/api/entities/{id}/verify/aml`. Fournissez les informations des UBO dans le bloc `ubos` : la plateforme exécute simultanément des contrôles individuels sur chaque personne.
+
+  ```bash cURL
+  curl -X POST "https://api.youverify.co/v2/api/entities/ent_69dab0119abad240d91071a4/verify/aml" \
+    -H "token: $YV_SECRET_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "entityType": "business",
+      "isSubjectConsent": true,
+      "incorporationName": "Acme Payments Ltd",
+      "incorporationCountry": "NG",
+      "amlCheckType": "name",
+      "amlChecks": ["pep", "sanctions", "adverseMedia"],
+      "ubos": {
+        "uboList": [
+          {
+            "category": "individual",
+            "firstName": "Michael",
+            "lastName": "Okonkwo"
+          },
+          {
+            "category": "individual",
+            "firstName": "Amina",
+            "lastName": "Bello"
+          }
+        ],
+        "amlChecks": ["pep", "sanctions", "adverseMedia"]
+      }
+    }'
+  ```
+
+  <Tip>
+    Le contrôle AML s'exécute également automatiquement à la création de l'entité. L'appel explicite `verify/aml` sert à un contrôle complémentaire ou à un nouveau contrôle, par exemple lorsque la structure de propriété a changé ou lorsque vous contrôlez des UBO à partir des données du registre.
+  </Tip>
+
+  ### Créer des entités individuelles pour chaque UBO et lancer le KYC
+
+  Pour une conformité KYB complète, promouvez chaque UBO en entité à part entière. Cela rattache l'UBO à l'entreprise parente via `parentId` et vous permet de lancer individuellement une vérification KYC sur chacun d'eux.
+
+  **Créer l'entité UBO :**
+
+  ```bash cURL
+  curl -X POST "https://api.youverify.co/v2/api/entities" \
+    -H "token: $YV_SECRET_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "entityType": "individual",
+      "isSubjectConsent": true,
+      "firstName": "Michael",
+      "lastName": "Okonkwo",
+      "phone": "+2348090000001",
+      "nationality": "NG",
+      "parentId": "ent_69dab0119abad240d91071a4"
+    }'
+  ```
+
+  Le champ `parentId` relie cet individu à l'entité commerciale. Le graphe de propriété de la plateforme reflète cette relation, et vous pouvez récupérer à tout moment la liste complète des UBO de l'entreprise :
+
+  ```bash cURL
+  curl -X GET "https://api.youverify.co/v2/api/entities/ent_69dab0119abad240d91071a4" \
+    -H "token: $YV_SECRET_KEY"
+  ```
+
+  **Lancer le KYC sur l'UBO :**
+
+  ```bash cURL
+  curl -X POST "https://api.youverify.co/v2/api/entities/ent_UBO_ENTITY_ID/verify/kyc" \
+    -H "token: $YV_SECRET_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "entityType": "individual",
+      "isSubjectConsent": true,
+      "identity": {
+        "id": "22222222222",
+        "countryCode": "NG",
+        "idType": "bvn"
+      },
+      "validations": {
+        "data": {
+          "firstName": "Michael",
+          "lastName": "Okonkwo"
+        }
+      }
+    }'
+  ```
+
+  Répétez cette étape pour chaque UBO récupéré depuis le registre ou le graphe de propriété.
+
+  ### Récupérer le dossier 360 complet de l'entreprise
+
+  Une fois le KYB, le contrôle AML et le KYC des UBO terminés, récupérez l'entité commerciale pour consulter son dossier 360 complet : historique des vérifications, graphe de propriété, score de risque et signaux éventuellement déclenchés.
+
+  ```bash cURL
+  curl -X GET "https://api.youverify.co/v2/api/entities/ent_69dab0119abad240d91071a4" \
+    -H "token: $YV_SECRET_KEY"
+  ```
+
+  Le graphe de propriété de la réponse reflète tous les UBO liés, leur statut de vérification et leur score de risque individuel :
+
+  ```json Ownership graph (excerpt)
+  {
+    "ubos": [
+      {
+        "designation": "DIRECTOR",
+        "principalOwner": true,
+        "firstName": "Michael",
+        "lastName": "Okonkwo",
+        "entityId": "ent_ubo_abc123",
+        "verificationStatus": "found",
+        "riskLevel": "low"
+      },
+      {
+        "designation": "SHAREHOLDER",
+        "sharesCount": 9990000,
+        "firstName": "Amina",
+        "lastName": "Bello",
+        "entityId": "ent_ubo_def456",
+        "verificationStatus": "found",
+        "riskLevel": "low"
+      }
+    ]
+  }
+  ```
+</Steps>
+
+---
+
+## Ce qui se passe en arrière-plan
+
+Dès que vous créez l'entité commerciale, Youverify exécute automatiquement un contrôle AML au niveau de la société. Les appels KYB et UBO explicites sont des étapes délibérées que vous maîtrisez :
+
+```text
+Your system                Youverify API             Company Registry      AML Engine
+    |                           |                           |                  |
+    |-- POST /entities -------> |                           |                  |
+    |<-- 201 entityId ----------|                           |                  |
+    |                           |-- auto AML screen ------> |                  |
+    |                           |<-- initial risk score ----                   |
+    |-- POST /entities/{id}/verify/kyb --------> |          |                  |
+    |                           |-- registry lookup ------> |                  |
+    |                           |<-- status · directors ----                   |
+    |<-- KYB result ------------|                           |                  |
+    |-- POST /entities/{id}/verify/aml --------> |                             |
+    |                           |-- UBO AML checks --------------------------------->|
+    |<-- per-UBO PEP/sanctions --|                                             |
+```
+
+---
+
+## Types de contrôle KYB
+
+| `checkType` | Ce qu'il renvoie |
+| --- | --- |
+| `basic` | Raison sociale, numéro d'immatriculation, statut, date d'immatriculation |
+| `standard` | Basic + dirigeants, type d'entité, nature de l'activité |
+| `premium` | Standard + graphe de propriété des UBO (lorsque le registre le fournit) |
+
+---
+
+## Et ensuite
+
+- Lancez un [contrôle AML](/api-reference/entities/verify-entity-aml) sur chaque entité UBO individuelle
+- Consultez la [référence de l'API KYB](/api-reference/entities/verify-entity-kyb) pour tous les paramètres disponibles
+- Consultez l'[Entity 360](/fr/concepts/entity-360) pour comprendre le graphe de propriété et la manière de le parcourir
+- Configurez les [webhooks](/fr/webhooks/overview) pour recevoir les événements de fin de KYB et de signaux AML

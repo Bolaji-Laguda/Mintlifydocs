@@ -159,7 +159,12 @@
                   "fr/guides/onboard-by-email",
                   "fr/guides/onboard-by-phone",
                   "fr/guides/onboard-by-government-id",
-                  "fr/guides/tiered-kyc-digital-banking"
+                  "fr/guides/tiered-kyc-digital-banking",
+                  "fr/guides/corporate-kyb-ubo",
+                  "fr/guides/fraud-insights",
+                  "fr/guides/transaction-monitoring",
+                  "fr/guides/case-management",
+                  "fr/guides/regulatory-reporting"
                 ]
               },
               {
@@ -176,12 +181,15 @@
                 "group": "SDK",
                 "pages": [
                   "fr/sdks/overview",
-                  "fr/sdks/web-sdk"
+                  "fr/sdks/web-sdk",
+                  "fr/sdks/android-sdk"
                 ]
               },
               {
                 "group": "Ressources",
-                "pages": []
+                "pages": [
+                  "fr/resources/coverage"
+                ]
               }
             ]
           },
