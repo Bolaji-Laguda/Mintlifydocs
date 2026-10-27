@@ -29,99 +29,107 @@
     }
   },
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Product Guide",
-        "groups": [
+        "language": "en",
+        "tabs": [
           {
-            "group": "Get Started",
-            "pages": [
-              "introduction",
-              "get-started/quickstart",
-              "get-started/authentication",
-              "api-reference/overview",
-              "get-started/test-data"
+            "tab": "Product Guide",
+            "groups": [
+              {
+                "group": "Get Started",
+                "pages": [
+                  "introduction",
+                  "get-started/quickstart",
+                  "get-started/authentication",
+                  "api-reference/overview",
+                  "get-started/test-data"
+                ]
+              },
+              {
+                "group": "Platform Concepts",
+                "pages": [
+                  "concepts/entity-360",
+                  "concepts/risk-scoring",
+                  "concepts/monitoring-model",
+                  "concepts/plans-and-billing",
+                  "concepts/object-model"
+                ]
+              },
+              {
+                "group": "Implementation Guides",
+                "pages": [
+                  "guides/onboard-by-email",
+                  "guides/onboard-by-phone",
+                  "guides/onboard-by-government-id",
+                  "guides/tiered-kyc-digital-banking",
+                  "guides/corporate-kyb-ubo",
+                  "guides/fraud-insights",
+                  "guides/transaction-monitoring",
+                  "guides/case-management",
+                  "guides/regulatory-reporting"
+                ]
+              },
+              {
+                "group": "Webhooks & Events",
+                "pages": [
+                  "webhooks/overview",
+                  "webhooks/kyc-webhooks",
+                  "webhooks/kyt-webhooks",
+                  "webhooks/signature-verification",
+                  "webhooks/retry-behaviour"
+                ]
+              },
+              {
+                "group": "SDKs",
+                "pages": [
+                  "sdks/overview",
+                  "sdks/web-sdk",
+                  "sdks/android-sdk",
+                  "sdks/ios-sdk",
+                  "sdks/liveness-sdk"
+                ]
+              },
+              {
+                "group": "Resources",
+                "pages": [
+                  "resources/coverage",
+                  "get-started/response-codes",
+                  "resources/rate-limits"
+                ]
+              }
             ]
           },
           {
-            "group": "Platform Concepts",
-            "pages": [
-              "concepts/entity-360",
-              "concepts/risk-scoring",
-              "concepts/monitoring-model",
-              "concepts/plans-and-billing",
-              "concepts/object-model"
-            ]
-          },
-          {
-            "group": "Implementation Guides",
-            "pages": [
-              "guides/onboard-by-email",
-              "guides/onboard-by-phone",
-              "guides/onboard-by-government-id",
-              "guides/tiered-kyc-digital-banking",
-              "guides/corporate-kyb-ubo",
-              "guides/fraud-insights",
-              "guides/transaction-monitoring",
-              "guides/case-management",
-              "guides/regulatory-reporting"
-            ]
-          },
-          {
-            "group": "Webhooks & Events",
-            "pages": [
-              "webhooks/overview",
-              "webhooks/kyc-webhooks",
-              "webhooks/kyt-webhooks",
-              "webhooks/signature-verification",
-              "webhooks/retry-behaviour"
-            ]
-          },
-          {
-            "group": "SDKs",
-            "pages": [
-              "sdks/overview",
-              "sdks/web-sdk",
-              "sdks/android-sdk",
-              "sdks/ios-sdk",
-              "sdks/liveness-sdk"
-            ]
-          },
-          {
-            "group": "Resources",
-            "pages": [
-              "resources/coverage",
-              "get-started/response-codes",
-              "resources/rate-limits"
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "Cowork API",
+                "openapi": {
+                  "source": "api-reference/specs/cowork.json",
+                  "directory": "api-reference/cowork"
+                }
+              },
+              {
+                "group": "Quick Check API",
+                "openapi": {
+                  "source": "api-reference/specs/quickcheck.json",
+                  "directory": "api-reference/quickcheck"
+                }
+              },
+              {
+                "group": "SDK API",
+                "openapi": {
+                  "source": "api-reference/specs/sdk.json",
+                  "directory": "api-reference/sdk"
+                }
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Cowork API",
-            "openapi": {
-              "source": "api-reference/specs/cowork.json",
-              "directory": "api-reference/cowork"
-            }
-          },
-          {
-            "group": "Quick Check API",
-            "openapi": {
-              "source": "api-reference/specs/quickcheck.json",
-              "directory": "api-reference/quickcheck"
-            }
-          },
-          {
-            "group": "SDK API",
-            "openapi": {
-              "source": "api-reference/specs/sdk.json",
-              "directory": "api-reference/sdk"
-            }
-          }
-        ]
+        "language": "fr"
       }
     ]
   }
