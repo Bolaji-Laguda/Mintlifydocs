@@ -78,22 +78,34 @@
                 "group": "SDKs",
                 "pages": [
                   "sdks/overview",
-                  "sdks/web-sdk",
-                  "sdks/android-sdk",
-                  "sdks/ios-sdk",
-                  "sdks/liveness-sdk",
                   {
                     "group": "Anti-Deepfake Liveness",
-                    "pages": []
+                    "pages": [
+                      "sdks/liveness/overview",
+                      "sdks/liveness/web",
+                      "sdks/android-sdk",
+                      "sdks/ios-sdk"
+                    ]
                   },
                   {
                     "group": "Document Capture",
-                    "pages": []
+                    "pages": [
+                      "sdks/document-capture/overview",
+                      "sdks/web-sdk",
+                      "sdks/document-capture/android",
+                      "sdks/document-capture/ios"
+                    ]
                   },
                   {
                     "group": "Fraud Insights",
-                    "pages": []
-                  }
+                    "pages": [
+                      "sdks/fraud-insights/overview",
+                      "sdks/fraud-insights/web",
+                      "sdks/fraud-insights/android",
+                      "sdks/fraud-insights/ios"
+                    ]
+                  },
+                  "sdks/liveness-sdk"
                 ]
               },
               {

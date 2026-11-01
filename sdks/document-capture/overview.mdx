@@ -1,0 +1,31 @@
+---
+title: "Document Capture SDK"
+sidebarTitle: "Overview"
+description: "Let users photograph a government-issued ID from inside your app and submit it for extraction and verification."
+---
+
+The Document Capture SDK lets users photograph a government-issued ID, such as a passport, national ID card, driver's licence or residence permit, from within your app. The captured image is submitted for extraction and verification.
+
+## Choose your platform
+
+<CardGroup cols={3}>
+  <Card title="Web" icon="globe" href="/sdks/web-sdk">
+    Embed document capture in a browser-based app with an npm package or CDN script.
+  </Card>
+
+  <Card title="Android" icon="android" href="/sdks/document-capture/android">
+    Document Capture for Android.
+  </Card>
+
+  <Card title="iOS" icon="apple" href="/sdks/document-capture/ios">
+    Document Capture for iOS.
+  </Card>
+</CardGroup>
+
+## Before you integrate
+
+Generate a session ID from your backend with your secret API key. See [Session tokens](/sdks/liveness-sdk).
+
+<Warning>
+  Never embed your secret API key in a web page or mobile app. Generate the session ID server-side and pass only that value to the SDK.
+</Warning>

@@ -1,0 +1,39 @@
+---
+title: "Integrate Youverify Liveness SDK for Web"
+sidebarTitle: "Web"
+description: "Install the Youverify Liveness SDK in a browser-based application."
+---
+
+The Youverify Liveness Web SDK adds anti-deepfake liveness detection to your web application without redirecting users to a hosted page.
+
+## Installation
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install youverify-liveness-web
+    ```
+  </Tab>
+  <Tab title="CDN (jsDelivr)">
+    ```html
+    <script src="https://cdn.jsdelivr.net/npm/youverify-liveness-web/dist/index.js"></script>
+    ```
+  </Tab>
+  <Tab title="CDN (UNPKG)">
+    ```html
+    <!-- Latest version -->
+    <script src="https://unpkg.com/youverify-liveness-web/dist/index.js"></script>
+
+    <!-- Pinned version -->
+    <script src="https://unpkg.com/youverify-liveness-web@1.0.1/dist/index.js"></script>
+    ```
+  </Tab>
+</Tabs>
+
+## Before you initialize the SDK
+
+Generate a session ID and a liveness token from your backend. See [Session tokens](/sdks/liveness-sdk).
+
+<Note>
+  The initialization and launch steps for the Liveness Web SDK are not yet documented here. Contact [support@youverify.co](mailto:support@youverify.co) for the current integration guide. The [Android](/sdks/android-sdk) and [iOS](/sdks/ios-sdk) guides show the full liveness flow on mobile.
+</Note>
