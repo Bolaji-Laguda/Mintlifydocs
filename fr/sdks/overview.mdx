@@ -16,7 +16,7 @@ Les SDK sont organisés par service. Chaque service dispose de son propre guide 
   </Card>
 
   <Card title="Capture de documents" icon="id-card" href="/fr/sdks/document-capture/overview">
-    Permettez à vos utilisateurs de photographier une pièce d'identité officielle depuis votre application. Web, Android et iOS.
+    Permettez à vos utilisateurs de photographier une pièce d'identité officielle depuis votre application web. Les applications mobiles peuvent utiliser une WebView.
   </Card>
 
   <Card title="Fraud Insights" icon="shield-halved" href="/fr/sdks/fraud-insights/overview">
@@ -24,11 +24,11 @@ Les SDK sont organisés par service. Chaque service dispose de son propre guide 
   </Card>
 </CardGroup>
 
-Chaque service nécessite un jeton de session généré côté serveur. Consultez [Jetons de session](/fr/sdks/liveness-sdk).
+La détection de vivacité anti-deepfake nécessite un jeton de session généré côté serveur. Consultez [Jetons de session](/fr/sdks/liveness-sdk). La capture de documents et Fraud Insights ne nécessitent que votre Public Merchant Key.
 
 ## Fonctionnement des parcours SDK
 
-Chaque SDK Youverify suit le même modèle de sécurité en deux étapes :
+La détection de vivacité anti-deepfake suit un modèle de sécurité en deux étapes :
 
 <Steps>
   <Step title="Générer un jeton de session côté serveur">
@@ -47,7 +47,7 @@ Chaque SDK Youverify suit le même modèle de sécurité en deux étapes :
 
 | Jeton | Endpoint | Utilisé pour |
 | --- | --- | --- |
-| SDK Session ID | `POST /v2/api/identity/sdk/session/generate` | Capture de documents avec le SDK Web et parcours de vérification généraux |
+| SDK Session ID | `POST /v2/api/identity/sdk/session/generate` | Parcours de détection de vivacité anti-deepfake |
 | SDK Liveness Token | `POST /v2/api/identity/sdk/liveness/token` | Parcours de détection de vivacité anti-deepfake (toutes plateformes) |
 
 Consultez [Jetons de session](/fr/sdks/liveness-sdk) pour le détail complet des requêtes et réponses des deux endpoints.

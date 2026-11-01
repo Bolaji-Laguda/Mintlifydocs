@@ -1,45 +1,30 @@
 ---
-title: "Intégrer le SDK Web Youverify pour la vérification dans le navigateur"
-sidebarTitle: "Web"
-description: "Ajoutez la vérification d'identité et la détection de vivacité à votre application web avec le SDK Web Youverify."
+title: "Intégrer la capture de documents sur le web"
+sidebarTitle: "Intégration web"
+description: "Ajoutez la capture de pièces d'identité à votre application web avec le SDK Web de Youverify."
 ---
 
-Le SDK Web Youverify vous permet d'intégrer la détection de vivacité et la capture de documents directement dans votre application web, sans redirection vers une page hébergée. Le SDK est compatible avec tous les principaux navigateurs et appareils. Avant de lancer un parcours SDK, vous devez générer un jeton de session depuis votre backend afin de garder votre clé d'API secrète hors du client.
+Utilisez le SDK Web de Youverify pour permettre à vos utilisateurs de capturer une pièce d'identité depuis votre application web. Le SDK ouvre une fenêtre modale, guide l'utilisateur pendant la capture du document, puis renvoie les informations extraites à votre page.
+
+## Avant de commencer
+
+Vous avez besoin de votre **Public Merchant Key** (clé marchand publique). Vous la trouverez dans la section **API / Webhook** de votre tableau de bord Youverify. Elle peut être utilisée sans risque dans du code côté client.
+
+<Info>
+  La capture de documents sur le web s'initialise avec votre Public Merchant Key. Vous n'avez pas besoin de générer d'identifiant de session sur votre serveur pour ce parcours. Gardez votre clé d'API secrète sur votre serveur et ne la placez jamais dans une page web.
+</Info>
 
 ## Installation
 
-Choisissez le package npm ou la balise script CDN, selon que votre projet utilise ou non une chaîne de build basée sur Node.js.
-
 <Tabs>
   <Tab title="npm">
-    Installez le package correspondant à votre parcours :
-
     ```bash
-    # Liveness detection
-    npm install youverify-liveness-web
-    
-    # Document capture
-    npm install youverify-sdk
+    npm install youverify-web-sdk
     ```
   </Tab>
-  <Tab title="CDN (jsDelivr)">
-    Ajoutez directement la balise script à votre HTML si vous n'utilisez pas de chaîne de build Node.js :
-
-    ```html
-    <!-- Liveness Web SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/youverify-liveness-web/dist/index.js"></script>
-    
-    <!-- Document Capture SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/youverify-sdk/dist/index.js"></script>
-    ```
-  </Tab>
-  <Tab title="CDN (UNPKG)">
-    ```html
-    <!-- Liveness Web SDK (latest) -->
-    <script src="https://unpkg.com/youverify-liveness-web/dist/index.js"></script>
-    
-    <!-- Liveness Web SDK (pinned version) -->
-    <script src="https://unpkg.com/youverify-liveness-web@1.0.1/dist/index.js"></script>
+  <Tab title="yarn">
+    ```bash
+    yarn add youverify-web-sdk
     ```
   </Tab>
 </Tabs>
@@ -47,104 +32,201 @@ Choisissez le package npm ou la balise script CDN, selon que votre projet utilis
 ## Étapes d'intégration
 
 <Steps>
-  <Step title="Générer un identifiant de session côté serveur">
-    Votre backend appelle l'API Youverify pour générer un identifiant de session à courte durée de vie. Cet appel utilise votre clé d'API secrète : il doit avoir lieu sur votre serveur, et non dans le navigateur.
+  <Step title="Créer le module de capture de documents">
+    Transmettez vos options à `YouverifySDK.documentCapture` :
 
-    ```bash
-    curl -X POST "https://api.youverify.co/v2/api/identity/sdk/session/generate" \
-      -H "token: $YV_SECRET_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "publicMerchantID": "YOUR_PUBLIC_MERCHANT_ID",
-        "metadata": {}
-      }'
+    ```javascript
+    const documentCaptureModule = new YouverifySDK.documentCapture({
+      publicMerchantKey: 'YOUR_PUBLIC_MERCHANT_KEY',
+      sandboxEnvironment: true, // false en production
+    
+      personalInformation: {
+        firstName: 'John',
+      },
+    
+      // Facultatif : personnalisez le message d'accueil, le texte du bouton et les couleurs
+      appearance: {
+        greeting: 'We will need to capture your document. It will only take a moment.',
+        actionText: 'Capture Document',
+        buttonBackgroundColor: '#46B2C8',
+        buttonTextColor: '#ffffff',
+        primaryColor: '#46B2C8',
+      },
+    
+      // Facultatif : limitez les pays et les types de documents
+      countries: [
+        {
+          countryCode: 'ng',
+          idTypes: ['passport', 'Residence Permit', 'Driving License', 'NIN'],
+        },
+      ],
+    
+      onSuccess: (data) => {
+        // L'utilisateur a capturé le document et vous avez reçu le résultat
+      },
+      onFailure: (error) => {
+        // Le résultat n'a pas pu être récupéré
+      },
+      onClose: () => {
+        // L'utilisateur a fermé la fenêtre modale
+      },
+    });
     ```
+  </Step>
+  <Step title="Initialiser le module">
+    Appelez `initialize()` une seule fois. La méthode lève une erreur si les options sont invalides ; placez-la donc dans un bloc `try`.
 
-    Réponse :
-
-    ```json
-    {
-      "sessionId": "generated_session_id_here"
+    ```javascript
+    try {
+      documentCaptureModule.initialize();
+    } catch (error) {
+      // Gérez l'erreur de validation
     }
     ```
   </Step>
-  <Step title="Transmettre l'identifiant de session à votre front-end">
-    Renvoyez le `sessionId` de votre API backend vers le navigateur. Vous pouvez exposer un endpoint léger sur votre propre serveur que le navigateur appellera, par exemple `GET /api/verification-session`.
-  </Step>
-  <Step title="Initialiser le SDK">
-    Construisez l'instance du SDK avec votre clé marchand publique et l'identifiant de session. Enregistrez vos callbacks avant d'appeler `launch()`.
+  <Step title="Démarrer le parcours de capture">
+    Appelez `start()` lorsque votre utilisateur est prêt, par exemple au clic sur un bouton. Cela ouvre la fenêtre modale.
 
     ```javascript
-    const yvSDK = new YouverifySDK({
-      publicMerchantKey: 'YOUR_PUBLIC_MERCHANT_KEY',
-      sessionId: sessionId,         // fourni par votre backend
-      sandboxEnvironment: false,    // définir à true pour les tests
-      onSuccess: (data) => {
-        console.log('Verification complete', data);
-        // Mettez à jour votre interface et notifiez votre backend
-      },
-      onError: (error) => {
-        console.error('Verification failed', error);
-      },
-      onClose: () => {
-        console.log('User closed the verification flow');
-      }
-    });
-    ```
-  </Step>
-  <Step title="Lancer le parcours de vérification">
-    Appelez `launch()` lorsque votre utilisateur est prêt à commencer, par exemple lors d'un clic sur un bouton.
-
-    ```javascript
-    document.getElementById('verify-btn').addEventListener('click', () => {
-      yvSDK.launch();
-    });
+    documentCaptureModule.start();
     ```
   </Step>
 </Steps>
 
-## Callbacks
-
-| Callback | Moment de déclenchement | Argument |
-| --- | --- | --- |
-| `onSuccess` | Toutes les tâches de vérification ont été menées à bien | Objet de données de résultat |
-| `onError` | Une tâche a échoué ou une erreur s'est produite | Objet d'erreur avec `key` et `message` |
-| `onClose` | L'utilisateur a fermé la fenêtre modale du SDK | Aucun |
-
-## Options de configuration
+## Options
 
 <ParamField body="publicMerchantKey" type="string" required>
-  Votre clé marchand publique Youverify. Peut être intégrée sans risque dans le code du navigateur. Récupérez-la dans **Settings → API KEY / Webhook** du tableau de bord Cowork.
-</ParamField>
-
-<ParamField body="sessionId" type="string" required>
-  L'identifiant de session à courte durée de vie généré par votre backend. Voir [Jetons de session](/fr/sdks/liveness-sdk).
+  Votre Public Merchant Key, disponible dans la section **API / Webhook** de votre tableau de bord.
 </ParamField>
 
 <ParamField body="sandboxEnvironment" default="false" type="boolean">
-  Définissez-le sur `true` pour exécuter le SDK en mode sandbox avec des données de test. Définissez-le sur `false` pour la production.
+  Définissez `true` pour utiliser le mode sandbox pendant le développement et les tests. Définissez `false` pour la production.
 </ParamField>
 
-<ParamField body="onSuccess" type="function">
-  Callback appelé lorsque l'utilisateur termine avec succès le parcours de vérification. Reçoit un objet de données de résultat.
+<ParamField body="hideUsingSecondaryDevice" default="false" type="boolean">
+  Définissez `true` pour masquer l'option de capture du document avec un second appareil.
 </ParamField>
 
-<ParamField body="onError" type="function">
-  Callback appelé lorsque la vérification échoue ou qu'une erreur se produit. Reçoit un objet d'erreur.
+<ParamField body="personalInformation" type="object">
+  Attributs de l'utilisateur servant à personnaliser l'expérience.
+
+  <Expandable title="propriétés">
+    <ParamField body="firstName" type="string">
+      Le prénom de l'utilisateur.
+    </ParamField>
+  </Expandable>
 </ParamField>
 
-<ParamField body="onClose" type="function">
-  Callback appelé lorsque l'utilisateur ferme la fenêtre modale du SDK sans terminer le parcours.
+<ParamField body="appearance" type="object">
+  Personnalisez le message d'accueil, le texte du bouton et les couleurs. Tous les champs sont facultatifs.
+
+  <Expandable title="propriétés">
+    <ParamField body="greeting" type="string">
+      Le texte affiché à l'utilisateur avant le début de la capture.
+    </ParamField>
+
+    <ParamField body="actionText" type="string">
+      Le libellé du bouton qui démarre la capture.
+    </ParamField>
+
+    <ParamField body="buttonBackgroundColor" type="string">
+      Couleur de fond du bouton, en valeur hexadécimale, par exemple `#46B2C8`.
+    </ParamField>
+
+    <ParamField body="buttonTextColor" type="string">
+      Couleur du texte du bouton, en valeur hexadécimale, par exemple `#ffffff`.
+    </ParamField>
+
+    <ParamField body="primaryColor" type="string">
+      La couleur d'accent principale de la fenêtre modale.
+    </ParamField>
+  </Expandable>
 </ParamField>
 
-## Comment les résultats sont reliés à votre entité
+<ParamField body="countries" type="array">
+  Limitez la capture à certains pays et types de documents. Chaque élément est un objet. Tous les champs sont facultatifs.
 
-L'identifiant de session que vous générez est lié au résultat de vérification côté Youverify. Une fois le parcours SDK terminé, appelez votre backend pour récupérer le résultat à l'aide de l'endpoint Liveness History ou en lisant l'enregistrement de l'entité via l'API. L'identifiant de session est la clé de jointure entre les données biométriques collectées par le SDK et l'enregistrement de votre entité.
+  <Expandable title="propriétés">
+    <ParamField body="countryCode" type="string">
+      Le pays pour lequel le document doit être capturé, par exemple `ng` ou `CA`.
+    </ParamField>
 
-<Note>
-  Les identifiants de session ont une durée de vie courte (TTL par défaut : 120 secondes, configurable entre 30 et 600 secondes). Générez un nouvel identifiant de session pour chaque tentative de vérification : ne les mettez pas en cache et ne les réutilisez pas.
-</Note>
+    <ParamField body="idTypes" type="string[]">
+      Les types de documents proposés dans ce pays, par exemple `["passport", "Driving License"]`.
+    </ParamField>
+
+    <ParamField body="province" type="string[]">
+      La province ou l'État du pays. Omettez ce champ si le pays n'a pas de provinces.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Toute autre information que vous souhaitez envoyer à l'URL de votre webhook. Utilisez vos propres clés.
+</ParamField>
+
+<ParamField body="onSuccess" type="(data) => void">
+  Appelée lorsque la capture de documents produit un résultat. Consultez [Résultat en cas de succès](#résultat-en-cas-de-succès).
+</ParamField>
+
+<ParamField body="onFailure" type="(error) => void">
+  Appelée lorsque le résultat n'a pas pu être récupéré. Reçoit un objet d'erreur.
+</ParamField>
+
+<ParamField body="onClose" type="() => void">
+  Appelée lorsque la fenêtre modale est fermée.
+</ParamField>
+
+<Tip>
+  Pour connaître les pays, provinces et types de documents pris en charge, consultez [Couverture par pays et par produit](/fr/resources/coverage).
+</Tip>
+
+## Résultat en cas de succès
+
+Lorsque la capture réussit, `onSuccess` reçoit un objet de ce type :
+
+```javascript
+{
+  documentNumber: 'xyz',
+  firstName: 'John',
+  lastName: 'Doe',
+  fullName: 'John Doe',
+  dateOfBirth: '29-01-2022',
+  dateOfExpiry: '29-01-2022',
+  gender: 'M',
+  rawMRZString: '*****...',
+  fullDocumentFrontImage: '', // image base64 du recto du document
+  fullDocumentBackImage: '',  // image base64 du verso du document
+  fullDocumentImage: ''       // image base64 du recto, lorsqu'il n'y a pas de verso à capturer
+}
+```
+
+<ResponseField name="fullDocumentFrontImage" type="string">
+  Image base64 du recto du document.
+</ResponseField>
+
+<ResponseField name="fullDocumentBackImage" type="string">
+  Image base64 du verso du document.
+</ResponseField>
+
+<ResponseField name="fullDocumentImage" type="string">
+  Image base64 du recto du document. Présente lorsque le document n'a pas de verso à capturer.
+</ResponseField>
 
 <Warning>
-  Ne transmettez jamais votre clé d'API secrète au SDK Web. Utilisez uniquement votre clé marchand publique côté client. Votre clé secrète doit rester sur votre serveur.
+  Le résultat contient des données personnelles et des images du document. Envoyez-le à votre backend via HTTPS, et ne l'écrivez pas dans les journaux ni ne le stockez dans le navigateur.
 </Warning>
+
+Si vous ne transmettez pas de callback `onSuccess`, il ne se passe rien lorsque la capture réussit.
+
+## Fermer la fenêtre modale par le code
+
+Vous pouvez fermer la fenêtre modale du SDK depuis votre propre code avec `setShowModal`. La méthode prend un booléen et ne renvoie rien.
+
+| Méthode | Paramètres | Retour | Description |
+| --- | --- | --- | --- |
+| `setShowModal` | Booléen | Aucun | Ferme la fenêtre modale du SDK par le code. |
+
+## Utilisation dans une application mobile
+
+Il n'existe pas encore de SDK mobile natif pour la capture de documents. Pour la proposer dans une application Android ou iOS, vous pouvez encapsuler cette intégration web dans une WebView. Consultez [Utiliser la capture de documents dans une application mobile](/fr/sdks/document-capture/mobile-webview).

@@ -4,7 +4,7 @@ sidebarTitle: "Session tokens"
 description: "Learn how to generate server-side session tokens required to initialize Youverify Web, Android, and iOS SDK flows securely."
 ---
 
-Every Youverify SDK flow — whether on web, Android, or iOS — requires a short-lived token generated from your backend before you can initialize the SDK on the client. This design ensures your secret API key never leaves your server and cannot be extracted from a web page or decompiled app.
+Every Anti-Deepfake Liveness flow — whether on web, Android, or iOS — requires a short-lived token generated from your backend before you can initialize the SDK on the client. This design ensures your secret API key never leaves your server and cannot be extracted from a web page or decompiled app.
 
 ## Why server-side token generation is required
 
@@ -21,7 +21,7 @@ Both tokens are minted by the Youverify API using your secret API key. By genera
 
 ## Endpoint 1 — Generate SDK Session ID
 
-Use this endpoint for Web SDK flows and document capture sessions.
+Use this endpoint to start Anti-Deepfake Liveness sessions.
 
 **`POST /v2/api/identity/sdk/session/generate`**
 

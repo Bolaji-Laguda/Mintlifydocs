@@ -15,18 +15,18 @@ The SDKs are organized by the service they provide. Each service has its own gui
     Confirm a live person is present, not a photo, video or deepfake. Web, Android and iOS.
   </Card>
   <Card title="Document Capture" icon="id-card" href="/sdks/document-capture/overview">
-    Let users photograph a government-issued ID from inside your app. Web, Android and iOS.
+    Let users photograph a government-issued ID from inside your web app. Mobile apps can use a WebView.
   </Card>
   <Card title="Fraud Insights" icon="shield-halved" href="/sdks/fraud-insights/overview">
     Collect passive device and behavioural signals to enrich the risk score. Runs in the background on all platforms.
   </Card>
 </CardGroup>
 
-Every service needs a server-side session token. See [Session tokens](/sdks/liveness-sdk).
+Anti-Deepfake Liveness needs a server-side session token. See [Session tokens](/sdks/liveness-sdk). Document Capture and Fraud Insights only need your Public Merchant Key.
 
 ## How SDK flows work
 
-Every Youverify SDK follows the same two-step security pattern:
+Anti-Deepfake Liveness uses a two-step security pattern:
 
 <Steps>
   <Step title="Generate a session token server-side">
@@ -45,7 +45,7 @@ Every Youverify SDK follows the same two-step security pattern:
 
 | Token | Endpoint | Used for |
 |---|---|---|
-| SDK Session ID | `POST /v2/api/identity/sdk/session/generate` | Web SDK document capture and general verification flows |
+| SDK Session ID | `POST /v2/api/identity/sdk/session/generate` | Anti-Deepfake Liveness flows |
 | SDK Liveness Token | `POST /v2/api/identity/sdk/liveness/token` | Anti-deepfake liveness detection flows (all platforms) |
 
 See [Session Tokens](/sdks/liveness-sdk) for full request and response details on both endpoints.

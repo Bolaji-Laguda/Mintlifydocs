@@ -1,0 +1,177 @@
+---
+title: "Utiliser la capture de documents dans une application mobile"
+sidebarTitle: "Applications mobiles (WebView)"
+description: "Il n'existe pas encore de SDK mobile natif. Encapsulez l'intégration web de la capture de documents dans une WebView pour la proposer dans une application Android, iOS ou multiplateforme."
+---
+
+Il n'existe pas encore de SDK natif Android ou iOS pour la capture de documents. En attendant, la méthode recommandée pour la proposer dans une application mobile consiste à héberger une petite page web qui exécute l'[intégration web](/fr/sdks/web-sdk), puis à ouvrir cette page dans une WebView au sein de votre application.
+
+<Note>
+  Il s'agit d'un schéma recommandé, et non d'un SDK Youverify distinct. Testez-le sur de vrais appareils et sur les versions de système que vous prenez en charge avant la mise en production.
+</Note>
+
+## Fonctionnement
+
+<Steps>
+  <Step title="Héberger une page de capture">
+    Créez sur votre propre domaine une page qui charge le SDK Web et démarre la capture de documents, comme décrit dans [Intégrer la capture de documents sur le web](/fr/sdks/web-sdk). Elle doit être servie en HTTPS, car les navigateurs n'autorisent l'accès à la caméra que sur les pages sécurisées.
+  </Step>
+  <Step title="Ouvrir la page dans une WebView">
+    Chargez cette page dans une WebView de votre application. Activez JavaScript et autorisez la page à utiliser la caméra.
+  </Step>
+  <Step title="Renvoyer le résultat à votre application">
+    Dans les callbacks `onSuccess`, `onFailure` et `onClose` du SDK, transmettez le résultat à votre code natif via un pont de messages. Fermez ensuite la WebView.
+  </Step>
+</Steps>
+
+## Recommandations
+
+- Définissez `hideUsingSecondaryDevice` sur `true` dans la page de capture. Vos utilisateurs sont déjà sur un téléphone ; un second appareil ajoute une étape inutile.
+- Gardez les données personnelles hors de l'URL de la page. Transmettez ce dont la page a besoin, par exemple le prénom de l'utilisateur, via le pont ou depuis votre propre backend.
+- Le résultat en cas de succès inclut des images de document en base64, qui peuvent être volumineuses. Envisagez d'envoyer le résultat directement de la page vers votre backend, et de ne transmettre à l'application qu'un signal de réussite ou d'échec.
+- Ne placez pas votre clé d'API secrète dans l'application ni dans la page de capture.
+
+## La page de capture
+
+Cette page démarre la capture de documents au chargement et signale le résultat via le pont fourni par l'application.
+
+```html
+<script>
+  function sendToApp(type, payload) {
+    const message = JSON.stringify({ type, payload });
+
+    if (window.YouverifyBridge) {
+      // WebView Android
+      window.YouverifyBridge.postMessage(message);
+    } else if (window.webkit?.messageHandlers?.youverify) {
+      // WKWebView iOS
+      window.webkit.messageHandlers.youverify.postMessage(message);
+    } else if (window.ReactNativeWebView) {
+      // WebView React Native
+      window.ReactNativeWebView.postMessage(message);
+    }
+  }
+
+  const documentCaptureModule = new YouverifySDK.documentCapture({
+    publicMerchantKey: 'YOUR_PUBLIC_MERCHANT_KEY',
+    sandboxEnvironment: false,
+    hideUsingSecondaryDevice: true,
+    onSuccess: (data) => sendToApp('success', data),
+    onFailure: (error) => sendToApp('failure', { message: String(error) }),
+    onClose: () => sendToApp('close'),
+  });
+
+  documentCaptureModule.initialize();
+  documentCaptureModule.start();
+</script>
+```
+
+## L'encapsuler dans votre application
+
+<Tabs>
+  <Tab title="Android (Kotlin)">
+    Ajoutez l'autorisation caméra à `AndroidManifest.xml` et demandez-la à l'exécution avant d'ouvrir la WebView.
+
+    ```xml
+    <uses-permission android:name="android.permission.CAMERA" />
+    ```
+
+    ```kotlin
+    class DocumentCaptureActivity : AppCompatActivity() {
+
+      override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val webView = WebView(this)
+        setContentView(webView)
+
+        webView.settings.javaScriptEnabled = true
+        webView.settings.domStorageEnabled = true
+        webView.settings.mediaPlaybackRequiresUserGesture = false
+
+        webView.addJavascriptInterface(Bridge(), "YouverifyBridge")
+
+        webView.webChromeClient = object : WebChromeClient() {
+          override fun onPermissionRequest(request: PermissionRequest) {
+            // N'accordez qu'après l'obtention de l'autorisation CAMERA à l'exécution
+            runOnUiThread { request.grant(request.resources) }
+          }
+        }
+
+        webView.loadUrl("https://your-domain.com/document-capture")
+      }
+
+      inner class Bridge {
+        @JavascriptInterface
+        fun postMessage(json: String) {
+          // Analysez { type, payload }, traitez-le, puis fermez l'écran
+          runOnUiThread { finish() }
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="iOS (Swift)">
+    Ajoutez une description d'usage de la caméra dans `Info.plist`.
+
+    ```xml
+    <key>NSCameraUsageDescription</key>
+    <string>We need the camera to capture your identity document.</string>
+    ```
+
+    ```swift
+    import WebKit
+
+    class DocumentCaptureViewController: UIViewController, WKScriptMessageHandler {
+
+      override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let config = WKWebViewConfiguration()
+        config.allowsInlineMediaPlayback = true
+        config.userContentController.add(self, name: "youverify")
+
+        let webView = WKWebView(frame: view.bounds, configuration: config)
+        view.addSubview(webView)
+        webView.load(URLRequest(url: URL(string: "https://your-domain.com/document-capture")!))
+      }
+
+      func userContentController(_ controller: WKUserContentController,
+                                 didReceive message: WKScriptMessage) {
+        guard message.name == "youverify", let json = message.body as? String else { return }
+        // Analysez { type, payload }, traitez-le, puis fermez l'écran
+        dismiss(animated: true)
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="React Native">
+    Utilisez [react-native-webview](https://github.com/react-native-webview/react-native-webview) et demandez d'abord l'autorisation caméra sur chaque plateforme.
+
+    ```jsx
+    import { WebView } from 'react-native-webview';
+
+    export function DocumentCaptureScreen({ onResult, onClose }) {
+      return (
+        <WebView
+          source={{ uri: 'https://your-domain.com/document-capture' }}
+          javaScriptEnabled
+          allowsInlineMediaPlayback
+          mediaPlaybackRequiresUserAction={false}
+          onMessage={(event) => {
+            const { type, payload } = JSON.parse(event.nativeEvent.data);
+            if (type === 'close') onClose();
+            else onResult(type, payload);
+          }}
+        />
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Avant la mise en production
+
+- Testez l'accès à la caméra, y compris lorsque l'utilisateur refuse l'autorisation puis change d'avis.
+- Testez sur des appareils d'entrée de gamme et avec des connexions lentes. La capture d'images est la partie la plus lourde du parcours.
+- Gérez les messages `failure` et `close`, afin que les utilisateurs qui reviennent en arrière ne restent pas devant un écran vide.

@@ -4,7 +4,7 @@ sidebarTitle: "SDK Liveness"
 description: "Découvrez comment générer côté serveur les jetons de session nécessaires pour initialiser en toute sécurité les parcours SDK Youverify Web, Android et iOS."
 ---
 
-Chaque parcours SDK Youverify, que ce soit sur le web, Android ou iOS, nécessite un jeton à courte durée de vie généré depuis votre backend avant que vous puissiez initialiser le SDK côté client. Cette conception garantit que votre clé d'API secrète ne quitte jamais votre serveur et ne peut pas être extraite d'une page web ni d'une application décompilée.
+Chaque parcours de détection de vivacité anti-deepfake, que ce soit sur le web, Android ou iOS, nécessite un jeton à courte durée de vie généré depuis votre backend avant que vous puissiez initialiser le SDK côté client. Cette conception garantit que votre clé d'API secrète ne quitte jamais votre serveur et ne peut pas être extraite d'une page web ni d'une application décompilée.
 
 ## Pourquoi la génération des jetons côté serveur est nécessaire
 
@@ -21,7 +21,7 @@ Les deux jetons sont émis par l'API Youverify à l'aide de votre clé d'API sec
 
 ## Endpoint 1 — Générer un SDK Session ID
 
-Utilisez cet endpoint pour les parcours du SDK Web et les sessions de capture de documents.
+Utilisez cet endpoint pour démarrer des sessions de détection de vivacité anti-deepfake.
 
 **`POST /v2/api/identity/sdk/session/generate`**
 
