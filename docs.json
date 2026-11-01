@@ -3,14 +3,11 @@
   "name": "Youverify",
   "theme": "luma",
   "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
+    "primary": "#277A93",
+    "light": "#5BB5CF",
+    "dark": "#1B5A6E"
   },
-  "favicon": {
-    "light": "/images/428750ea-0194-4bd6-95b4-601108a9337d-1.svg",
-    "dark": "/images/428750ea-0194-4bd6-95b4-601108a9337d-1.svg"
-  },
+  "favicon": "https://youverify.co/assets/landing/youverify-mark.svg",
   "logo": {
     "light": "/images/Youverify-logo-teal-tag.svg",
     "dark": "/images/Youverify-logo-teal-tag.svg"
