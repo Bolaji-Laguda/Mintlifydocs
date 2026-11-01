@@ -1,10 +1,4 @@
----
-title: "Intégrer le SDK Liveness de Youverify pour le web"
-sidebarTitle: "Web"
-description: "Installez le SDK Liveness de Youverify dans une application web."
----
-
-Le SDK Liveness Web de Youverify ajoute la détection de vivacité anti-deepfake à votre application web, sans redirection vers une page hébergée.
+Le SDK Liveness Web de Youverify ajoute la détection de vivacité anti-deepfake à votre application web, sans redirection vers une page hébergée. L'utilisateur réalise une ou plusieurs courtes tâches, comme tracer un cercle avec la tête, et le SDK renvoie le résultat à vos callbacks.
 
 ## Installation
 
@@ -12,6 +6,11 @@ Le SDK Liveness Web de Youverify ajoute la détection de vivacité anti-deepfake
   <Tab title="npm">
     ```bash
     npm install youverify-liveness-web
+    ```
+  </Tab>
+  <Tab title="Yarn">
+    ```bash
+    yarn add youverify-liveness-web
     ```
   </Tab>
   <Tab title="CDN (jsDelivr)">
@@ -23,17 +22,377 @@ Le SDK Liveness Web de Youverify ajoute la détection de vivacité anti-deepfake
     ```html
     <!-- Dernière version -->
     <script src="https://unpkg.com/youverify-liveness-web/dist/index.js"></script>
-
+    
     <!-- Version épinglée -->
     <script src="https://unpkg.com/youverify-liveness-web@1.0.1/dist/index.js"></script>
     ```
   </Tab>
 </Tabs>
 
-## Avant d'initialiser le SDK
+## Étapes d'intégration
 
-Générez un identifiant de session et un jeton de vivacité depuis votre backend. Consultez [Jetons de session](/fr/sdks/liveness-sdk).
+<Steps>
+  <Step title="Générer un identifiant de session et un jeton de session sur votre backend">
+    Le SDK ne génère pas lui-même les jetons de session. Votre backend appelle l'API Youverify avec votre clé API secrète et transmet les deux valeurs à la page. Consultez [Générer l'identifiant de session et le jeton de session](#generer-lidentifiant-de-session-et-le-jeton-de-session).
+  </Step>
+  <Step title="Importer et initialiser le SDK">
+    ```js
+    import YouverifyLiveness from "youverify-liveness-web";
+    
+    const yvLiveness = new YouverifyLiveness(options);
+    ```
+
+    Pour connaître les `options` valides, consultez [Options](#options).
+  </Step>
+  <Step title="Démarrer le contrôle de vivacité">
+    ```js
+    yvLiveness.start();
+    ```
+
+    Vous pouvez aussi transmettre un tableau de tâches. Les tâches passées à `start()` remplacent celles définies lors de l'initialisation.
+
+    ```js
+    const tasks = [{ id: "complete-the-circle" }];
+    yvLiveness.start(tasks);
+    ```
+  </Step>
+</Steps>
+
+## Générer l'identifiant de session et le jeton de session
+
+Les deux appels doivent provenir de votre backend. Utilisez l'URL de base de l'environnement sur lequel vous testez.
+
+| Environnement | URL de base |
+| --- | --- |
+| Sandbox | `https://api.sandbox.youverify.co` |
+| Production | `https://api.youverify.co` |
+
+<Warning>
+  N'exposez jamais votre clé API dans le code frontend. Effectuez ces appels depuis votre backend sécurisé.
+</Warning>
+
+### Identifiant de session
+
+**`POST /v2/api/identity/sdk/session/generate`**
+
+```json En-têtes
+{
+  "Content-Type": "application/json",
+  "Token": "YOUR_API_KEY"
+}
+```
+
+```json Corps de la requête
+{
+  "publicMerchantID": "your_public_merchant_id",
+  "metadata": {}
+}
+```
+
+```json Réponse
+{
+  "sessionId": "generated_session_id_here"
+}
+```
+
+Transmettez le `sessionId` au constructeur du SDK.
+
+### Jeton de session
+
+**`POST /v2/api/identity/sdk/liveness/token`**
+
+```json En-têtes
+{
+  "Content-Type": "application/json",
+  "Token": "YOUR_API_KEY"
+}
+```
+
+```json Corps de la requête
+{
+  "publicMerchantID": "your_public_merchant_id",
+  "deviceCorrelationId": "unique_device_identifier"
+}
+```
+
+```json Réponse
+{
+  "authToken": "generated_auth_token_here"
+}
+```
+
+Transmettez l'`authToken` au constructeur du SDK sous le nom `sessionToken`. Le `deviceCorrelationId` doit être un identifiant unique de l'appareil ou de la session de l'utilisateur. Il aide à détecter et à prévenir les abus.
+
+## Exemple complet
+
+```js
+import YouverifyLiveness from "youverify-liveness-web";
+
+try {
+  const yvLiveness = new YouverifyLiveness({
+    sessionId: sessionId,        // fourni par votre backend
+    sessionToken: sessionToken,  // fourni par votre backend
+    sandboxEnvironment: true,    // mettre à false en production
+    tasks: [{ id: "complete-the-circle" }],
+    onSuccess: (data) => {
+      console.log("Liveness check passed:", data);
+    },
+    onFailure: (data) => {
+      console.log("Liveness check failed:", data);
+
+      if (data.error?.key === "invalid_or_expired_session") {
+        // Générez une nouvelle session et réessayez
+      } else if (data.error?.key === "session_token_error") {
+        // Générez un nouveau jeton de session et réessayez
+      }
+    },
+  });
+
+  yvLiveness.start();
+} catch (error) {
+  // Gérez les erreurs de validation
+  console.log(`Something isn't right, ${error}`);
+}
+```
+
+## Préchargement
+
+Le SDK télécharge son modèle de détection de visage, de plusieurs Mo, avant de pouvoir lancer le contrôle de vivacité. Le téléchargement ne dépend pas de la session : lancez-le le plus tôt possible, avant de générer le `sessionId` et le `sessionToken`.
+
+```js
+import YouverifyLiveness from "youverify-liveness-web";
+
+YouverifyLiveness.preload();
+```
+
+- Vous pouvez l'appeler plusieurs fois sans risque. Les appels suivants, y compris celui du constructeur, réutilisent le téléchargement déjà en cours.
+- Si vous ne l'appelez pas, le téléchargement démarre à la construction du SDK.
+- `preload()` conserve le détecteur en mémoire : il n'est donc réutilisé pour le contrôle de vivacité que si la page n'est pas rechargée entre-temps. C'est le cas dans les applications monopages qui naviguent avec leur routeur.
+
+### Applications monopages
+
+Appelez `preload()` dans le module d'entrée de votre application.
+
+| Framework | Où appeler `preload()` |
+| --- | --- |
+| React / Preact (Vite, CRA) | `main.tsx` / `index.tsx`, avant `render` |
+| Vue | `main.ts`, avant `createApp(...).mount()` |
+| Angular | `main.ts`, avant `bootstrapApplication` |
+| Next.js | Un composant client dans le layout racine (ou `_app`), dans `useEffect` |
+
+```js
+// main.tsx
+import YouverifyLiveness from "youverify-liveness-web";
+
+YouverifyLiveness.preload();
+
+createRoot(document.getElementById("root")).render(<App />);
+```
+
+Un rechargement annule tout téléchargement en cours. Les fichiers déjà téléchargés proviennent du cache HTTP du navigateur, et ceux qui ont été interrompus sont retéléchargés dès l'exécution du module d'entrée.
+
+### Sites multipages
+
+Si les utilisateurs accèdent au contrôle de vivacité par des chargements de page complets, le détecteur préchargé est supprimé à chaque navigation. Appelez plutôt `prefetch()` sur les pages qui précèdent le contrôle de vivacité.
+
+```js
+YouverifyLiveness.prefetch();
+```
+
+Il demande au navigateur de télécharger les fichiers du détecteur dans son cache HTTP en arrière-plan, sans construire le détecteur. Lorsque le SDK démarre sur la page de vivacité, les fichiers proviennent du cache. Le détecteur est tout de même configuré sur cette page : cela économise le temps de téléchargement, mais pas le temps de configuration.
+
+- Vous pouvez l'appeler sur chaque page sans risque. Les fichiers déjà demandés ne sont pas ajoutés de nouveau.
+- Il repose sur le cache HTTP du navigateur. Il n'a aucun effet si le cache est désactivé, par exemple dans une webview configurée avec `LOAD_NO_CACHE`.
+- `<link rel="prefetch">` est pris en charge par les navigateurs basés sur Chromium et par Firefox, mais pas par Safari, où `prefetch()` ne fait rien.
+
+| Votre application | Appel | Résultat sur la page de vivacité |
+| --- | --- | --- |
+| Application monopage | `preload()` une fois dans le module d'entrée | Détecteur prêt, s'il a fini de se charger avant l'arrivée de l'utilisateur |
+| Site multipage | `prefetch()` sur les pages précédentes | Fichiers servis depuis le cache ; détecteur toujours configuré sur la page |
+
+## Options
+
+<ParamField body="sessionId" type="string" required>
+  Identifiant généré par votre backend avec votre clé API. Le SDK le valide avant l'initialisation et le joint aux soumissions.
+</ParamField>
+
+<ParamField body="sessionToken" type="string" required>
+  Jeton généré par votre backend pour la vérification de vivacité.
+</ParamField>
+
+<ParamField body="publicKey" type="string">
+  Votre clé marchand publique Youverify.
+</ParamField>
+
+<ParamField body="sandboxEnvironment" default="true" type="boolean">
+  Indique si la session s'exécute en mode sandbox ou en production. Définissez-la sur `false` en production.
+</ParamField>
+
+<ParamField body="presentation" default="modal" type="string">
+  Mode d'affichage de l'interface. `modal` ou `page`.
+</ParamField>
+
+<ParamField body="tasks" type="array">
+  Les tâches que l'utilisateur doit réaliser pour confirmer sa vivacité. Consultez [Tâches](#taches).
+</ParamField>
+
+<ParamField body="entityId" type="string">
+  Identifiant d'entité facultatif à inclure lors de la soumission du résultat de vivacité.
+</ParamField>
+
+<ParamField body="allowAudio" default="false" type="boolean">
+  Indique s'il faut narrer des informations à l'utilisateur pendant les tâches.
+</ParamField>
+
+<ParamField body="user" type="object">
+  Informations sur l'utilisateur vérifié.
+
+  <Expandable title="propriétés">
+    <ParamField body="firstName" type="string" required>
+      Prénom de l'utilisateur.
+    </ParamField>
+
+    <ParamField body="lastName" type="string">
+      Nom de l'utilisateur.
+    </ParamField>
+
+    <ParamField body="email" type="string">
+      Adresse e-mail de l'utilisateur.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="branding" type="object">
+  Personnalise l'interface à l'image de votre marque.
+
+  <Expandable title="propriétés">
+    <ParamField body="name" type="string">
+      Le nom de la marque.
+    </ParamField>
+
+    <ParamField body="color" type="string">
+      La couleur de votre marque, sous forme de chaîne hexadécimale ou RGB valide.
+    </ParamField>
+
+    <ParamField body="logo" type="string">
+      Un lien vers l'image de votre logo.
+    </ParamField>
+
+    <ParamField body="logoAlt" default="Youverify" type="string">
+      Texte alternatif du logo de la marque.
+    </ParamField>
+
+    <ParamField body="hideLogoOnMobile" default="false" type="boolean">
+      Masque le logo dans une webview mobile.
+    </ParamField>
+
+    <ParamField body="showPoweredBy" default="false" type="boolean">
+      Affiche le texte de pied de page « Powered by ».
+    </ParamField>
+
+    <ParamField body="poweredByText" default="Powered by" type="string">
+      Personnalise le texte « Powered by ».
+    </ParamField>
+
+    <ParamField body="poweredByLogo" type="string">
+      Un lien vers l'image d'un logo « Powered by » personnalisé.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="onClose" type="function">
+  Appelé lorsque la fenêtre modale est fermée.
+</ParamField>
+
+<ParamField body="onSuccess" type="function">
+  Appelé lorsque toutes les tâches ont été réalisées et réussies. Reçoit les [données du callback](#donnees-du-callback).
+</ParamField>
+
+<ParamField body="onFailure" type="function">
+  Appelé lorsqu'au moins une tâche échoue. Reçoit les [données du callback](#donnees-du-callback).
+</ParamField>
+
+## Tâches
+
+Une tâche est une série d'instructions que l'utilisateur suit pour confirmer sa vivacité. Transmettez les tâches dans l'option `tasks` ou à `start()`. Chaque tâche accepte ces options :
+
+| Option | Type | Obligatoire | Description | Valeur par défaut |
+| --- | --- | --- | --- | --- |
+| `id` | String | Oui | Identifiant de la tâche. Voir les sections ci-dessous. | - |
+| `difficulty` | String | Non | `easy`, `medium` ou `hard` | `medium` |
+| `timeout` | Number | Non | Délai en millisecondes au bout duquel la tâche échoue automatiquement | undefined |
+
+### Complete the Circle
+
+L'utilisateur complète un cercle imaginaire avec un mouvement de la tête. Utilisez `id: "complete-the-circle"`.
+
+### Yes or No
+
+L'utilisateur répond aux questions que vous définissez en inclinant la tête : à droite pour oui, à gauche pour non. Utilisez `id: "yes-or-no"`.
+
+| Option | Type | Obligatoire | Description |
+| --- | --- | --- | --- |
+| `questions` | Array | Non | Les questions à poser à l'utilisateur |
+| `questions.question` | String | Oui | Une question à réponse vrai ou faux, par exemple « Are you ready » |
+| `questions.answer` | Boolean | Oui | La bonne réponse, `true` ou `false` |
+| `questions.errorMessage` | String | Non | Message affiché si l'utilisateur répond de manière incorrecte |
+
+### Motions
+
+L'utilisateur effectue des mouvements aléatoires dans un ordre aléatoire : hochements de tête, clignements des yeux et ouverture de la bouche. Utilisez `id: "motions"`.
+
+| Option | Type | Obligatoire | Description | Valeur par défaut |
+| --- | --- | --- | --- | --- |
+| `maxNods` | Number | Non | Nombre maximal de hochements de tête demandés à l'utilisateur | 5 |
+| `maxBlinks` | Number | Non | Nombre maximal de clignements demandés à l'utilisateur | 5 |
+
+### Blink
+
+L'utilisateur cligne des yeux un nombre de fois défini. Utilisez `id: "blink"`.
+
+| Option | Type | Obligatoire | Description | Valeur par défaut |
+| --- | --- | --- | --- | --- |
+| `maxBlinks` | Number | Non | Nombre maximal de clignements demandés à l'utilisateur | 5 |
+
+## Données du callback
+
+`onSuccess` et `onFailure` reçoivent un objet avec les propriétés suivantes.
+
+<ResponseField name="data.passed" type="boolean">
+  Indique si le contrôle de vivacité a réussi.
+</ResponseField>
+
+<ResponseField name="data.faceImage" type="string">
+  Image du visage de l'utilisateur pendant le contrôle.
+</ResponseField>
+
+<ResponseField name="data.livenessClip" type="string">
+  Vidéo de l'utilisateur pendant le contrôle.
+</ResponseField>
+
+<ResponseField name="data.metadata" type="any">
+  Métadonnées transmises lors de l'initialisation.
+</ResponseField>
+
+<ResponseField name="data.error" type="object">
+  Présent uniquement en cas d'échec. Contient `key` (`eyes_closed`, `image_capture_failed` ou `API_ERROR`) et `message`.
+</ResponseField>
+
+Lorsque le SDK soumet la charge utile de vivacité, il inclut `sdkVersion` (la version du package du SDK, `1.1.1`) et, si vous l'avez transmis lors de l'initialisation, `entityId`.
+
+## Erreurs et nouvelles tentatives
+
+| Clé d'erreur | Signification |
+| --- | --- |
+| `invalid_or_expired_session` | Le `sessionId` est invalide ou expiré |
+| `session_token_error` | Un problème est survenu avec le `sessionToken` pendant la vérification de vivacité |
+
+- Si la validation de la session échoue, générez un nouveau `sessionId` et réessayez.
+- Si le contrôle de vivacité échoue, l'utilisateur peut réessayer tant que le `sessionId` actuel reste valide.
+- Si le `sessionId` expire, créez une nouvelle session et recommencez le processus.
 
 <Note>
-  Les étapes d'initialisation et de lancement du SDK Liveness Web ne sont pas encore documentées ici. Contactez [support@youverify.co](mailto:support@youverify.co) pour obtenir le guide d'intégration actuel. Les guides [Android](/fr/sdks/android-sdk) et [iOS](/fr/sdks/ios-sdk) présentent le flux de vivacité complet sur mobile.
+  Utilisez `sandboxEnvironment: true` pour les tests et `sandboxEnvironment: false` en production.
 </Note>
+
+Pour les endpoints de jeton communs à tous les SDK, consultez [Jetons de session](/fr/sdks/liveness-sdk).
