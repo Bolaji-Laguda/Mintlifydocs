@@ -96,10 +96,7 @@
                   {
                     "group": "Fraud Insights",
                     "pages": [
-                      "sdks/fraud-insights/overview",
-                      "sdks/fraud-insights/web",
-                      "sdks/fraud-insights/android",
-                      "sdks/fraud-insights/ios"
+                      "sdks/fraud-insights/overview"
                     ]
                   },
                   "sdks/liveness-sdk"
@@ -211,10 +208,7 @@
                   {
                     "group": "Fraud Insights",
                     "pages": [
-                      "fr/sdks/fraud-insights/overview",
-                      "fr/sdks/fraud-insights/web",
-                      "fr/sdks/fraud-insights/android",
-                      "fr/sdks/fraud-insights/ios"
+                      "fr/sdks/fraud-insights/overview"
                     ]
                   },
                   "fr/sdks/liveness-sdk"
