@@ -4,31 +4,31 @@ sidebarTitle: "Vue d'ensemble"
 description: "Intégrez nativement la détection de vivacité biométrique et la capture de documents dans votre application web ou mobile grâce aux SDK Youverify."
 ---
 
-Youverify fournit des SDK officiels pour les navigateurs web, Android et iOS qui vous permettent d'intégrer la détection de vivacité biométrique et la capture de documents directement dans votre produit. Au lieu de rediriger les utilisateurs vers une page hébergée, les parcours du SDK s'exécutent nativement dans votre application : vous gardez un contrôle total sur l'interface, tandis que Youverify prend en charge la logique de détection de la fraude.
+Youverify fournit des SDK officiels pour les navigateurs web, Android et iOS, proposés sous forme de trois services (détection de vivacité anti-deepfake, capture de documents et Fraud Insights), qui vous permettent d'intégrer la détection de vivacité biométrique et la capture de documents directement dans votre produit. Au lieu de rediriger les utilisateurs vers une page hébergée, les parcours du SDK s'exécutent nativement dans votre application : vous gardez un contrôle total sur l'interface, tandis que Youverify prend en charge la logique de détection de la fraude.
 
-## SDK disponibles
+## Services SDK
 
-<CardGroup cols={2}>
-  <Card title="SDK Web" icon="globe" href="/fr/sdks/web-sdk">
-    Intégrez la détection de vivacité et la capture de documents dans n'importe quelle application web grâce à un script CDN ou à un package npm.
+Les SDK sont organisés par service. Chaque service dispose de son propre guide pour les plateformes prises en charge.
+
+<CardGroup cols={3}>
+  <Card title="Détection de vivacité anti-deepfake" icon="face-viewfinder" href="/fr/sdks/liveness/overview">
+    Confirmez qu'une personne bien réelle est présente, et non une photo, une vidéo ou un deepfake. Web, Android et iOS.
   </Card>
 
-  <Card title="SDK Android" icon="android" href="/fr/sdks/android-sdk">
-    Intégrez la détection de vivacité en temps réel et la capture de documents dans votre application Android avec Jetpack Compose.
+  <Card title="Capture de documents" icon="id-card" href="/fr/sdks/document-capture/overview">
+    Permettez à vos utilisateurs de photographier une pièce d'identité officielle depuis votre application web. Les applications mobiles peuvent utiliser une WebView.
   </Card>
 
-  <Card title="SDK iOS" icon="apple" href="/fr/sdks/ios-sdk">
-    Ajoutez la détection de vivacité et la capture de documents à votre application iOS en Swift, via CocoaPods ou Swift Package Manager.
-  </Card>
-
-  <Card title="Jetons de session" icon="key" href="/fr/sdks/liveness-sdk">
-    Générez côté serveur les jetons de session nécessaires pour initialiser en toute sécurité tout parcours SDK Youverify.
+  <Card title="Fraud Insights" icon="shield-halved" href="/fr/sdks/fraud-insights/overview">
+    Collectez des signaux passifs d'appareil et de comportement pour enrichir le score de risque. S'exécute en arrière-plan sur toutes les plateformes.
   </Card>
 </CardGroup>
 
+La détection de vivacité anti-deepfake nécessite un jeton de session généré côté serveur. Consultez [Jetons de session](/fr/sdks/liveness-sdk). La capture de documents et Fraud Insights ne nécessitent que votre Public Merchant Key.
+
 ## Fonctionnement des parcours SDK
 
-Chaque SDK Youverify suit le même modèle de sécurité en deux étapes :
+La détection de vivacité anti-deepfake suit un modèle de sécurité en deux étapes :
 
 <Steps>
   <Step title="Générer un jeton de session côté serveur">
@@ -47,8 +47,8 @@ Chaque SDK Youverify suit le même modèle de sécurité en deux étapes :
 
 | Jeton | Endpoint | Utilisé pour |
 | --- | --- | --- |
-| SDK Session ID | `POST /v2/api/sdk/session-id` | Capture de documents avec le SDK Web et parcours de vérification généraux |
-| SDK Liveness Token | `POST /v2/api/sdk/liveness-token` | Parcours de détection de vivacité anti-deepfake (toutes plateformes) |
+| SDK Session ID | `POST /v2/api/identity/sdk/session/generate` | Parcours de détection de vivacité anti-deepfake |
+| SDK Liveness Token | `POST /v2/api/identity/sdk/liveness/token` | Parcours de détection de vivacité anti-deepfake (toutes plateformes) |
 
 Consultez [Jetons de session](/fr/sdks/liveness-sdk) pour le détail complet des requêtes et réponses des deux endpoints.
 

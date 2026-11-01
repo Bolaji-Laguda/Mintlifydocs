@@ -1,0 +1,239 @@
+---
+title: "Intégrer le SDK Fraud Insights"
+sidebarTitle: "Guide d'intégration"
+description: "Intégrez le SDK Fraud Insights de Youverify pour collecter des signaux d'appareil et de comportement sur le web et sur mobile."
+---
+
+Le SDK Fraud Insights collecte en arrière-plan des signaux d'appareil et de comportement et les envoie au service Behavioral de Youverify afin d'enrichir le score de risque. Il s'applique à toutes les plateformes, web et mobile, et vos utilisateurs ne le voient jamais.
+
+<Info>
+  Ce guide s'applique à toutes les plateformes sur lesquelles vous utilisez Fraud Insights, et pas seulement au web. Le modèle de session, les événements et la configuration ci-dessous sont identiques partout. Les étapes d'installation et les exemples de code utilisent le package JavaScript, `youverify-behavioral-web-sdk`, que vous pouvez ajouter à n'importe quelle application web.
+</Info>
+
+## Fonctionnalités
+
+- **Gestion des sessions** : identifiants de session automatiques et suivi du début et de la fin de session.
+- **Signaux d'appareil et de comportement** : fondés sur FingerprintJS et des heuristiques du navigateur.
+- **Suivi d'événements** : envoyez des événements personnalisés avec des identifiants d'utilisateur ou d'entité et des métadonnées facultatifs.
+- **Réponses typées** : une structure `GetDeviceResponse` riche pour l'analyse des risques.
+
+## Installation
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install youverify-behavioral-web-sdk
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add youverify-behavioral-web-sdk
+    ```
+  </Tab>
+</Tabs>
+
+Importez le SDK dans votre application :
+
+```ts
+import YouverifyBBS, { GetDeviceResponse } from 'youverify-behavioral-web-sdk';
+```
+
+## Configuration
+
+Créez une instance avec `new YouverifyBBS(props)` :
+
+```ts
+const bbs = new YouverifyBBS({
+  publicKey: 'YOUR_PUBLIC_KEY',
+  applicationName: 'My Web App',
+  sandboxEnvironment: true,
+  onLoad: (result: GetDeviceResponse) => {
+    console.log('BBS loaded', result.sessionId, result.id);
+  },
+  onError: (error: Error) => {
+    console.error('BBS error', error);
+  },
+  onSessionStart: (sessionId: string) => {
+    console.log('Session started', sessionId);
+  },
+  onSessionEnd: () => {
+    console.log('Session ended');
+  },
+});
+```
+
+### Propriétés
+
+<ParamField body="publicKey" type="string" required>
+  Votre **Public Merchant Key** (clé marchand publique). Vous la trouverez dans la section **API / Webhook** de votre tableau de bord Youverify. Elle peut être utilisée sans risque côté client.
+</ParamField>
+
+<ParamField body="applicationName" type="string" required>
+  Nom logique de l'application qui intègre le SDK.
+</ParamField>
+
+<ParamField body="sandboxEnvironment" type="boolean" default="true">
+  `true` utilise l'environnement sandbox (préproduction). `false` utilise la production.
+</ParamField>
+
+<ParamField body="onLoad" type="(result: GetDeviceResponse) => void">
+  Appelée après une réponse de signal réussie, par exemple après `get()`.
+</ParamField>
+
+<ParamField body="onError" type="(error: Error) => void">
+  Appelée chaque fois que le SDK rencontre une erreur.
+</ParamField>
+
+<ParamField body="onSessionStart" type="(sessionId: string) => void">
+  Appelée lorsqu'une session est initialisée.
+</ParamField>
+
+<ParamField body="onSessionEnd" type="() => void">
+  Appelée lorsque `close()` se termine et que la session prend fin.
+</ParamField>
+
+## API principale
+
+### `get(entityId?)`
+
+Initialise ou reprend une session et envoie le signal initial. Renvoie `Promise<void>`.
+
+```ts
+await bbs.get('user-123');
+```
+
+- Le premier appel envoie un événement `session_start`.
+- Les appels suivants dans la même session envoient un événement personnalisé « Session resumed ».
+- Il déclenche `onLoad(result: GetDeviceResponse)` avec l'ensemble des données d'appareil et de session.
+
+### `sendEvent(eventTitle, entityId?, meta?)`
+
+Envoie un événement comportemental personnalisé pour la session en cours. Renvoie `Promise<void>`.
+
+```ts
+await bbs.sendEvent('Checkout Started', 'user-123', {
+  step: 'payment',
+  cartValue: 199.99,
+});
+```
+
+### `close(entityId?)`
+
+Envoie un événement `session_end` et efface l'état local de la session. Renvoie `Promise<void>`.
+
+```ts
+await bbs.close('user-123');
+```
+
+### `getSessionId()`
+
+Renvoie l'identifiant de la session en cours, ou `null` s'il n'y en a pas.
+
+```ts
+const sessionId = bbs.getSessionId();
+```
+
+### `getSessionDuration()`
+
+Renvoie le temps écoulé, en millisecondes, depuis le début de la session.
+
+```ts
+const durationMs = bbs.getSessionDuration();
+```
+
+## Environnements
+
+Le SDK choisit les URL du backend à partir de la configuration de la build et de l'option `sandboxEnvironment`.
+
+| Paramètre | Environnement |
+| --- | --- |
+| `sandboxEnvironment: true` | Sandbox (préproduction) |
+| `sandboxEnvironment: false` | Production |
+
+Utilisez la Public Merchant Key de la section **API / Webhook** de votre tableau de bord, en vous assurant qu'elle correspond à l'environnement utilisé.
+
+## Exemples d'utilisation
+
+### Balise script (UMD)
+
+```html
+<script src="/dist/index.umd.cjs"></script>
+<script>
+  const bbs = new YouverifyBBS({
+    publicKey: 'YOUR_PUBLIC_KEY',
+    applicationName: 'Sample Page',
+    onLoad: (result) => {
+      console.log('Loaded', result.sessionId, result.id);
+    },
+    onError: (err) => {
+      console.error('BBS error', err);
+    },
+  });
+
+  bbs.get();
+
+  async function sendSampleEvent() {
+    await bbs.sendEvent('Sample Button Clicked', 'user-123', {
+      source: 'demo',
+    });
+  }
+</script>
+```
+
+### React
+
+```tsx
+import React, { useEffect, useMemo, useState } from 'react';
+import YouverifyBBS, { GetDeviceResponse } from 'youverify-behavioral-web-sdk';
+
+export function BBSProvider() {
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  const bbs = useMemo(
+    () =>
+      new YouverifyBBS({
+        publicKey: 'YOUR_PUBLIC_KEY',
+        applicationName: 'My React App',
+        onSessionStart: setSessionId,
+        onLoad: (res: GetDeviceResponse) => {
+          setSessionId(res.sessionId);
+          setReady(true);
+        },
+        onError: (err: Error) => {
+          console.error('BBS error', err);
+        },
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    bbs.get();
+    return () => {
+      bbs.close();
+    };
+  }, [bbs]);
+
+  const trackClick = async () => {
+    await bbs.sendEvent('Button Clicked', 'user-123', { page: 'home' });
+  };
+
+  if (!ready) return <div>Loading behavioral signals...</div>;
+
+  return (
+    <div>
+      <p>Session ID: {sessionId}</p>
+      <button onClick={trackClick}>Track behavioral event</button>
+    </div>
+  );
+}
+```
+
+## Prise en charge des navigateurs
+
+- Navigateurs modernes compatibles ES2015+.
+- L'API Fetch est requise, ou un polyfill.
+
+<Note>
+  Transmettez toujours, comme `publicKey`, la Public Merchant Key qui correspond à votre environnement (sandbox ou production). Privilégiez des noms d'événements explicites et joignez des données `meta` pour des analyses plus riches.
+</Note>

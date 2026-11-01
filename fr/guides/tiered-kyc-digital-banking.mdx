@@ -196,7 +196,7 @@ Ce guide vous montre comment mettre en œuvre un parcours KYC en quatre paliers,
   **Côté serveur : générer un jeton de session de vivacité**
 
   ```bash cURL
-  curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
+  curl -X POST "https://api.youverify.co/v2/api/identity/sdk/liveness/token" \
     -H "token: $YV_SECRET_KEY" \
     -H "Content-Type: application/json" \
     -d '{
@@ -299,7 +299,7 @@ Ce guide vous montre comment mettre en œuvre un parcours KYC en quatre paliers,
 | --- | --- | --- | --- |
 | 0 | Aucune (AML automatique) | E-mail ou téléphone | `POST /v2/api/entities` |
 | 1 | Correspondance avec une pièce d'identité officielle | BVN / NIN / carte d'identité nationale | `POST /v2/api/entities/{id}/verify/kyc` |
-| 2 | Vivacité biométrique | Selfie + capture de document | SDK → `POST /v2/api/sdk/liveness-token` |
+| 2 | Vivacité biométrique | Selfie + capture de document | SDK → `POST /v2/api/identity/sdk/liveness/token` |
 | 3 | Vérification d'adresse | Adresse résidentielle | `POST /v2/api/address/verify` |
 
 <Tip>

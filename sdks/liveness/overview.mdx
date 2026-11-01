@@ -1,0 +1,42 @@
+---
+title: "Anti-Deepfake Liveness SDK"
+sidebarTitle: "Overview"
+description: "Confirm a live person is present, not a photo, video or deepfake, with the Youverify Liveness SDK for web, Android and iOS."
+---
+
+The Anti-Deepfake Liveness SDK confirms that a live person, not a photo, video or deepfake, is completing a verification. The user performs a short head-movement task inside your app, and Youverify handles the detection logic.
+
+## Choose your platform
+
+<CardGroup cols={3}>
+  <Card title="Web" icon="globe" href="/sdks/liveness/web">
+    Add liveness detection to a browser-based app with an npm package or CDN script.
+  </Card>
+
+  <Card title="Android" icon="android" href="/sdks/android-sdk">
+    Integrate liveness detection into your Android app using Jetpack Compose.
+  </Card>
+
+  <Card title="iOS" icon="apple" href="/sdks/ios-sdk">
+    Add liveness detection to your iOS app using Swift, via CocoaPods or Swift Package Manager.
+  </Card>
+</CardGroup>
+
+## Liveness tasks
+
+The Android and iOS SDKs support four task types. You choose which tasks to run when you start the SDK.
+
+| Task | What the user does |
+| --- | --- |
+| Complete the Circle | Traces a circle with head movement |
+| Motions | Performs a random sequence of nods, blinks and mouth opening |
+| Blink | Blinks a set number of times |
+| Yes or No | Answers questions by tilting their head |
+
+## Before you integrate
+
+Every liveness flow needs a session ID and a liveness token generated from your backend with your secret API key. See [Session tokens](/sdks/liveness-sdk) for the endpoints, request parameters and expiry rules.
+
+<Warning>
+  Never embed your secret API key in a web page or mobile app. Generate tokens server-side and pass only the resulting values to the SDK.
+</Warning>

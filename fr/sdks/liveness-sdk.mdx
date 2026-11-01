@@ -4,7 +4,7 @@ sidebarTitle: "SDK Liveness"
 description: "Découvrez comment générer côté serveur les jetons de session nécessaires pour initialiser en toute sécurité les parcours SDK Youverify Web, Android et iOS."
 ---
 
-Chaque parcours SDK Youverify, que ce soit sur le web, Android ou iOS, nécessite un jeton à courte durée de vie généré depuis votre backend avant que vous puissiez initialiser le SDK côté client. Cette conception garantit que votre clé d'API secrète ne quitte jamais votre serveur et ne peut pas être extraite d'une page web ni d'une application décompilée.
+Chaque parcours de détection de vivacité anti-deepfake, que ce soit sur le web, Android ou iOS, nécessite un jeton à courte durée de vie généré depuis votre backend avant que vous puissiez initialiser le SDK côté client. Cette conception garantit que votre clé d'API secrète ne quitte jamais votre serveur et ne peut pas être extraite d'une page web ni d'une application décompilée.
 
 ## Pourquoi la génération des jetons côté serveur est nécessaire
 
@@ -21,16 +21,16 @@ Les deux jetons sont émis par l'API Youverify à l'aide de votre clé d'API sec
 
 ## Endpoint 1 — Générer un SDK Session ID
 
-Utilisez cet endpoint pour les parcours du SDK Web et les sessions de capture de documents.
+Utilisez cet endpoint pour démarrer des sessions de détection de vivacité anti-deepfake.
 
-**`POST /v2/api/sdk/session-id`**
+**`POST /v2/api/identity/sdk/session/generate`**
 
 ### Requête
 
 <CodeGroup>
 
 ```bash cURL
-curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
+curl -X POST "https://api.youverify.co/v2/api/identity/sdk/session/generate" \
   -H "token: $YV_SECRET_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -42,7 +42,7 @@ curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
 
 ```javascript Node.js
 const response = await fetch(
-  'https://api.youverify.co/v2/api/sdk/session-id',
+  'https://api.youverify.co/v2/api/identity/sdk/session/generate',
   {
     method: 'POST',
     headers: {
@@ -56,15 +56,14 @@ const response = await fetch(
     })
   }
 );
-const { data } = await response.json();
-const sessionId = data.sessionId;
+const { sessionId } = await response.json();
 ```
 
 ```python Python
 import requests, os
 
 resp = requests.post(
-    'https://api.youverify.co/v2/api/sdk/session-id',
+    'https://api.youverify.co/v2/api/identity/sdk/session/generate',
     headers={
         'token': os.environ['YV_SECRET_KEY'],
         'Content-Type': 'application/json'
@@ -75,7 +74,7 @@ resp = requests.post(
         'metadata': {}
     }
 )
-session_id = resp.json()['data']['sessionId']
+session_id = resp.json()['sessionId']
 ```
 
 </CodeGroup>
@@ -98,28 +97,12 @@ session_id = resp.json()['data']['sessionId']
 
 ```json
 {
-  "success": true,
-  "statusCode": 200,
-  "message": "SDK session generated",
-  "data": {
-    "sessionId": "200f5a883713b7ff26f22f489d716ca3",
-    "expiresAt": "2025-10-05T23:56:48.821Z",
-    "status": "active"
-  },
-  "links": []
+  "sessionId": "generated_session_id_here"
 }
 ```
 
-<ResponseField name="data.sessionId" type="string">
+<ResponseField name="sessionId" type="string">
   L'identifiant de session à transmettre au constructeur du SDK.
-</ResponseField>
-
-<ResponseField name="data.expiresAt" type="string">
-  Horodatage ISO 8601 de l'expiration de cet identifiant de session.
-</ResponseField>
-
-<ResponseField name="data.status" type="string">
-  Toujours `active` pour une réponse réussie.
 </ResponseField>
 
 ---
@@ -128,14 +111,14 @@ session_id = resp.json()['data']['sessionId']
 
 Utilisez cet endpoint pour les parcours de détection de vivacité sur toutes les plateformes (Web, Android, iOS).
 
-**`POST /v2/api/sdk/liveness-token`**
+**`POST /v2/api/identity/sdk/liveness/token`**
 
 ### Requête
 
 <CodeGroup>
 
 ```bash cURL
-curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
+curl -X POST "https://api.youverify.co/v2/api/identity/sdk/liveness/token" \
   -H "token: $YV_SECRET_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -146,7 +129,7 @@ curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
 
 ```javascript Node.js
 const response = await fetch(
-  'https://api.youverify.co/v2/api/sdk/liveness-token',
+  'https://api.youverify.co/v2/api/identity/sdk/liveness/token',
   {
     method: 'POST',
     headers: {
@@ -159,15 +142,14 @@ const response = await fetch(
     })
   }
 );
-const { data } = await response.json();
-const livenessToken = data.authToken;
+const { authToken: livenessToken } = await response.json();
 ```
 
 ```python Python
 import requests, os
 
 resp = requests.post(
-    'https://api.youverify.co/v2/api/sdk/liveness-token',
+    'https://api.youverify.co/v2/api/identity/sdk/liveness/token',
     headers={
         'token': os.environ['YV_SECRET_KEY'],
         'Content-Type': 'application/json'
@@ -177,7 +159,7 @@ resp = requests.post(
         'deviceCorrelationId': 'UNIQUE_DEVICE_OR_SESSION_ID'
     }
 )
-liveness_token = resp.json()['data']['authToken']
+liveness_token = resp.json()['authToken']
 ```
 
 </CodeGroup>
@@ -200,23 +182,12 @@ liveness_token = resp.json()['data']['authToken']
 
 ```json
 {
-  "success": true,
-  "statusCode": 200,
-  "message": "Liveness token fetched successfully!",
-  "data": {
-    "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "sessionId": "b15a8d20-c602-4f89-9d3a-1c3e4e5f6a7b"
-  },
-  "links": []
+  "authToken": "generated_auth_token_here"
 }
 ```
 
-<ResponseField name="data.authToken" type="string">
+<ResponseField name="authToken" type="string">
   Le jeton de vivacité à transmettre en tant que `sessionToken` dans le constructeur du SDK.
-</ResponseField>
-
-<ResponseField name="data.sessionId" type="string">
-  Un identifiant de session associé à ce jeton de vivacité.
 </ResponseField>
 
 ---

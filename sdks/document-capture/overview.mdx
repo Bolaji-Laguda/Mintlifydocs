@@ -1,0 +1,31 @@
+---
+title: "Overview"
+---
+
+The Document Capture SDK lets users capture an identity document, such as a passport, national ID card, driver's licence or residence permit, from inside your application. The SDK guides the user through the capture and returns the extracted document details and images to your page.
+
+## Platform support
+
+Document Capture is available for **web** applications today. There is no native Android or iOS SDK yet. If you need it in a mobile app, you can wrap the web integration in a WebView.
+
+<CardGroup cols={2}>
+  <Card title="Web integration" icon="globe" href="/sdks/web-sdk">
+    Install the Web SDK, start document capture and handle the result.
+  </Card>
+
+  <Card title="Mobile apps (WebView)" icon="mobile-screen" href="/sdks/document-capture/mobile-webview">
+    A recommended way to offer Document Capture inside an Android, iOS or cross-platform app.
+  </Card>
+</CardGroup>
+
+## Before you integrate
+
+Get your **Public Merchant Key** from the **API / Webhook** section of your Youverify dashboard. It is the credential you pass to the SDK, and it is safe to use in client-side code.
+
+<Warning>
+  Never embed your secret API key in a web page or mobile app. Keep it on your server.
+</Warning>
+
+## Supported countries and documents
+
+You can limit capture to specific countries, provinces and document types with the `countries` option. To see what is supported, see [Country and product coverage](/resources/coverage#document-capture).
