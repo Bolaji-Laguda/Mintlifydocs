@@ -4,24 +4,25 @@ sidebarTitle: 'Overview'
 description: 'Embed biometric liveness detection and document capture natively in your web or mobile app using Youverify SDKs.'
 ---
 
-Youverify provides first-party SDKs for web browsers, Android, and iOS that let you embed biometric liveness detection and document capture directly inside your product. Rather than redirecting users to a hosted page, the SDK flows run natively within your app — giving you full control over the UI while Youverify handles the fraud-detection logic.
+Youverify provides first-party SDKs for web browsers, Android, and iOS, offered as three services (Anti-Deepfake Liveness, Document Capture, and Fraud Insights), that let you embed biometric liveness detection and document capture directly inside your product. Rather than redirecting users to a hosted page, the SDK flows run natively within your app — giving you full control over the UI while Youverify handles the fraud-detection logic.
 
-## Available SDKs
+## SDK services
 
-<CardGroup cols={2}>
-  <Card title="Web SDK" icon="globe" href="/sdks/web-sdk">
-    Embed liveness detection and document capture in any browser-based application using a CDN script or npm package.
+The SDKs are organized by the service they provide. Each service has its own guide for the platforms it supports.
+
+<CardGroup cols={3}>
+  <Card title="Anti-Deepfake Liveness" icon="face-viewfinder" href="/sdks/liveness/overview">
+    Confirm a live person is present, not a photo, video or deepfake. Web, Android and iOS.
   </Card>
-  <Card title="Android SDK" icon="android" href="/sdks/android-sdk">
-    Integrate real-time liveness detection and document capture into your Android application using Jetpack Compose.
+  <Card title="Document Capture" icon="id-card" href="/sdks/document-capture/overview">
+    Let users photograph a government-issued ID from inside your app. Web, Android and iOS.
   </Card>
-  <Card title="iOS SDK" icon="apple" href="/sdks/ios-sdk">
-    Add liveness detection and document capture to your iOS application using Swift, via CocoaPods or Swift Package Manager.
-  </Card>
-  <Card title="Session Tokens" icon="key" href="/sdks/liveness-sdk">
-    Generate the server-side session tokens required to initialize any Youverify SDK flow securely.
+  <Card title="Fraud Insights" icon="shield-halved" href="/sdks/fraud-insights/overview">
+    Collect passive device and behavioural signals to enrich the risk score. Web, Android and iOS.
   </Card>
 </CardGroup>
+
+Every service needs a server-side session token. See [Session tokens](/sdks/liveness-sdk).
 
 ## How SDK flows work
 
