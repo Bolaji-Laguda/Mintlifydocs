@@ -1,10 +1,4 @@
----
-title: "Integrate Youverify Liveness SDK for Web"
-sidebarTitle: "Web"
-description: "Install the Youverify Liveness SDK in a browser-based application."
----
-
-The Youverify Liveness Web SDK adds anti-deepfake liveness detection to your web application without redirecting users to a hosted page.
+The Youverify Liveness Web SDK adds anti-deepfake liveness detection to your web application without redirecting users to a hosted page. Users complete one or more short tasks, such as tracing a circle with their head, and the SDK returns the result to your callbacks.
 
 ## Installation
 
@@ -12,6 +6,11 @@ The Youverify Liveness Web SDK adds anti-deepfake liveness detection to your web
   <Tab title="npm">
     ```bash
     npm install youverify-liveness-web
+    ```
+  </Tab>
+  <Tab title="Yarn">
+    ```bash
+    yarn add youverify-liveness-web
     ```
   </Tab>
   <Tab title="CDN (jsDelivr)">
@@ -23,17 +22,377 @@ The Youverify Liveness Web SDK adds anti-deepfake liveness detection to your web
     ```html
     <!-- Latest version -->
     <script src="https://unpkg.com/youverify-liveness-web/dist/index.js"></script>
-
+    
     <!-- Pinned version -->
     <script src="https://unpkg.com/youverify-liveness-web@1.0.1/dist/index.js"></script>
     ```
   </Tab>
 </Tabs>
 
-## Before you initialize the SDK
+## Integration steps
 
-Generate a session ID and a liveness token from your backend. See [Session tokens](/sdks/liveness-sdk).
+<Steps>
+  <Step title="Generate a session ID and a session token on your backend">
+    The SDK doesn't generate session tokens itself. Your backend calls the Youverify API with your secret API key and passes both values to the page. See [Generate the session ID and session token](#generate-the-session-id-and-session-token).
+  </Step>
+  <Step title="Import and initialize the SDK">
+    ```js
+    import YouverifyLiveness from "youverify-liveness-web";
+    
+    const yvLiveness = new YouverifyLiveness(options);
+    ```
+
+    For the valid `options`, see [Options](#options).
+  </Step>
+  <Step title="Start the liveness check">
+    ```js
+    yvLiveness.start();
+    ```
+
+    You can also pass an array of tasks. Tasks passed to `start()` override the tasks you set during initialization.
+
+    ```js
+    const tasks = [{ id: "complete-the-circle" }];
+    yvLiveness.start(tasks);
+    ```
+  </Step>
+</Steps>
+
+## Generate the session ID and session token
+
+Both calls must come from your backend. Use the base URL for the environment you are testing against.
+
+| Environment | Base URL |
+| --- | --- |
+| Sandbox | `https://api.sandbox.youverify.co` |
+| Live | `https://api.youverify.co` |
+
+<Warning>
+  Never expose your API key in frontend code. Make these calls from your secure backend.
+</Warning>
+
+### Session ID
+
+**`POST /v2/api/identity/sdk/session/generate`**
+
+```json Headers
+{
+  "Content-Type": "application/json",
+  "Token": "YOUR_API_KEY"
+}
+```
+
+```json Request body
+{
+  "publicMerchantID": "your_public_merchant_id",
+  "metadata": {}
+}
+```
+
+```json Response
+{
+  "sessionId": "generated_session_id_here"
+}
+```
+
+Pass the `sessionId` to the SDK constructor.
+
+### Session token
+
+**`POST /v2/api/identity/sdk/liveness/token`**
+
+```json Headers
+{
+  "Content-Type": "application/json",
+  "Token": "YOUR_API_KEY"
+}
+```
+
+```json Request body
+{
+  "publicMerchantID": "your_public_merchant_id",
+  "deviceCorrelationId": "unique_device_identifier"
+}
+```
+
+```json Response
+{
+  "authToken": "generated_auth_token_here"
+}
+```
+
+Pass the `authToken` to the SDK constructor as `sessionToken`. The `deviceCorrelationId` should be a unique identifier for the user's device or session. It helps track and prevent abuse.
+
+## Full example
+
+```js
+import YouverifyLiveness from "youverify-liveness-web";
+
+try {
+  const yvLiveness = new YouverifyLiveness({
+    sessionId: sessionId,        // from your backend
+    sessionToken: sessionToken,  // from your backend
+    sandboxEnvironment: true,    // set to false for production
+    tasks: [{ id: "complete-the-circle" }],
+    onSuccess: (data) => {
+      console.log("Liveness check passed:", data);
+    },
+    onFailure: (data) => {
+      console.log("Liveness check failed:", data);
+
+      if (data.error?.key === "invalid_or_expired_session") {
+        // Generate a new session and retry
+      } else if (data.error?.key === "session_token_error") {
+        // Generate a new session token and retry
+      }
+    },
+  });
+
+  yvLiveness.start();
+} catch (error) {
+  // Handle validation errors
+  console.log(`Something isn't right, ${error}`);
+}
+```
+
+## Preloading
+
+The SDK downloads its face detection model, several MB, before the liveness check can begin. The download doesn't depend on the session, so start it early, before you generate the `sessionId` and `sessionToken`.
+
+```js
+import YouverifyLiveness from "youverify-liveness-web";
+
+YouverifyLiveness.preload();
+```
+
+- It's safe to call more than once. Later calls, including the one the constructor makes, reuse the download already in progress.
+- If you don't call it, the download starts when the SDK is constructed.
+- `preload()` keeps the detector in memory, so it only carries over to the liveness check if the page isn't reloaded in between. That's the case in single-page apps that navigate with their router.
+
+### Single-page apps
+
+Call `preload()` in your app's entry module.
+
+| Framework | Where to call `preload()` |
+| --- | --- |
+| React / Preact (Vite, CRA) | `main.tsx` / `index.tsx`, before `render` |
+| Vue | `main.ts`, before `createApp(...).mount()` |
+| Angular | `main.ts`, before `bootstrapApplication` |
+| Next.js | A client component in the root layout (or `_app`), inside `useEffect` |
+
+```js
+// main.tsx
+import YouverifyLiveness from "youverify-liveness-web";
+
+YouverifyLiveness.preload();
+
+createRoot(document.getElementById("root")).render(<App />);
+```
+
+A reload cancels any download still in progress. Files that already finished come from the browser's HTTP cache, and anything that was cut off downloads again as soon as the entry module runs.
+
+### Multi-page sites
+
+If users reach the liveness check through full page loads, the preloaded detector is discarded on every navigation. Call `prefetch()` on the pages before the liveness check instead.
+
+```js
+YouverifyLiveness.prefetch();
+```
+
+It asks the browser to download the detector files into its HTTP cache in the background, without building the detector. When the SDK starts on the liveness page, the files come from the cache. The detector is still set up on that page, so this saves download time but not setup time.
+
+- It's safe to call on every page. Files already requested aren't added again.
+- It relies on the browser's HTTP cache. It has no effect if caching is disabled, for example in a webview configured with `LOAD_NO_CACHE`.
+- `<link rel="prefetch">` is supported in Chromium-based browsers and Firefox, but not in Safari, where `prefetch()` does nothing.
+
+| Your app | Call | Result on the liveness page |
+| --- | --- | --- |
+| Single-page app | `preload()` once in the app entry module | Detector ready, if it finished loading before the user got there |
+| Multi-page site | `prefetch()` on earlier pages | Files come from cache; detector still set up there |
+
+## Options
+
+<ParamField body="sessionId" type="string" required>
+  ID generated by your backend using your API key. The SDK validates it before initialization and attaches it to submissions.
+</ParamField>
+
+<ParamField body="sessionToken" type="string" required>
+  Token generated by your backend for liveness verification.
+</ParamField>
+
+<ParamField body="publicKey" type="string">
+  Your Youverify public merchant key.
+</ParamField>
+
+<ParamField body="sandboxEnvironment" default="true" type="boolean">
+  Whether the session runs in sandbox or live mode. Set to `false` for production.
+</ParamField>
+
+<ParamField body="presentation" default="modal" type="string">
+  How the UI is displayed. One of `modal` or `page`.
+</ParamField>
+
+<ParamField body="tasks" type="array">
+  The tasks the user must perform to confirm liveness. See [Tasks](#tasks).
+</ParamField>
+
+<ParamField body="entityId" type="string">
+  Optional entity identifier to include when the liveness result is submitted.
+</ParamField>
+
+<ParamField body="allowAudio" default="false" type="boolean">
+  Whether to narrate information to the user during tasks.
+</ParamField>
+
+<ParamField body="user" type="object">
+  Details of the user being checked.
+
+  <Expandable title="properties">
+    <ParamField body="firstName" type="string" required>
+      First name of the user.
+    </ParamField>
+
+    <ParamField body="lastName" type="string">
+      Last name of the user.
+    </ParamField>
+
+    <ParamField body="email" type="string">
+      Email of the user.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="branding" type="object">
+  Customizes the UI to fit your brand.
+
+  <Expandable title="properties">
+    <ParamField body="name" type="string">
+      The name of the brand.
+    </ParamField>
+
+    <ParamField body="color" type="string">
+      Your branding color, as a valid hex or RGB string.
+    </ParamField>
+
+    <ParamField body="logo" type="string">
+      A link to your logo image.
+    </ParamField>
+
+    <ParamField body="logoAlt" default="Youverify" type="string">
+      Alternative text for the brand logo.
+    </ParamField>
+
+    <ParamField body="hideLogoOnMobile" default="false" type="boolean">
+      Hides the logo in a mobile webview.
+    </ParamField>
+
+    <ParamField body="showPoweredBy" default="false" type="boolean">
+      Shows the "Powered by" footer text.
+    </ParamField>
+
+    <ParamField body="poweredByText" default="Powered by" type="string">
+      Customizes the "Powered by" text.
+    </ParamField>
+
+    <ParamField body="poweredByLogo" type="string">
+      A link to a custom "Powered by" logo image.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="onClose" type="function">
+  Called when the modal is closed.
+</ParamField>
+
+<ParamField body="onSuccess" type="function">
+  Called when all tasks have been completed and passed. Receives the [callback data](#callback-data).
+</ParamField>
+
+<ParamField body="onFailure" type="function">
+  Called when at least one task fails. Receives the [callback data](#callback-data).
+</ParamField>
+
+## Tasks
+
+A task is a series of instructions the user follows to confirm liveness. Pass tasks in the `tasks` option or to `start()`. Every task takes these options:
+
+| Option | Type | Required | Description | Default |
+| --- | --- | --- | --- | --- |
+| `id` | String | Yes | ID of the task. See the sections below. | - |
+| `difficulty` | String | No | `easy`, `medium` or `hard` | `medium` |
+| `timeout` | Number | No | Time in milliseconds after which the task fails automatically | undefined |
+
+### Complete the Circle
+
+The user completes an imaginary circle with head movement. Use `id: "complete-the-circle"`.
+
+### Yes or No
+
+The user answers questions you set by tilting their head: right for yes, left for no. Use `id: "yes-or-no"`.
+
+| Option | Type | Required | Description |
+| --- | --- | --- | --- |
+| `questions` | Array | No | The questions to ask the user |
+| `questions.question` | String | Yes | A true-or-false question, for example "Are you ready" |
+| `questions.answer` | Boolean | Yes | The correct answer, `true` or `false` |
+| `questions.errorMessage` | String | No | Message shown if the user answers wrongly |
+
+### Motions
+
+The user performs random motions in random sequences: nodding, blinking and opening the mouth. Use `id: "motions"`.
+
+| Option | Type | Required | Description | Default |
+| --- | --- | --- | --- | --- |
+| `maxNods` | Number | No | Maximum number of nods the user is asked to perform | 5 |
+| `maxBlinks` | Number | No | Maximum number of blinks the user is asked to perform | 5 |
+
+### Blink
+
+The user blinks a set number of times. Use `id: "blink"`.
+
+| Option | Type | Required | Description | Default |
+| --- | --- | --- | --- | --- |
+| `maxBlinks` | Number | No | Maximum number of blinks the user is asked to perform | 5 |
+
+## Callback data
+
+`onSuccess` and `onFailure` receive an object with these properties.
+
+<ResponseField name="data.passed" type="boolean">
+  Whether the liveness check passed.
+</ResponseField>
+
+<ResponseField name="data.faceImage" type="string">
+  Face image of the user performing the check.
+</ResponseField>
+
+<ResponseField name="data.livenessClip" type="string">
+  Video of the user performing the check.
+</ResponseField>
+
+<ResponseField name="data.metadata" type="any">
+  Metadata passed in during initialization.
+</ResponseField>
+
+<ResponseField name="data.error" type="object">
+  Present only on failure. Contains `key` (`eyes_closed`, `image_capture_failed` or `API_ERROR`) and `message`.
+</ResponseField>
+
+When the SDK submits the liveness payload, it includes `sdkVersion` (the SDK package version, `1.1.1`) and, if you passed it during initialization, `entityId`.
+
+## Errors and retries
+
+| Error key | Meaning |
+| --- | --- |
+| `invalid_or_expired_session` | The `sessionId` is invalid or expired |
+| `session_token_error` | There is a problem with the `sessionToken` during liveness verification |
+
+- If session validation fails, generate a new `sessionId` and retry.
+- If liveness fails, the user can retry while the current `sessionId` remains valid.
+- If the `sessionId` expires, create a new session and restart the process.
 
 <Note>
-  The initialization and launch steps for the Liveness Web SDK are not yet documented here. Contact [support@youverify.co](mailto:support@youverify.co) for the current integration guide. The [Android](/sdks/android-sdk) and [iOS](/sdks/ios-sdk) guides show the full liveness flow on mobile.
+  Use `sandboxEnvironment: true` for testing and `sandboxEnvironment: false` for production.
 </Note>
+
+For the token endpoints shared by all SDKs, see [Session tokens](/sdks/liveness-sdk).
