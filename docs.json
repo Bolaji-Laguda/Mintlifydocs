@@ -89,8 +89,7 @@
                     "pages": [
                       "sdks/document-capture/overview",
                       "sdks/web-sdk",
-                      "sdks/document-capture/android",
-                      "sdks/document-capture/ios"
+                      "sdks/document-capture/mobile-webview"
                     ]
                   },
                   {
@@ -201,9 +200,7 @@
                     "group": "Capture de documents",
                     "pages": [
                       "fr/sdks/document-capture/overview",
-                      "fr/sdks/web-sdk",
-                      "fr/sdks/document-capture/android",
-                      "fr/sdks/document-capture/ios"
+                      "fr/sdks/web-sdk"
                     ]
                   },
                   {
