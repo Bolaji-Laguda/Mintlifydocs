@@ -55,8 +55,7 @@ const response = await fetch(
     })
   }
 );
-const { data } = await response.json();
-const sessionId = data.sessionId;
+const { sessionId } = await response.json();
 ```
 
 ```python Python
@@ -74,7 +73,7 @@ resp = requests.post(
         'metadata': {}
     }
 )
-session_id = resp.json()['data']['sessionId']
+session_id = resp.json()['sessionId']
 ```
 </CodeGroup>
 
@@ -96,28 +95,12 @@ session_id = resp.json()['data']['sessionId']
 
 ```json
 {
-  "success": true,
-  "statusCode": 200,
-  "message": "SDK session generated",
-  "data": {
-    "sessionId": "200f5a883713b7ff26f22f489d716ca3",
-    "expiresAt": "2025-10-05T23:56:48.821Z",
-    "status": "active"
-  },
-  "links": []
+  "sessionId": "generated_session_id_here"
 }
 ```
 
-<ResponseField name="data.sessionId" type="string">
+<ResponseField name="sessionId" type="string">
   The session ID to pass to the SDK constructor.
-</ResponseField>
-
-<ResponseField name="data.expiresAt" type="string">
-  ISO 8601 timestamp when this session ID expires.
-</ResponseField>
-
-<ResponseField name="data.status" type="string">
-  Always `active` on a successful response.
 </ResponseField>
 
 ---
@@ -156,8 +139,7 @@ const response = await fetch(
     })
   }
 );
-const { data } = await response.json();
-const livenessToken = data.authToken;
+const { authToken: livenessToken } = await response.json();
 ```
 
 ```python Python
@@ -174,7 +156,7 @@ resp = requests.post(
         'deviceCorrelationId': 'UNIQUE_DEVICE_OR_SESSION_ID'
     }
 )
-liveness_token = resp.json()['data']['authToken']
+liveness_token = resp.json()['authToken']
 ```
 </CodeGroup>
 
@@ -196,23 +178,12 @@ liveness_token = resp.json()['data']['authToken']
 
 ```json
 {
-  "success": true,
-  "statusCode": 200,
-  "message": "Liveness token fetched successfully!",
-  "data": {
-    "authToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "sessionId": "b15a8d20-c602-4f89-9d3a-1c3e4e5f6a7b"
-  },
-  "links": []
+  "authToken": "generated_auth_token_here"
 }
 ```
 
-<ResponseField name="data.authToken" type="string">
+<ResponseField name="authToken" type="string">
   The liveness token to pass as `sessionToken` in the SDK constructor.
-</ResponseField>
-
-<ResponseField name="data.sessionId" type="string">
-  A session ID associated with this liveness token.
 </ResponseField>
 
 ---
