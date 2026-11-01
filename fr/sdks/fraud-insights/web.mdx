@@ -61,7 +61,7 @@ const bbs = new YouverifyBBS({
 ### Propriétés
 
 <ParamField body="publicKey" type="string" required>
-  Clé publique de l'entreprise fournie par Youverify.
+  Votre **Public Merchant Key** (clé marchand publique). Vous la trouverez dans la section **API / Webhook** de votre tableau de bord Youverify. Elle peut être utilisée sans risque côté client.
 </ParamField>
 
 <ParamField body="applicationName" type="string" required>
@@ -146,7 +146,7 @@ Le SDK choisit les URL du backend à partir de la configuration de la build et d
 | `sandboxEnvironment: true` | Sandbox (préproduction) |
 | `sandboxEnvironment: false` | Production |
 
-Votre contact Youverify vous indiquera la combinaison et la clé publique à utiliser dans chaque environnement.
+Utilisez la Public Merchant Key de la section **API / Webhook** de votre tableau de bord, en vous assurant qu'elle correspond à l'environnement utilisé.
 
 ## Exemples d'utilisation
 
@@ -231,5 +231,5 @@ export function BBSProvider() {
 - L'API Fetch est requise, ou un polyfill.
 
 <Note>
-  Utilisez toujours la `publicKey` correspondant à l'environnement (sandbox ou production). Privilégiez des noms d'événements explicites et joignez des données `meta` pour des analyses plus riches.
+  Utilisez toujours la Public Merchant Key correspondant à l'environnement, comme `publicKey`, (sandbox ou production). Privilégiez des noms d'événements explicites et joignez des données `meta` pour des analyses plus riches.
 </Note>

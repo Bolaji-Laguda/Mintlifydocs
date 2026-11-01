@@ -61,7 +61,7 @@ const bbs = new YouverifyBBS({
 ### Props
 
 <ParamField body="publicKey" type="string" required>
-  Business public key provided by Youverify.
+  Your **Public Merchant Key**. You can find it in the **API / Webhook** section of your Youverify dashboard. It is safe to use in client-side code.
 </ParamField>
 
 <ParamField body="applicationName" type="string" required>
@@ -146,7 +146,7 @@ The SDK chooses backend URLs from the build configuration and the `sandboxEnviro
 | `sandboxEnvironment: true` | Sandbox (staging) |
 | `sandboxEnvironment: false` | Production |
 
-Your Youverify contact will tell you which combination and public key to use in each environment.
+Use the Public Merchant Key from the **API / Webhook** section of your dashboard, and make sure it matches the environment you are using.
 
 ## Usage examples
 
@@ -231,5 +231,5 @@ export function BBSProvider() {
 - Requires the Fetch API, or a polyfill.
 
 <Note>
-  Always use the correct `publicKey` for the environment (sandbox or production). Use meaningful event names and attach `meta` data for richer analytics.
+  Always use the correct Public Merchant Key as your `publicKey` for the environment (sandbox or production). Use meaningful event names and attach `meta` data for richer analytics.
 </Note>
