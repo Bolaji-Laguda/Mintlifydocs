@@ -1,0 +1,31 @@
+---
+title: "SDK de capture de documents"
+sidebarTitle: "Vue d'ensemble"
+description: "Permettez à vos utilisateurs de photographier une pièce d'identité officielle depuis votre application et de la soumettre pour extraction et vérification."
+---
+
+Le SDK de capture de documents permet aux utilisateurs de photographier une pièce d'identité officielle, comme un passeport, une carte d'identité nationale, un permis de conduire ou un titre de séjour, depuis votre application. L'image capturée est soumise pour extraction et vérification.
+
+## Choisissez votre plateforme
+
+<CardGroup cols={3}>
+  <Card title="Web" icon="globe" href="/fr/sdks/web-sdk">
+    Intégrez la capture de documents à une application web avec un package npm ou un script CDN.
+  </Card>
+
+  <Card title="Android" icon="android" href="/fr/sdks/document-capture/android">
+    Capture de documents pour Android.
+  </Card>
+
+  <Card title="iOS" icon="apple" href="/fr/sdks/document-capture/ios">
+    Capture de documents pour iOS.
+  </Card>
+</CardGroup>
+
+## Avant d'intégrer
+
+Générez un identifiant de session depuis votre backend avec votre clé API secrète. Consultez [Jetons de session](/fr/sdks/liveness-sdk).
+
+<Warning>
+  N'intégrez jamais votre clé API secrète dans une page web ou une application mobile. Générez l'identifiant de session côté serveur et ne transmettez au SDK que cette valeur.
+</Warning>

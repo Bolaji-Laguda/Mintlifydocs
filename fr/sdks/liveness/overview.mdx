@@ -1,0 +1,42 @@
+---
+title: "SDK de détection de vivacité anti-deepfake"
+sidebarTitle: "Vue d'ensemble"
+description: "Confirmez qu'une personne bien réelle est présente, et non une photo, une vidéo ou un deepfake, avec le SDK Liveness de Youverify pour le web, Android et iOS."
+---
+
+Le SDK de détection de vivacité anti-deepfake confirme qu'une personne bien réelle, et non une photo, une vidéo ou un deepfake, réalise une vérification. L'utilisateur effectue une courte tâche de mouvement de la tête dans votre application, et Youverify gère la logique de détection.
+
+## Choisissez votre plateforme
+
+<CardGroup cols={3}>
+  <Card title="Web" icon="globe" href="/fr/sdks/liveness/web">
+    Ajoutez la détection de vivacité à une application web avec un package npm ou un script CDN.
+  </Card>
+
+  <Card title="Android" icon="android" href="/fr/sdks/android-sdk">
+    Intégrez la détection de vivacité à votre application Android avec Jetpack Compose.
+  </Card>
+
+  <Card title="iOS" icon="apple" href="/fr/sdks/ios-sdk">
+    Ajoutez la détection de vivacité à votre application iOS avec Swift, via CocoaPods ou Swift Package Manager.
+  </Card>
+</CardGroup>
+
+## Tâches de vivacité
+
+Les SDK Android et iOS prennent en charge quatre types de tâches. Vous choisissez les tâches à exécuter au démarrage du SDK.
+
+| Tâche | Ce que fait l'utilisateur |
+| --- | --- |
+| Complete the Circle | Trace un cercle avec un mouvement de la tête |
+| Motions | Effectue une séquence aléatoire de hochements de tête, de clignements et d'ouvertures de la bouche |
+| Blink | Cligne des yeux un nombre de fois défini |
+| Yes or No | Répond à des questions en inclinant la tête |
+
+## Avant d'intégrer
+
+Chaque flux de vivacité nécessite un identifiant de session et un jeton de vivacité générés depuis votre backend avec votre clé API secrète. Consultez [Jetons de session](/fr/sdks/liveness-sdk) pour les endpoints, les paramètres de requête et les règles d'expiration.
+
+<Warning>
+  N'intégrez jamais votre clé API secrète dans une page web ou une application mobile. Générez les jetons côté serveur et ne transmettez au SDK que les valeurs obtenues.
+</Warning>
