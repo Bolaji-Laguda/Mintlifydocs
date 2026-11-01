@@ -23,14 +23,14 @@ Les deux jetons sont émis par l'API Youverify à l'aide de votre clé d'API sec
 
 Utilisez cet endpoint pour les parcours du SDK Web et les sessions de capture de documents.
 
-**`POST /v2/api/sdk/session-id`**
+**`POST /v2/api/identity/sdk/session/generate`**
 
 ### Requête
 
 <CodeGroup>
 
 ```bash cURL
-curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
+curl -X POST "https://api.youverify.co/v2/api/identity/sdk/session/generate" \
   -H "token: $YV_SECRET_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -42,7 +42,7 @@ curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
 
 ```javascript Node.js
 const response = await fetch(
-  'https://api.youverify.co/v2/api/sdk/session-id',
+  'https://api.youverify.co/v2/api/identity/sdk/session/generate',
   {
     method: 'POST',
     headers: {
@@ -64,7 +64,7 @@ const sessionId = data.sessionId;
 import requests, os
 
 resp = requests.post(
-    'https://api.youverify.co/v2/api/sdk/session-id',
+    'https://api.youverify.co/v2/api/identity/sdk/session/generate',
     headers={
         'token': os.environ['YV_SECRET_KEY'],
         'Content-Type': 'application/json'
@@ -128,14 +128,14 @@ session_id = resp.json()['data']['sessionId']
 
 Utilisez cet endpoint pour les parcours de détection de vivacité sur toutes les plateformes (Web, Android, iOS).
 
-**`POST /v2/api/sdk/liveness-token`**
+**`POST /v2/api/identity/sdk/liveness/token`**
 
 ### Requête
 
 <CodeGroup>
 
 ```bash cURL
-curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
+curl -X POST "https://api.youverify.co/v2/api/identity/sdk/liveness/token" \
   -H "token: $YV_SECRET_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -146,7 +146,7 @@ curl -X POST "https://api.youverify.co/v2/api/sdk/liveness-token" \
 
 ```javascript Node.js
 const response = await fetch(
-  'https://api.youverify.co/v2/api/sdk/liveness-token',
+  'https://api.youverify.co/v2/api/identity/sdk/liveness/token',
   {
     method: 'POST',
     headers: {
@@ -167,7 +167,7 @@ const livenessToken = data.authToken;
 import requests, os
 
 resp = requests.post(
-    'https://api.youverify.co/v2/api/sdk/liveness-token',
+    'https://api.youverify.co/v2/api/identity/sdk/liveness/token',
     headers={
         'token': os.environ['YV_SECRET_KEY'],
         'Content-Type': 'application/json'

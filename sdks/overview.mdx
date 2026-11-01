@@ -45,8 +45,8 @@ Every Youverify SDK follows the same two-step security pattern:
 
 | Token | Endpoint | Used for |
 |---|---|---|
-| SDK Session ID | `POST /v2/api/sdk/session-id` | Web SDK document capture and general verification flows |
-| SDK Liveness Token | `POST /v2/api/sdk/liveness-token` | Anti-deepfake liveness detection flows (all platforms) |
+| SDK Session ID | `POST /v2/api/identity/sdk/session/generate` | Web SDK document capture and general verification flows |
+| SDK Liveness Token | `POST /v2/api/identity/sdk/liveness/token` | Anti-deepfake liveness detection flows (all platforms) |
 
 See [Session Tokens](/sdks/liveness-sdk) for full request and response details on both endpoints.
 

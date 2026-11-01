@@ -51,7 +51,7 @@ Choose either the npm package or the CDN script tag, depending on whether your p
     Your backend calls the Youverify API to generate a short-lived session ID. This call uses your secret API key — it must happen on your server, not in the browser.
 
     ```bash
-    curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
+    curl -X POST "https://api.youverify.co/v2/api/identity/sdk/session/generate" \
       -H "token: $YV_SECRET_KEY" \
       -H "Content-Type: application/json" \
       -d '{

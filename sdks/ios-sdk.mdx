@@ -35,7 +35,7 @@ The latest iOS Liveness SDK compact version is **0.1.5**. A compatibility versio
   <Tab title="Swift Package Manager">
     In Xcode, go to **File → Add Packages** and enter the repository URL:
 
-    ```
+    ```text
     https://github.com/youverify/liveness-ios-sdk
     ```
 
@@ -56,7 +56,7 @@ Add the following key to your `Info.plist`:
 
 Before initializing the SDK your backend must generate a session ID and a liveness token. Use the `ApiClient` helper below as a reference for the required calls.
 
-**Generate session ID** — `POST /v2/api/sdk/session-id`:
+**Generate session ID** — `POST /v2/api/identity/sdk/session/generate`:
 
 ```swift
 func generateSessionId(publicMerchantID: String,
@@ -67,13 +67,13 @@ func generateSessionId(publicMerchantID: String,
         "publicMerchantID": publicMerchantID,
         "metadata": [:]
     ]
-    // POST to https://api.youverify.co/v2/api/sdk/session-id
+    // POST to https://api.youverify.co/v2/api/identity/sdk/session/generate
     // Header: token: apiToken
     // Response: { "data": { "sessionId": "..." } }
 }
 ```
 
-**Generate liveness token** — `POST /v2/api/sdk/liveness-token`:
+**Generate liveness token** — `POST /v2/api/identity/sdk/liveness/token`:
 
 ```swift
 func generateSessionToken(publicMerchantID: String,
@@ -85,7 +85,7 @@ func generateSessionToken(publicMerchantID: String,
         "publicMerchantID": publicMerchantID,
         "deviceCorrelationId": deviceCorrelationId
     ]
-    // POST to https://api.youverify.co/v2/api/sdk/liveness-token
+    // POST to https://api.youverify.co/v2/api/identity/sdk/liveness/token
     // Header: token: apiToken
     // Response: { "data": { "authToken": "..." } }
 }
@@ -212,11 +212,11 @@ All tasks accept a `difficulty` parameter (`.easy`, `.medium`, `.hard`) and an o
 </ParamField>
 
 <ParamField body="sessionId" type="String" required>
-  Session ID generated server-side via `POST /v2/api/sdk/session-id`.
+  Session ID generated server-side via `POST /v2/api/identity/sdk/session/generate`.
 </ParamField>
 
 <ParamField body="sessionToken" type="String" required>
-  Liveness token generated server-side via `POST /v2/api/sdk/liveness-token`.
+  Liveness token generated server-side via `POST /v2/api/identity/sdk/liveness/token`.
 </ParamField>
 
 <ParamField body="sandboxEnvironment" type="Bool" default="true">

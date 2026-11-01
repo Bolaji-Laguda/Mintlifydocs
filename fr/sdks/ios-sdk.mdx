@@ -56,7 +56,7 @@ Ajoutez la clé suivante à votre `Info.plist` :
 
 Avant d'initialiser le SDK, votre backend doit générer un identifiant de session et un jeton de vivacité. Utilisez l'assistant `ApiClient` ci-dessous comme référence pour les appels requis.
 
-**Générer l'identifiant de session** : `POST /v2/api/sdk/session-id` :
+**Générer l'identifiant de session** : `POST /v2/api/identity/sdk/session/generate` :
 
 ```swift
 func generateSessionId(publicMerchantID: String,
@@ -67,13 +67,13 @@ func generateSessionId(publicMerchantID: String,
         "publicMerchantID": publicMerchantID,
         "metadata": [:]
     ]
-    // POST vers https://api.youverify.co/v2/api/sdk/session-id
+    // POST vers https://api.youverify.co/v2/api/identity/sdk/session/generate
     // En-tête : token: apiToken
     // Réponse : { "data": { "sessionId": "..." } }
 }
 ```
 
-**Générer le jeton de vivacité** : `POST /v2/api/sdk/liveness-token` :
+**Générer le jeton de vivacité** : `POST /v2/api/identity/sdk/liveness/token` :
 
 ```swift
 func generateSessionToken(publicMerchantID: String,
@@ -85,7 +85,7 @@ func generateSessionToken(publicMerchantID: String,
         "publicMerchantID": publicMerchantID,
         "deviceCorrelationId": deviceCorrelationId
     ]
-    // POST vers https://api.youverify.co/v2/api/sdk/liveness-token
+    // POST vers https://api.youverify.co/v2/api/identity/sdk/liveness/token
     // En-tête : token: apiToken
     // Réponse : { "data": { "authToken": "..." } }
 }
@@ -208,11 +208,11 @@ Toutes les tâches acceptent un paramètre `difficulty` (`.easy`, `.medium`, `.h
 </ParamField>
 
 <ParamField body="sessionId" type="String" required>
-  Identifiant de session généré côté serveur via `POST /v2/api/sdk/session-id`.
+  Identifiant de session généré côté serveur via `POST /v2/api/identity/sdk/session/generate`.
 </ParamField>
 
 <ParamField body="sessionToken" type="String" required>
-  Jeton de vivacité généré côté serveur via `POST /v2/api/sdk/liveness-token`.
+  Jeton de vivacité généré côté serveur via `POST /v2/api/identity/sdk/liveness/token`.
 </ParamField>
 
 <ParamField body="sandboxEnvironment" default="true" type="Bool">

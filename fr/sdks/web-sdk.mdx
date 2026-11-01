@@ -51,7 +51,7 @@ Choisissez le package npm ou la balise script CDN, selon que votre projet utilis
     Votre backend appelle l'API Youverify pour générer un identifiant de session à courte durée de vie. Cet appel utilise votre clé d'API secrète : il doit avoir lieu sur votre serveur, et non dans le navigateur.
 
     ```bash
-    curl -X POST "https://api.youverify.co/v2/api/sdk/session-id" \
+    curl -X POST "https://api.youverify.co/v2/api/identity/sdk/session/generate" \
       -H "token: $YV_SECRET_KEY" \
       -H "Content-Type: application/json" \
       -d '{
