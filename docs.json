@@ -81,7 +81,19 @@
                   "sdks/web-sdk",
                   "sdks/android-sdk",
                   "sdks/ios-sdk",
-                  "sdks/liveness-sdk"
+                  "sdks/liveness-sdk",
+                  {
+                    "group": "Anti-Deepfake Liveness",
+                    "pages": []
+                  },
+                  {
+                    "group": "Document Capture",
+                    "pages": []
+                  },
+                  {
+                    "group": "Fraud Insights",
+                    "pages": []
+                  }
                 ]
               },
               {
@@ -172,7 +184,19 @@
                   "fr/sdks/web-sdk",
                   "fr/sdks/android-sdk",
                   "fr/sdks/ios-sdk",
-                  "fr/sdks/liveness-sdk"
+                  "fr/sdks/liveness-sdk",
+                  {
+                    "group": "Détection de vivacité anti-deepfake",
+                    "pages": []
+                  },
+                  {
+                    "group": "Capture de documents",
+                    "pages": []
+                  },
+                  {
+                    "group": "Fraud Insights",
+                    "pages": []
+                  }
                 ]
               },
               {
