@@ -1,0 +1,235 @@
+---
+title: "Fraud Insights Web SDK (Behavioral)"
+sidebarTitle: "Web"
+description: "Install and use the Youverify Behavioral Web SDK to collect device and behavioral signals in any web application."
+---
+
+The Youverify Behavioral Web SDK (`youverify-behavioral-web-sdk`) is a third-party library you can add to any web application. It collects device and behavioral signals in the background and sends them to Youverify's Behavioral Service to enrich the risk score.
+
+## Features
+
+- **Session management**: automatic session IDs and start and end tracking.
+- **Device and behavioral signals**: powered by FingerprintJS and browser heuristics.
+- **Event tracking**: send custom events with optional user or entity IDs and metadata.
+- **Typed responses**: a rich `GetDeviceResponse` structure for risk analysis.
+
+## Installation
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install youverify-behavioral-web-sdk
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add youverify-behavioral-web-sdk
+    ```
+  </Tab>
+</Tabs>
+
+Import the SDK in your application:
+
+```ts
+import YouverifyBBS, { GetDeviceResponse } from 'youverify-behavioral-web-sdk';
+```
+
+## Configuration
+
+Create an instance with `new YouverifyBBS(props)`:
+
+```ts
+const bbs = new YouverifyBBS({
+  publicKey: 'YOUR_PUBLIC_KEY',
+  applicationName: 'My Web App',
+  sandboxEnvironment: true,
+  onLoad: (result: GetDeviceResponse) => {
+    console.log('BBS loaded', result.sessionId, result.id);
+  },
+  onError: (error: Error) => {
+    console.error('BBS error', error);
+  },
+  onSessionStart: (sessionId: string) => {
+    console.log('Session started', sessionId);
+  },
+  onSessionEnd: () => {
+    console.log('Session ended');
+  },
+});
+```
+
+### Props
+
+<ParamField body="publicKey" type="string" required>
+  Business public key provided by Youverify.
+</ParamField>
+
+<ParamField body="applicationName" type="string" required>
+  Logical name of the integrating application.
+</ParamField>
+
+<ParamField body="sandboxEnvironment" type="boolean" default="true">
+  `true` uses the sandbox (staging) environment. `false` uses production.
+</ParamField>
+
+<ParamField body="onLoad" type="(result: GetDeviceResponse) => void">
+  Called after a successful signal response, for example after `get()`.
+</ParamField>
+
+<ParamField body="onError" type="(error: Error) => void">
+  Called whenever the SDK encounters an error.
+</ParamField>
+
+<ParamField body="onSessionStart" type="(sessionId: string) => void">
+  Called when a session is initialized.
+</ParamField>
+
+<ParamField body="onSessionEnd" type="() => void">
+  Called when `close()` completes and the session ends.
+</ParamField>
+
+## Core API
+
+### `get(entityId?)`
+
+Initializes or resumes a session and sends the initial signal. Returns `Promise<void>`.
+
+```ts
+await bbs.get('user-123');
+```
+
+- The first call sends a `session_start` event.
+- Later calls in the same session send a "Session resumed" custom event.
+- It triggers `onLoad(result: GetDeviceResponse)` with the full device and session data.
+
+### `sendEvent(eventTitle, entityId?, meta?)`
+
+Sends a custom behavioral event for the current session. Returns `Promise<void>`.
+
+```ts
+await bbs.sendEvent('Checkout Started', 'user-123', {
+  step: 'payment',
+  cartValue: 199.99,
+});
+```
+
+### `close(entityId?)`
+
+Sends a `session_end` event and clears the local session state. Returns `Promise<void>`.
+
+```ts
+await bbs.close('user-123');
+```
+
+### `getSessionId()`
+
+Returns the current session ID, or `null` if there is none.
+
+```ts
+const sessionId = bbs.getSessionId();
+```
+
+### `getSessionDuration()`
+
+Returns the time in milliseconds since the session started.
+
+```ts
+const durationMs = bbs.getSessionDuration();
+```
+
+## Environments
+
+The SDK chooses backend URLs from the build configuration and the `sandboxEnvironment` flag.
+
+| Setting | Environment |
+| --- | --- |
+| `sandboxEnvironment: true` | Sandbox (staging) |
+| `sandboxEnvironment: false` | Production |
+
+Your Youverify contact will tell you which combination and public key to use in each environment.
+
+## Usage examples
+
+### Script tag (UMD)
+
+```html
+<script src="/dist/index.umd.cjs"></script>
+<script>
+  const bbs = new YouverifyBBS({
+    publicKey: 'YOUR_PUBLIC_KEY',
+    applicationName: 'Sample Page',
+    onLoad: (result) => {
+      console.log('Loaded', result.sessionId, result.id);
+    },
+    onError: (err) => {
+      console.error('BBS error', err);
+    },
+  });
+
+  bbs.get();
+
+  async function sendSampleEvent() {
+    await bbs.sendEvent('Sample Button Clicked', 'user-123', {
+      source: 'demo',
+    });
+  }
+</script>
+```
+
+### React
+
+```tsx
+import React, { useEffect, useMemo, useState } from 'react';
+import YouverifyBBS, { GetDeviceResponse } from 'youverify-behavioral-web-sdk';
+
+export function BBSProvider() {
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  const bbs = useMemo(
+    () =>
+      new YouverifyBBS({
+        publicKey: 'YOUR_PUBLIC_KEY',
+        applicationName: 'My React App',
+        onSessionStart: setSessionId,
+        onLoad: (res: GetDeviceResponse) => {
+          setSessionId(res.sessionId);
+          setReady(true);
+        },
+        onError: (err: Error) => {
+          console.error('BBS error', err);
+        },
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    bbs.get();
+    return () => {
+      bbs.close();
+    };
+  }, [bbs]);
+
+  const trackClick = async () => {
+    await bbs.sendEvent('Button Clicked', 'user-123', { page: 'home' });
+  };
+
+  if (!ready) return <div>Loading behavioral signals...</div>;
+
+  return (
+    <div>
+      <p>Session ID: {sessionId}</p>
+      <button onClick={trackClick}>Track behavioral event</button>
+    </div>
+  );
+}
+```
+
+## Browser support
+
+- Modern browsers with ES2015+ support.
+- Requires the Fetch API, or a polyfill.
+
+<Note>
+  Always use the correct `publicKey` for the environment (sandbox or production). Use meaningful event names and attach `meta` data for richer analytics.
+</Note>

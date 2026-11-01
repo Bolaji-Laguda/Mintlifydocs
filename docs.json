@@ -96,7 +96,8 @@
                   {
                     "group": "Fraud Insights",
                     "pages": [
-                      "sdks/fraud-insights/overview"
+                      "sdks/fraud-insights/overview",
+                      "sdks/fraud-insights/web"
                     ]
                   },
                   "sdks/liveness-sdk"
@@ -208,7 +209,8 @@
                   {
                     "group": "Fraud Insights",
                     "pages": [
-                      "fr/sdks/fraud-insights/overview"
+                      "fr/sdks/fraud-insights/overview",
+                      "fr/sdks/fraud-insights/web"
                     ]
                   },
                   "fr/sdks/liveness-sdk"
