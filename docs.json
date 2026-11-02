@@ -139,7 +139,8 @@
           },
           {
             "tab": "How-to Guides",
-            "groups": [
+            "pages": [
+              "how-to/overview",
               {
                 "group": "Account and team",
                 "pages": [
@@ -152,16 +153,28 @@
               },
               {
                 "group": "Billing and wallet",
-                "pages": []
+                "pages": [
+                  "how-to/billing-wallets-invoices",
+                  "how-to/low-balance-alerts",
+                  "how-to/fund-wallet"
+                ]
               },
               {
                 "group": "Verification and entities",
-                "pages": []
+                "pages": [
+                  "how-to/verification-statuses",
+                  "how-to/manage-entities"
+                ]
               },
               {
                 "group": "Address verification",
-                "pages": []
-              }
+                "pages": [
+                  "how-to/address-verification",
+                  "how-to/track-address-verification",
+                  "how-to/address-report-statuses"
+                ]
+              },
+              "how-to/faqs"
             ]
           }
         ]
