@@ -275,23 +275,42 @@
           },
           {
             "tab": "Guides pratiques",
-            "groups": [
+            "pages": [
+              "fr/how-to/overview",
               {
                 "group": "Compte et équipe",
-                "pages": []
+                "pages": [
+                  "fr/how-to/manage-team-members",
+                  "fr/how-to/user-roles",
+                  "fr/how-to/two-factor-authentication",
+                  "fr/how-to/activate-business-account",
+                  "fr/how-to/api-keys"
+                ]
               },
               {
                 "group": "Facturation et portefeuille",
-                "pages": []
+                "pages": [
+                  "fr/how-to/billing-wallets-invoices",
+                  "fr/how-to/low-balance-alerts",
+                  "fr/how-to/fund-wallet"
+                ]
               },
               {
                 "group": "Vérification et entités",
-                "pages": []
+                "pages": [
+                  "fr/how-to/verification-statuses",
+                  "fr/how-to/manage-entities"
+                ]
               },
               {
                 "group": "Vérification d'adresse",
-                "pages": []
-              }
+                "pages": [
+                  "fr/how-to/address-verification",
+                  "fr/how-to/track-address-verification",
+                  "fr/how-to/address-report-statuses"
+                ]
+              },
+              "fr/how-to/faqs"
             ]
           }
         ]
