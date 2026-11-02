@@ -136,6 +136,27 @@
                 }
               }
             ]
+          },
+          {
+            "tab": "How-to Guides",
+            "groups": [
+              {
+                "group": "Account and team",
+                "pages": []
+              },
+              {
+                "group": "Billing and wallet",
+                "pages": []
+              },
+              {
+                "group": "Verification and entities",
+                "pages": []
+              },
+              {
+                "group": "Address verification",
+                "pages": []
+              }
+            ]
           }
         ]
       },
@@ -230,6 +251,27 @@
                 "pages": [
                   "fr/api-reference/overview"
                 ]
+              }
+            ]
+          },
+          {
+            "tab": "Guides pratiques",
+            "groups": [
+              {
+                "group": "Compte et équipe",
+                "pages": []
+              },
+              {
+                "group": "Facturation et portefeuille",
+                "pages": []
+              },
+              {
+                "group": "Vérification et entités",
+                "pages": []
+              },
+              {
+                "group": "Vérification d'adresse",
+                "pages": []
               }
             ]
           }
