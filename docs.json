@@ -142,7 +142,13 @@
             "groups": [
               {
                 "group": "Account and team",
-                "pages": []
+                "pages": [
+                  "how-to/manage-team-members",
+                  "how-to/user-roles",
+                  "how-to/two-factor-authentication",
+                  "how-to/activate-business-account",
+                  "how-to/api-keys"
+                ]
               },
               {
                 "group": "Billing and wallet",
