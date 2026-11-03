@@ -1,0 +1,45 @@
+---
+title: "Generate and manage API keys"
+sidebarTitle: "API keys"
+description: "Create sandbox and live API keys in the Developer Hub for server-to-server integrations."
+---
+
+API keys authenticate your server-to-server calls to Youverify. Create separate keys for the Sandbox and Live environments.
+
+## Create an API key
+
+<Steps>
+  <Step title="Open the Developer Hub">
+    Click **Developer Hub** in the sidebar.
+
+    <Frame>
+      <img src="/images/how-to/api-keys/step-1.png" alt="Developer Hub in the Cowork sidebar" />
+    </Frame>
+  </Step>
+  <Step title="Choose the environment">
+    Choose **Sandbox** or **Live**.
+  </Step>
+  <Step title="Create a new key">
+    Click **+ Create New API Key**.
+
+    <Frame>
+      <img src="/images/how-to/api-keys/step-3.png" alt="Create New API Key button in the Developer Hub" />
+    </Frame>
+  </Step>
+  <Step title="Name the key and set permissions">
+    Enter a name for the key and set its permissions or scopes.
+  </Step>
+  <Step title="Copy and store the secret key">
+    Copy the secret key and store it securely.
+
+    <Frame>
+      <img src="/images/how-to/api-keys/step-5.png" alt="Newly created secret key with a copy button" />
+    </Frame>
+  </Step>
+</Steps>
+
+<Warning>
+  Keep your secret key on your server. Never put it in a web page, a mobile app, or source control.
+</Warning>
+
+To learn how to use the key in requests, see [Authentication](/get-started/authentication).

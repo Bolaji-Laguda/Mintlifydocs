@@ -3,7 +3,7 @@
   "info": {
     "title": "Youverify Cowork API",
     "version": "2.0.0",
-    "description": "Entity, Activity, Signal and Case Management endpoints — the core Cowork platform object model. Assembled from doc.youverify.co/api-reference-sdk, endpoints kept in the exact order they appear in the GitBook navigation.\n\nAccount-wide error responses (401, 429, 500 on every endpoint; 402 on paid verification calls; 404 on lookup-by-ID calls) are sourced verbatim from Youverify's own \"Youverify OS Error Codes\" and \"Response Codes\" pages (doc.youverify.co/youverify-os-error-codes, /get-started/response-codes) and attached via components.responses, since those pages document them account-wide rather than per endpoint. Any error example that a specific endpoint's own page actually showed is kept exactly as documented there instead of being replaced by these.",
+    "description": "Entity, Activity, Signal, Case and Workflow Management endpoints — the core Cowork platform object model. Assembled from doc.youverify.co/api-reference-sdk, endpoints kept in the exact order they appear in the GitBook navigation.\n\nAccount-wide error responses (401, 429, 500 on every endpoint; 402 on paid verification calls; 404 on lookup-by-ID calls) are sourced verbatim from Youverify's own \"Youverify OS Error Codes\" and \"Response Codes\" pages (doc.youverify.co/youverify-os-error-codes, /get-started/response-codes) and attached via components.responses, since those pages document them account-wide rather than per endpoint. Any error example that a specific endpoint's own page actually showed is kept exactly as documented there instead of being replaced by these.",
     "contact": {
       "name": "Youverify Support",
       "email": "support@youverify.co"
@@ -40,6 +40,10 @@
     {
       "name": "Case Management",
       "description": "Create and manage compliance cases, including AI-generated case summaries."
+    },
+    {
+      "name": "Workflow Management",
+      "description": "Send events to Transaction Monitoring and Customer Onboarding workflows, and read the workflows and evaluations (runs) for your business."
     }
   ],
   "components": {
@@ -133,6 +137,110 @@
               "name": "Error",
               "data": {}
             }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "WorkflowEventParty": {
+        "type": "object",
+        "description": "A party to the transaction (the sender or a beneficiary). Identify it with `entityId` (Youverify's id, faster) or `externalEntityId` (your id).",
+        "required": [
+          "entityType"
+        ],
+        "properties": {
+          "entityId": {
+            "type": "string",
+            "description": "Youverify entity id. Send it whenever you have it: we then skip resolving the entity from your `externalEntityId`, so the event is processed and enriched faster."
+          },
+          "entityType": {
+            "type": "string",
+            "description": "Type of entity.",
+            "enum": [
+              "INDIVIDUAL",
+              "BUSINESS"
+            ]
+          },
+          "externalEntityId": {
+            "type": "string",
+            "description": "Your own identifier for the entity."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the party."
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Account number of the party."
+          },
+          "account": {
+            "type": "object",
+            "properties": {
+              "balance": {
+                "type": "number",
+                "description": "Account balance."
+              }
+            }
+          },
+          "riskRating": {
+            "type": "string",
+            "description": "Risk rating you hold for the party."
+          },
+          "accountAge": {
+            "type": "number",
+            "description": "Age of the account."
+          },
+          "expectedMonthlyVolume": {
+            "type": "number",
+            "description": "Expected monthly volume for the account."
+          },
+          "accountStatus": {
+            "type": "string",
+            "description": "Status of the account."
+          },
+          "beneficialOwnerRiskTier": {
+            "type": "string",
+            "description": "Risk tier of the beneficial owner."
+          },
+          "productLimit": {
+            "type": "number",
+            "description": "Limit on the product used."
+          },
+          "internalBlacklistFlag": {
+            "type": "boolean",
+            "description": "Whether the party is on your internal blacklist."
+          }
+        }
+      },
+      "WorkflowPagination": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "cursor"
+          },
+          "perPage": {
+            "type": "integer"
+          },
+          "nextPage": {
+            "type": "string",
+            "description": "Cursor for the next page."
+          },
+          "prevPage": {
+            "type": "string",
+            "description": "Cursor for the previous page."
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          },
+          "hasPrevPage": {
+            "type": "boolean"
+          },
+          "totalDocs": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
           }
         }
       }
@@ -1633,6 +1741,196 @@
                           "permission": [
                             "identity:bvn:verify"
                           ]
+                        },
+                        {
+                          "code": "drivers_license",
+                          "label": "Drivers License",
+                          "billingId": [
+                            "kyc_drivers_license"
+                          ],
+                          "permission": [
+                            "identity:ndl:verify"
+                          ]
+                        },
+                        {
+                          "code": "vnin",
+                          "label": "Virtual National Identification Number",
+                          "billingId": [
+                            "kyc_vnin"
+                          ],
+                          "permission": [
+                            "identity:nin:verify"
+                          ]
+                        },
+                        {
+                          "code": "nin",
+                          "label": "National Identification Number",
+                          "billingId": [
+                            "kyc_nin"
+                          ],
+                          "permission": [
+                            "identity:nin:verify"
+                          ]
+                        },
+                        {
+                          "code": "passport",
+                          "label": "Passport",
+                          "billingId": [
+                            "kyc_passport"
+                          ],
+                          "permission": [
+                            "identity:passport:verify"
+                          ]
+                        },
+                        {
+                          "code": "pvc",
+                          "label": "Permanent Voter's Card",
+                          "billingId": [
+                            "kyc_inec"
+                          ],
+                          "permission": [
+                            "identity:pvc:verify"
+                          ]
+                        },
+                        {
+                          "code": "bav",
+                          "label": "Bank Account Verification",
+                          "billingId": [
+                            "kyc_bav",
+                            "kyc_ng_premium_bav"
+                          ],
+                          "permission": [
+                            "identity:bav:verify"
+                          ]
+                        },
+                        {
+                          "code": "phone",
+                          "label": "Phone Number",
+                          "billingId": [
+                            "kyc_phonenumber"
+                          ],
+                          "permission": [
+                            "identity:phone:verify"
+                          ]
+                        },
+                        {
+                          "code": "nin_phone",
+                          "label": "NIN Phone Number",
+                          "billingId": [
+                            "kyc_nin"
+                          ],
+                          "permission": [
+                            "identity:nin:verify"
+                          ]
+                        }
+                      ]
+                    },
+                    "GH": {
+                      "name": "Ghana",
+                      "documents": [
+                        {
+                          "code": "new_voter_card",
+                          "label": "Voter's ID",
+                          "billingId": [
+                            "kyc_gh_voter"
+                          ],
+                          "permission": [
+                            "identity:gh-voter:verify"
+                          ]
+                        },
+                        {
+                          "code": "old_voter_card",
+                          "label": "Old Voter's ID",
+                          "billingId": [
+                            "kyc_gh_voter"
+                          ],
+                          "permission": [
+                            "identity:gh-voter:verify"
+                          ]
+                        },
+                        {
+                          "code": "passport",
+                          "label": "Ghana Passport",
+                          "billingId": [
+                            "kyc_gh_passport"
+                          ],
+                          "permission": [
+                            "identity:gh-passport:verify"
+                          ]
+                        },
+                        {
+                          "code": "drivers_license",
+                          "label": "Ghana Driver License"
+                        }
+                      ]
+                    },
+                    "KE": {
+                      "name": "Kenya",
+                      "documents": [
+                        {
+                          "code": "national-id",
+                          "label": "Kenya National ID",
+                          "billingId": [
+                            "kyc_ke_national_id_v2"
+                          ],
+                          "permission": [
+                            "identity:ke-national-id:verify"
+                          ]
+                        },
+                        {
+                          "code": "passport",
+                          "label": "Kenya Passport",
+                          "billingId": [
+                            "kyc_ke_passport"
+                          ],
+                          "permission": [
+                            "identity:ke-passport:verify"
+                          ]
+                        },
+                        {
+                          "code": "alien-id",
+                          "label": "Kenya Alien ID",
+                          "billingId": [
+                            "kyc_ke_alien_id"
+                          ],
+                          "permission": [
+                            "identity:ke-alien-id:verify"
+                          ]
+                        },
+                        {
+                          "code": "drivers-license",
+                          "label": "Kenya Drivers License",
+                          "billingId": [
+                            "kyc_ke_drivers_license_v2"
+                          ],
+                          "permission": [
+                            "identity:ke-driver-license:verify"
+                          ]
+                        }
+                      ]
+                    },
+                    "ZA": {
+                      "name": "South Africa",
+                      "documents": [
+                        {
+                          "code": "said",
+                          "label": "South Africa National Identity",
+                          "billingId": [
+                            "kyc_za_id"
+                          ],
+                          "permission": [
+                            "identity:za-national-id:verify"
+                          ]
+                        },
+                        {
+                          "code": "bav",
+                          "label": "Bank Account Verification",
+                          "billingId": [
+                            "kyc_za_bav"
+                          ],
+                          "permission": [
+                            "identity:za-bav:validation"
+                          ]
                         }
                       ]
                     }
@@ -1770,6 +2068,51 @@
               "type": "number"
             },
             "description": "Page size (default: 20)"
+          },
+          {
+            "name": "startAfter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Document id cursor for next page"
+          },
+          {
+            "name": "endingBefore",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Document id cursor for previous page"
+          },
+          {
+            "name": "eventType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated event types (session_start, session_end, custom)"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Date-only YYYY-MM-DD (inclusive)"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Date-only YYYY-MM-DD (inclusive)"
           }
         ],
         "responses": {
@@ -1795,7 +2138,18 @@
             }
           },
           "404": {
-            "$ref": "#/components/responses/Error404NotFound"
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/Error401Unauthorized"
@@ -1835,6 +2189,96 @@
               "type": "number"
             },
             "description": "Page size (default: 20)"
+          },
+          {
+            "name": "startAfter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Document id cursor for the next page (forward)"
+          },
+          {
+            "name": "endingBefore",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Document id cursor for the previous page (backward)"
+          },
+          {
+            "name": "entityId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter to a single entity within the business"
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by device id"
+          },
+          {
+            "name": "filterByAnomaly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "When true, apply the anomaly filter"
+          },
+          {
+            "name": "anomaly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Anomaly value when filterByAnomaly is true"
+          },
+          {
+            "name": "deviceType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated device types"
+          },
+          {
+            "name": "os",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated OS names"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Date-only YYYY-MM-DD (inclusive)"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Date-only YYYY-MM-DD (inclusive)"
           }
         ],
         "responses": {
@@ -1848,8 +2292,27 @@
                   "message": "Signals retrieved successfully!",
                   "data": {
                     "docs": [],
+                    "nextCursor": "abc123",
+                    "prevCursor": null,
+                    "hasNextPage": true,
+                    "hasPrevPage": false,
                     "totalDocs": 100
-                  }
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
                 }
               }
             }
@@ -1892,6 +2355,105 @@
               "type": "string"
             },
             "description": "Business unique identifier"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Page size (default: 20)"
+          },
+          {
+            "name": "startAfter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Document ID cursor for next page"
+          },
+          {
+            "name": "endingBefore",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Document ID cursor for previous page"
+          },
+          {
+            "name": "entityId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter to single entity within business"
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by device ID"
+          },
+          {
+            "name": "filterByAnomaly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Apply anomaly filter when true"
+          },
+          {
+            "name": "anomaly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Anomaly value when filterByAnomaly is true"
+          },
+          {
+            "name": "deviceType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated device types"
+          },
+          {
+            "name": "os",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated OS names"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Date format YYYY-MM-DD (inclusive)"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Date format YYYY-MM-DD (inclusive)"
           }
         ],
         "responses": {
@@ -1903,7 +2465,29 @@
                   "success": true,
                   "statusCode": 200,
                   "message": "Signals retrieved successfully!",
-                  "data": {"docs": [], "totalDocs": 100}
+                  "data": {
+                    "docs": [],
+                    "nextCursor": "abc123",
+                    "prevCursor": null,
+                    "hasNextPage": true,
+                    "hasPrevPage": false,
+                    "totalDocs": 100
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
                 }
               }
             }
@@ -1962,7 +2546,53 @@
             "description": "Success",
             "content": {
               "application/json": {
-                "example": {"success": true, "statusCode": 200, "data": {"docs": []}}
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Signals retrieved successfully!",
+                  "data": {
+                    "docs": [
+                      {
+                        "id": "ebs_g78oTpoBrfVbJH-ng6oa",
+                        "businessId": "61d880f1e8e15aaf24558f1a",
+                        "deviceId": "5e0c6f94ba342287b54d6d2ec3250ade91ef9732ee641c73e2b544b930a60218",
+                        "type": "web",
+                        "os": "web",
+                        "ip": "102.67.1.4",
+                        "location": "Lagos",
+                        "sessionDuration": null,
+                        "anomaly": true,
+                        "entityName": "John Doe"
+                      }
+                    ],
+                    "pagination": {
+                      "totalDocs": 366,
+                      "perPage": 20,
+                      "currentPage": 1,
+                      "totalPages": 19,
+                      "serialNo": 1,
+                      "hasPrevPage": false,
+                      "hasNextPage": true,
+                      "prevPage": null,
+                      "nextPage": 2
+                    }
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
               }
             }
           },
@@ -1991,22 +2621,156 @@
             "name": "token",
             "in": "header",
             "required": true,
-            "schema": {"type": "string"},
+            "schema": {
+              "type": "string"
+            },
             "description": "API secret token"
           },
           {
             "name": "entityId",
             "in": "path",
             "required": true,
-            "schema": {"type": "string"},
+            "schema": {
+              "type": "string"
+            },
             "description": "Entity unique identifier"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Page size (default: 20)"
+          },
+          {
+            "name": "startAfter",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for next page"
+          },
+          {
+            "name": "endingBefore",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for previous page"
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by device"
+          },
+          {
+            "name": "filterByAnomaly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Enable anomaly filter"
+          },
+          {
+            "name": "anomaly",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Anomaly value when filter enabled"
+          },
+          {
+            "name": "deviceType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated types"
+          },
+          {
+            "name": "os",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated OS names"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Format: YYYY-MM-DD (inclusive)"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Format: YYYY-MM-DD (inclusive)"
           }
         ],
         "responses": {
-          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true}}}},
-          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
-          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
-          "500": {"$ref": "#/components/responses/Error500ServerError"}
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Signals retrieved successfully!",
+                  "data": {
+                    "docs": [],
+                    "nextCursor": "abc123",
+                    "prevCursor": null,
+                    "hasNextPage": true,
+                    "hasPrevPage": false,
+                    "totalDocs": 50
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
         }
       }
     },
@@ -2023,22 +2787,102 @@
             "name": "token",
             "in": "header",
             "required": true,
-            "schema": {"type": "string"},
+            "schema": {
+              "type": "string"
+            },
             "description": "API secret token"
           },
           {
             "name": "entityId",
             "in": "path",
             "required": true,
-            "schema": {"type": "string"},
+            "schema": {
+              "type": "string"
+            },
             "description": "Entity unique identifier"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Page number for pagination (default: 1)"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Number of signals per page (max 100) (default: 20)"
           }
         ],
         "responses": {
-          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true}}}},
-          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
-          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
-          "500": {"$ref": "#/components/responses/Error500ServerError"}
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Signals retrieved successfully!",
+                  "data": {
+                    "docs": [
+                      {
+                        "id": "ebs_g78oTpoBrfVbJH-ng6oa",
+                        "businessId": "61d880f1e8e15aaf24558f1a",
+                        "deviceId": "5e0c6f94ba342287b54d6d2ec3250ade91ef9732ee641c73e2b544b930a60218",
+                        "type": "web",
+                        "os": "web",
+                        "ip": "102.67.1.4",
+                        "location": "Lagos",
+                        "sessionDuration": null,
+                        "anomaly": true
+                      }
+                    ],
+                    "pagination": {
+                      "totalDocs": 335,
+                      "perPage": 20,
+                      "currentPage": 1,
+                      "totalPages": 17,
+                      "serialNo": 1,
+                      "hasPrevPage": false,
+                      "hasNextPage": true,
+                      "prevPage": null,
+                      "nextPage": 2
+                    }
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
         }
       }
     },
@@ -2055,7 +2899,9 @@
             "name": "token",
             "in": "header",
             "required": true,
-            "schema": {"type": "string"},
+            "schema": {
+              "type": "string"
+            },
             "description": "API secret token"
           }
         ],
@@ -2066,16 +2912,128 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "caseTitle": {"type": "string", "description": "Title of the case"},
-                  "caseType": {"type": "string", "description": "Type of case being created"},
-                  "description": {"type": "string", "description": "Detailed reason or context for creating the case"},
-                  "severity": {"type": "string", "enum": ["High", "Medium", "Low"]},
-                  "entityId": {"type": "string", "description": "ID of the entity the case is associated with"},
-                  "linkedIssues": {"type": "array", "items": {"type": "object"}},
-                  "caseStage": {"type": "array", "items": {"type": "object"}},
-                  "investigator": {"type": "object"}
+                  "caseTitle": {
+                    "type": "string",
+                    "description": "Title of the case"
+                  },
+                  "caseType": {
+                    "type": "string",
+                    "description": "Type of case being created"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Detailed reason or context for creating the case"
+                  },
+                  "severity": {
+                    "type": "string",
+                    "description": "Severity level of the case",
+                    "enum": [
+                      "High",
+                      "Medium",
+                      "Low"
+                    ]
+                  },
+                  "entityId": {
+                    "type": "string",
+                    "description": "ID of the entity the case is associated with"
+                  },
+                  "linkedIssues": {
+                    "type": "array",
+                    "description": "List of issues linked to this case",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "issueId": {
+                          "type": "string",
+                          "description": "ID of the linked issue"
+                        },
+                        "issueType": {
+                          "type": "string",
+                          "description": "Type of the linked issue",
+                          "enum": [
+                            "Activity",
+                            "Alert",
+                            "BehaviouralInsight",
+                            "Custom"
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "description": "Optional status for the linked issue"
+                        }
+                      },
+                      "required": [
+                        "issueId",
+                        "issueType"
+                      ]
+                    }
+                  },
+                  "caseStage": {
+                    "type": "array",
+                    "description": "Current stage(s) of the case",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "stage": {
+                          "type": "string",
+                          "description": "Stage name",
+                          "enum": [
+                            "Investigation",
+                            "Review"
+                          ]
+                        },
+                        "level": {
+                          "type": "string",
+                          "description": "Level or priority of the stage, e.g. LV1"
+                        },
+                        "tasks": {
+                          "type": "array",
+                          "description": "List of tasks assigned for the stage",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "task": {
+                                "type": "string",
+                                "description": "Task description"
+                              }
+                            },
+                            "required": [
+                              "task"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "stage",
+                        "level",
+                        "tasks"
+                      ]
+                    }
+                  },
+                  "investigator": {
+                    "type": "object",
+                    "description": "Information about the investigator assigned",
+                    "properties": {
+                      "investigatorId": {
+                        "type": "string",
+                        "description": "ID of the investigator"
+                      }
+                    },
+                    "required": [
+                      "investigatorId"
+                    ]
+                  }
                 },
-                "required": ["caseTitle", "caseType", "description", "severity", "entityId", "linkedIssues", "caseStage", "investigator"]
+                "required": [
+                  "caseTitle",
+                  "caseType",
+                  "description",
+                  "severity",
+                  "entityId",
+                  "linkedIssues",
+                  "caseStage",
+                  "investigator"
+                ]
               },
               "example": {
                 "caseTitle": "KYC data Mismatch",
@@ -2083,76 +3041,2635 @@
                 "description": "The case was created because there's a complete mismatch between the NIN and BVN data of the client.",
                 "severity": "High",
                 "entityId": "6880a452495dce07d2f7ff5a",
-                "investigator": {"investigatorId": "681d7b32cd275833cb856fff"},
-                "linkedIssues": [{"issueId": "6880f7d527309cf76eb5db2e", "issueType": "Activity", "status": "Mismatch"}],
-                "caseStage": [{"stage": "Investigation", "level": "LV1", "tasks": [{"task": "Investigate KYC verification"}]}]
+                "investigator": {
+                  "investigatorId": "681d7b32cd275833cb856fff"
+                },
+                "linkedIssues": [
+                  {
+                    "issueId": "6880f7d527309cf76eb5db2e",
+                    "issueType": "Activity",
+                    "status": "Mismatch"
+                  }
+                ],
+                "caseStage": [
+                  {
+                    "stage": "Investigation",
+                    "level": "LV1",
+                    "tasks": [
+                      {
+                        "task": "Investigate KYC verification"
+                      },
+                      {
+                        "task": "Gather evidences, and add them to the case."
+                      },
+                      {
+                        "task": "Confirm if entities are same and why there's a mismatch"
+                      }
+                    ]
+                  },
+                  {
+                    "stage": "Analysis",
+                    "level": "LV2",
+                    "tasks": [
+                      {
+                        "task": "Gather evidences"
+                      },
+                      {
+                        "task": "Analyse evidences"
+                      },
+                      {
+                        "task": "Review analysis"
+                      }
+                    ]
+                  },
+                  {
+                    "stage": "Filing",
+                    "level": "LV3",
+                    "tasks": [
+                      {
+                        "task": "File report"
+                      },
+                      {
+                        "task": "Follow up filing"
+                      },
+                      {
+                        "task": "Confirm case filed successfully"
+                      }
+                    ]
+                  }
+                ]
               }
             }
           }
         },
         "responses": {
-          "201": {"description": "Success", "content": {"application/json": {"example": {"success": true, "statusCode": 201, "message": "Case created successfully!"}}}},
-          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
-          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
-          "500": {"$ref": "#/components/responses/Error500ServerError"},
-          "402": {"$ref": "#/components/responses/Error402PaymentRequired"}
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 201,
+                  "message": "Case created successfully!",
+                  "data": {
+                    "caseTitle": "KYC data Mismatch",
+                    "status": "Opened",
+                    "caseType": "KYC",
+                    "severity": "High",
+                    "parentId": null,
+                    "businessId": "681d7b30cd275833cb856ff8",
+                    "entityId": "6880a452495dce07d2f7ff5a",
+                    "description": "The case was created because there's a complete mismatch between the NIN and BVN data of the client.",
+                    "evidences": [],
+                    "linkedIssues": [
+                      {
+                        "issueId": "6880f7d527309cf76eb5db2e",
+                        "issueType": "Activity",
+                        "dateLinked": null,
+                        "status": "Mismatch"
+                      },
+                      {
+                        "issueId": "6880f7d527309cf76eb5db2e",
+                        "issueType": "Transaction",
+                        "dateLinked": null,
+                        "status": "Mismatch"
+                      },
+                      {
+                        "issueId": "6880f7d527309cf76eb5db2e",
+                        "issueType": "Alert",
+                        "dateLinked": null,
+                        "status": "Mismatch"
+                      }
+                    ],
+                    "caseStage": [
+                      {
+                        "stage": "Investigation",
+                        "level": "LV1",
+                        "investigatorId": "681d7b32cd275833cb856fff",
+                        "investigatorName": "Jaymee Bottomore",
+                        "notes": [],
+                        "isReassigned": false,
+                        "previousInvestigators": [],
+                        "tasks": [
+                          {
+                            "task": "Investigate KYC verification",
+                            "isCompleted": false
+                          },
+                          {
+                            "task": "Gather evidences, and add them to the case.",
+                            "isCompleted": false
+                          },
+                          {
+                            "task": "Confirm if entities are same and why there's a mismatch",
+                            "isCompleted": false
+                          }
+                        ],
+                        "_id": "68945a37a52eb93b87f827fa"
+                      }
+                    ],
+                    "activities": [
+                      {
+                        "event": "Case Created",
+                        "activity": "Case created by Jaymee Bottomore",
+                        "createdBy": "Jaymee Bottomore",
+                        "userId": "681d7b30cd275833cb856ff8",
+                        "eventDateTime": "2025-08-07T07:48:07.145Z",
+                        "_id": "68945a37a52eb93b87f827fb"
+                      }
+                    ],
+                    "isDeleted": false,
+                    "comments": [],
+                    "createdAt": "2025-08-07T07:48:07.165Z",
+                    "lastModifiedAt": "2025-08-07T07:48:07.165Z",
+                    "_createdAt": "2025-08-07T08:48:077+01:00",
+                    "_lastModifiedAt": "2025-08-07T08:48:077+01:00",
+                    "object": "case",
+                    "id": "cas_68945a37a52eb93b87f827f9"
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
         }
       },
       "get": {
-        "tags": ["Case Management"],
+        "tags": [
+          "Case Management"
+        ],
         "summary": "Retrieve All Cases",
         "description": "Retrieves a paginated, filterable list of investigation cases for the authenticated business.",
         "operationId": "retrieveAllCases",
         "parameters": [
-          {"name": "token", "in": "header", "required": true, "schema": {"type": "string"}, "description": "API secret token"}
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "next",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for next page in pagination"
+          },
+          {
+            "name": "prev",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for previous page in pagination"
+          },
+          {
+            "name": "sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by"
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Sort order, either 'asc' or 'desc'"
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search query"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Number of cases to return (Default: 20)"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cases filter start date"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cases filter end date"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Approval state of the entity"
+          },
+          {
+            "name": "entityId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Entity Id to filter cases by"
+          },
+          {
+            "name": "investigatorId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id of the investigator to filter cases by"
+          }
         ],
         "responses": {
-          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true, "data": {"docs": []}}}}},
-          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
-          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
-          "500": {"$ref": "#/components/responses/Error500ServerError"}
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Cases retrieved successfully!",
+                  "data": {
+                    "docs": [
+                      {
+                        "caseTitle": "KYC data Mismatch",
+                        "status": "Opened",
+                        "caseType": "KYC",
+                        "severity": "High",
+                        "parentId": null,
+                        "businessId": "681d7b30cd275833cb856ff8",
+                        "entityId": "6880a452495dce07d2f7ff5a",
+                        "description": "The case was created because there's a complete mismatch between the NIN and BVN data of the client.",
+                        "evidences": [],
+                        "linkedIssues": [
+                          {
+                            "issueId": "6880f7d527309cf76eb5db2e",
+                            "issueType": "Activity",
+                            "dateLinked": null,
+                            "status": "Mismatch"
+                          }
+                        ],
+                        "caseStage": [
+                          {
+                            "stage": "Investigation",
+                            "level": "LV1",
+                            "investigatorId": "681d7b32cd275833cb856fff",
+                            "investigatorName": "Jaymee Bottomore",
+                            "notes": [],
+                            "isReassigned": false,
+                            "previousInvestigators": [],
+                            "tasks": [
+                              {
+                                "task": "Investigate KYC verification",
+                                "isCompleted": false
+                              },
+                              {
+                                "task": "Gather evidences, and add them to the case.",
+                                "isCompleted": false
+                              },
+                              {
+                                "task": "Confirm if entities are same and why there's a mismatch",
+                                "isCompleted": false
+                              }
+                            ],
+                            "_id": "68945a37a52eb93b87f827fa"
+                          }
+                        ],
+                        "activities": [
+                          {
+                            "event": "Case Created",
+                            "activity": "Case created by Jaymee Bottomore",
+                            "createdBy": "Jaymee Bottomore",
+                            "userId": "681d7b30cd275833cb856ff8",
+                            "eventDateTime": "2025-08-07T07:48:07.145Z",
+                            "_id": "68945a37a52eb93b87f827fb"
+                          }
+                        ],
+                        "isDeleted": false,
+                        "comments": [],
+                        "createdAt": "2025-08-07T07:48:07.165Z",
+                        "lastModifiedAt": "2025-08-07T07:48:07.165Z",
+                        "_createdAt": "2025-08-07T08:48:077+01:00",
+                        "_lastModifiedAt": "2025-08-07T08:48:077+01:00",
+                        "id": "cas_68945a37a52eb93b87f827f9"
+                      }
+                    ],
+                    "pagination": {
+                      "type": "cursor",
+                      "perPage": 20,
+                      "nextPage": null,
+                      "prevPage": null,
+                      "hasNextPage": false,
+                      "hasPrevPage": false
+                    },
+                    "searchTerms": {}
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
         }
       }
     },
     "/v2/api/cases/{caseId}/summary": {
       "put": {
-        "tags": ["Case Management"],
+        "tags": [
+          "Case Management"
+        ],
         "summary": "Get Case AI Summary",
         "description": "Generates (or updates and returns) an AI-produced investigation summary/report for a case, including executive summary, entity profile, transaction analysis and recommended action.",
         "operationId": "getCaseAiSummary",
         "parameters": [
-          {"name": "token", "in": "header", "required": true, "schema": {"type": "string"}, "description": "API secret token"},
-          {"name": "caseId", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Unique Id of the case"}
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique Id of the case"
+          }
         ],
         "requestBody": {
           "required": true,
-          "content": {"application/json": {"schema": {"type": "object", "properties": {"task": {"type": "string"}, "isCompleted": {"type": "boolean"}}}, "example": {"task": "Gather evidences, and add them to the case.", "isCompleted": true}}}
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "task": {
+                    "type": "string",
+                    "description": "Task description, as shown on the documentation page's sample request"
+                  },
+                  "isCompleted": {
+                    "type": "boolean",
+                    "description": "Completion flag, as shown on the documentation page's sample request"
+                  }
+                }
+              },
+              "example": {
+                "task": "Gather evidences, and add them to the case.",
+                "isCompleted": true
+              }
+            }
+          }
         },
         "responses": {
-          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true}}}},
-          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
-          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
-          "500": {"$ref": "#/components/responses/Error500ServerError"},
-          "402": {"$ref": "#/components/responses/Error402PaymentRequired"}
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Case summary retrieved successfully!",
+                  "data": {
+                    "report": {
+                      "executive_summary": "The case involves a significant KYC data mismatch between the client's NIN and BVN, indicating potential identity issues. The severity is classified as high due to the discrepancies in identification data. It is recommended to file a SAR to address the potential risks associated with this entity.",
+                      "entity_profile": {
+                        "name": "",
+                        "registration_location": "",
+                        "industry": "",
+                        "account_opening_date": "",
+                        "expected_annual_volume": "",
+                        "risk_indicators": [
+                          {
+                            "label": "KYC Data Mismatch",
+                            "level": "high"
+                          }
+                        ],
+                        "key_findings": [
+                          "Complete mismatch between NIN and BVN data."
+                        ]
+                      },
+                      "transaction_analysis": {
+                        "total_volume_usd": 0,
+                        "transaction_count": 0,
+                        "average_transaction_size_usd": 0,
+                        "investigation_period_days": 0,
+                        "baseline_comparison_pct": 0,
+                        "pattern_indicators": [],
+                        "suspicious_activity_indicators": []
+                      },
+                      "suspicious_activity_determination": "The identified KYC data mismatch raises concerns about the legitimacy of the client's identity, which is consistent with known money laundering typologies that involve identity fraud.",
+                      "recommended_action": "SAR Filing"
+                    }
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          },
+          "402": {
+            "$ref": "#/components/responses/Error402PaymentRequired"
+          }
         }
       }
     },
     "/v2/api/cases/{caseId}": {
       "get": {
-        "tags": ["Case Management"],
+        "tags": [
+          "Case Management"
+        ],
         "summary": "Retrieve a Case",
         "description": "Fetches the full details of a single case by its unique case ID, including case stages, tasks, linked issues and activity log.",
         "operationId": "retrieveCaseById",
         "parameters": [
-          {"name": "token", "in": "header", "required": true, "schema": {"type": "string"}, "description": "API secret token"},
-          {"name": "caseId", "in": "path", "required": true, "schema": {"type": "string"}, "description": "Unique Id of the case"}
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique Id of the case"
+          }
         ],
         "responses": {
-          "200": {"description": "Success", "content": {"application/json": {"example": {"success": true}}}},
-          "404": {"$ref": "#/components/responses/Error404NotFound"},
-          "401": {"$ref": "#/components/responses/Error401Unauthorized"},
-          "429": {"$ref": "#/components/responses/Error429TooManyRequests"},
-          "500": {"$ref": "#/components/responses/Error500ServerError"}
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Case retrieved successfully!",
+                  "data": {
+                    "caseTitle": "KYC data Mismatch",
+                    "status": "Opened",
+                    "caseType": "KYC",
+                    "severity": "High",
+                    "parentId": null,
+                    "businessId": "681d7b30cd275833cb856ff8",
+                    "entityId": "6880a452495dce07d2f7ff5a",
+                    "description": "The case was created because there's a complete mismatch between the NIN and BVN data of the client.",
+                    "evidences": [],
+                    "linkedIssues": [
+                      {
+                        "issueId": "6880f7d527309cf76eb5db2e",
+                        "issueType": "Activity",
+                        "dateLinked": null,
+                        "status": "Mismatch"
+                      }
+                    ],
+                    "caseStage": [
+                      {
+                        "stage": "Investigation",
+                        "level": "LV1",
+                        "investigatorId": "681d7b32cd275833cb856fff",
+                        "investigatorName": "Jaymee Bottomore",
+                        "notes": [],
+                        "isReassigned": false,
+                        "previousInvestigators": [],
+                        "tasks": [
+                          {
+                            "task": "Investigate KYC verification",
+                            "isCompleted": false
+                          },
+                          {
+                            "task": "Gather evidences, and add them to the case.",
+                            "isCompleted": false
+                          },
+                          {
+                            "task": "Confirm if entities are same and why there's a mismatch",
+                            "isCompleted": false
+                          }
+                        ],
+                        "_id": "68945a37a52eb93b87f827fa"
+                      }
+                    ],
+                    "activities": [
+                      {
+                        "event": "Case Created",
+                        "activity": "Case created by Jaymee Bottomore",
+                        "createdBy": "Jaymee Bottomore",
+                        "userId": "681d7b30cd275833cb856ff8",
+                        "eventDateTime": "2025-08-07T07:48:07.145Z",
+                        "_id": "68945a37a52eb93b87f827fb"
+                      }
+                    ],
+                    "isDeleted": false,
+                    "comments": [],
+                    "createdAt": "2025-08-07T07:48:07.165Z",
+                    "lastModifiedAt": "2025-08-07T07:48:07.165Z",
+                    "_createdAt": "2025-08-07T08:48:077+01:00",
+                    "_lastModifiedAt": "2025-08-07T08:48:077+01:00",
+                    "object": "case",
+                    "id": "cas_68945a37a52eb93b87f827f9"
+                  },
+                  "links": []
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/workflows/events": {
+      "post": {
+        "tags": [
+          "Workflow Management"
+        ],
+        "summary": "Send an Event",
+        "description": "One entry point for every event type: `onboarding`, `transaction` and `account_activity` (login, card). Triggering events start evaluations; the rest are accepted and stored.\n\nThe request payloads documented here are for Transaction Monitoring (TM) events only (`transaction` and `account_activity`). There is no `externalEntityId` on the event itself: each entity identifies itself inside `data`. On a `transaction`, the sender and each beneficiary carry their own `entityId` (the Youverify platform's id) or their own `externalEntityId` (your id) with a `name` and `accountNumber`; an `account_activity` event does the same at the root of `data`; an `onboarding` event carries `data.externalEntityId` (required) and `data.entityId` (when the workflow is for an existing entity). `entityType` (`INDIVIDUAL` or `BUSINESS`) is required inside `data`: at the root of `data` for `account_activity` and `onboarding` events, and on the sender and each beneficiary of a `transaction`. Send the `entityId` whenever you have it so the event is processed and enriched faster.\n\n**Routing.** `onboarding` (CO) is routed by `workflowId` and `workflowVersion`. `transaction` and `account_activity` (TM) carry an `eventCategory`; a login carries `data.loginMethod`, and a card event carries `data.cardAction` (`created` or `updated`).\n\n**Triggering statuses.** Only these start evaluations: transaction `acknowledged`, `pending`; login `attempted`; card `requested`, `activated`, `pin_changed`; and `processing` for any kind. Every other status (for example `completed`, `successful`, `failed`, `issued`, `frozen`, `processed`) is stored without a run.\n\n**Which workflows run.** Every event runs the live TM workflows tagged with its `eventCategory` whose `eventTypes` includes its type (a TM workflow must list at least one to be saved or published). An `account_activity` event runs on `{ account_activity: data }`. `eventTypes` decides which events start a workflow, not what it can read: any TM workflow can use the `behavioural_insights.*` variables, including those learned from account activity.\n\n**Validation and idempotency.** `data` is validated per `eventType`. A transaction's `transactionReference` is its idempotency key: a repeat of one already evaluated returns the original evaluations with `replayed: true` and runs nothing (its payload is ignored even if it differs); one with no live evaluation yet runs as normal.\n\n**Lifecycle.** An event has a `lifecycleId` only if you send one; we never generate it. An event without one is connected to no other event and adds nothing to session-risk counters.",
+        "operationId": "sendWorkflowEvent",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "eventType",
+                  "eventStatus",
+                  "data"
+                ],
+                "properties": {
+                  "eventType": {
+                    "type": "string",
+                    "description": "Type of event.",
+                    "enum": [
+                      "transaction",
+                      "account_activity",
+                      "onboarding"
+                    ]
+                  },
+                  "schemaVersion": {
+                    "type": "string",
+                    "description": "Version of the event schema.",
+                    "example": "1.2"
+                  },
+                  "externalEventId": {
+                    "type": "string",
+                    "description": "Your own identifier for the event."
+                  },
+                  "eventStatus": {
+                    "type": "string",
+                    "description": "Status of the event. Only triggering statuses start evaluations; others are stored without a run.",
+                    "enum": [
+                      "acknowledged",
+                      "pending",
+                      "completed",
+                      "attempted",
+                      "successful",
+                      "requested",
+                      "issued",
+                      "activated",
+                      "frozen",
+                      "suspended",
+                      "unfrozen",
+                      "pin_changed",
+                      "closed",
+                      "canceled",
+                      "failed"
+                    ]
+                  },
+                  "lifecycleId": {
+                    "type": "string",
+                    "description": "Optional id that connects related events. We never generate it; events without one are connected to no other event."
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Free-form metadata about the event.",
+                    "properties": {
+                      "source": {
+                        "type": "string",
+                        "description": "Where the event came from.",
+                        "example": "mobile-app"
+                      }
+                    }
+                  },
+                  "eventCategory": {
+                    "type": "string",
+                    "description": "Category used to select the live TM workflows to run (for `transaction` and `account_activity` events).",
+                    "example": "finance"
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Event payload, validated per `eventType`. Fields below are for a `transaction` event.",
+                    "properties": {
+                      "paymentType": {
+                        "type": "object",
+                        "properties": {
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "INBOUND",
+                              "OUTBOUND"
+                            ],
+                            "example": "OUTBOUND"
+                          }
+                        }
+                      },
+                      "financials": {
+                        "type": "object",
+                        "properties": {
+                          "totalAmount": {
+                            "type": "number"
+                          },
+                          "currency": {
+                            "type": "string",
+                            "description": "Currency code."
+                          }
+                        }
+                      },
+                      "parties": {
+                        "type": "object",
+                        "properties": {
+                          "sender": {
+                            "$ref": "#/components/schemas/WorkflowEventParty"
+                          },
+                          "beneficiaries": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/WorkflowEventParty"
+                            }
+                          }
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "Transaction status."
+                      },
+                      "settled_at": {
+                        "type": "string",
+                        "description": "Settlement time.",
+                        "format": "date-time"
+                      },
+                      "processed_at": {
+                        "type": "string",
+                        "description": "Processing time.",
+                        "format": "date-time"
+                      },
+                      "fee_amount": {
+                        "type": "number"
+                      },
+                      "process_method": {
+                        "type": "string"
+                      },
+                      "is_approved": {
+                        "type": "boolean"
+                      },
+                      "is_reversal": {
+                        "type": "boolean"
+                      },
+                      "is_international_override": {
+                        "type": "boolean"
+                      },
+                      "is_triggered_by_user": {
+                        "type": "boolean"
+                      },
+                      "is_round_amount": {
+                        "type": "boolean"
+                      },
+                      "is_large_transaction": {
+                        "type": "boolean"
+                      },
+                      "counterparty": {
+                        "type": "object",
+                        "properties": {
+                          "industry": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "is_linked_account": {
+                            "type": "boolean"
+                          },
+                          "is_new": {
+                            "type": "boolean"
+                          },
+                          "age_days": {
+                            "type": "number"
+                          },
+                          "risk_tier": {
+                            "type": "string"
+                          },
+                          "is_watchlisted": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "device": {
+                        "type": "object",
+                        "properties": {
+                          "is_proxy": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "crypto": {
+                        "type": "object",
+                        "properties": {
+                          "asset_type": {
+                            "type": "string"
+                          },
+                          "wallet_address": {
+                            "type": "string"
+                          },
+                          "travel_rule_complete": {
+                            "type": "boolean"
+                          },
+                          "mixer_exposure": {
+                            "type": "boolean"
+                          },
+                          "sanctioned_address_exposure": {
+                            "type": "boolean"
+                          }
+                        }
+                      },
+                      "transactionReference": {
+                        "type": "string",
+                        "description": "Idempotency key for the transaction."
+                      }
+                    }
+                  }
+                }
+              },
+              "example": {
+                "eventType": "transaction",
+                "schemaVersion": "1.2",
+                "externalEventId": "string",
+                "eventStatus": "acknowledged",
+                "lifecycleId": "string",
+                "metadata": {
+                  "source": "mobile-app"
+                },
+                "eventCategory": "finance",
+                "data": {
+                  "paymentType": {
+                    "direction": "OUTBOUND"
+                  },
+                  "financials": {
+                    "totalAmount": 0,
+                    "currency": "string"
+                  },
+                  "parties": {
+                    "sender": {
+                      "entityId": "string",
+                      "entityType": "INDIVIDUAL",
+                      "externalEntityId": "string",
+                      "name": "string",
+                      "accountNumber": "string",
+                      "account": {
+                        "balance": 0
+                      },
+                      "riskRating": "string",
+                      "accountAge": 0,
+                      "expectedMonthlyVolume": 0,
+                      "accountStatus": "string",
+                      "beneficialOwnerRiskTier": "string",
+                      "productLimit": 0,
+                      "internalBlacklistFlag": true
+                    },
+                    "beneficiaries": [
+                      {
+                        "entityId": "string",
+                        "entityType": "INDIVIDUAL",
+                        "externalEntityId": "string",
+                        "name": "string",
+                        "accountNumber": "string",
+                        "account": {
+                          "balance": 0
+                        },
+                        "riskRating": "string",
+                        "accountAge": 0,
+                        "expectedMonthlyVolume": 0,
+                        "accountStatus": "string",
+                        "beneficialOwnerRiskTier": "string",
+                        "productLimit": 0,
+                        "internalBlacklistFlag": true
+                      }
+                    ]
+                  },
+                  "status": "string",
+                  "settled_at": "2026-11-03T21:16:01.593Z",
+                  "processed_at": "2026-11-03T21:16:01.593Z",
+                  "fee_amount": 0,
+                  "process_method": "string",
+                  "is_approved": true,
+                  "is_reversal": true,
+                  "is_international_override": true,
+                  "is_triggered_by_user": true,
+                  "is_round_amount": true,
+                  "is_large_transaction": true,
+                  "counterparty": {
+                    "industry": {
+                      "code": "string"
+                    },
+                    "is_linked_account": true,
+                    "is_new": true,
+                    "age_days": 0,
+                    "risk_tier": "string",
+                    "is_watchlisted": true
+                  },
+                  "device": {
+                    "is_proxy": true
+                  },
+                  "crypto": {
+                    "asset_type": "string",
+                    "wallet_address": "string",
+                    "travel_rule_complete": true,
+                    "mixer_exposure": true,
+                    "sanctioned_address_exposure": true
+                  },
+                  "transactionReference": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Event accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "evaluations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Evaluation id."
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "PENDING",
+                                  "RUNNING",
+                                  "PAUSED",
+                                  "SUCCESS",
+                                  "FAILED"
+                                ]
+                              },
+                              "decision": {
+                                "type": "string",
+                                "enum": [
+                                  "BLOCK",
+                                  "FREEZE",
+                                  "HOLD",
+                                  "REVIEW",
+                                  "ALERT",
+                                  "ALLOW"
+                                ]
+                              },
+                              "decisionReason": {
+                                "type": "string"
+                              },
+                              "decisionFinal": {
+                                "type": "boolean",
+                                "description": "Whether the decision is final."
+                              },
+                              "riskScore": {
+                                "type": "number"
+                              },
+                              "actionsApplied": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "outcome": {
+                                "type": "object",
+                                "properties": {
+                                  "result": {
+                                    "type": "string",
+                                    "example": "approved"
+                                  },
+                                  "flagged": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                }
+                              },
+                              "entityId": {
+                                "type": "string"
+                              },
+                              "entityName": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "count": {
+                          "type": "integer",
+                          "description": "Number of evaluations started."
+                        },
+                        "replayed": {
+                          "type": "boolean",
+                          "description": "`true` when the `transactionReference` was already evaluated; the original evaluations are returned and nothing runs."
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "statusCode": 202,
+                  "message": "Event accepted",
+                  "data": {
+                    "evaluations": [
+                      {
+                        "id": "string",
+                        "status": "PENDING",
+                        "decision": "BLOCK",
+                        "decisionReason": "string",
+                        "decisionFinal": true,
+                        "riskScore": 0,
+                        "actionsApplied": [
+                          "string"
+                        ],
+                        "outcome": {
+                          "result": "approved",
+                          "flagged": [
+                            "string"
+                          ]
+                        },
+                        "entityId": "string",
+                        "entityName": "string"
+                      }
+                    ],
+                    "count": 0,
+                    "replayed": true
+                  },
+                  "links": [
+                    {}
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/workflows/evaluations": {
+      "get": {
+        "tags": [
+          "Workflow Management"
+        ],
+        "summary": "List Evaluations",
+        "description": "Lists the business's workflow runs (evaluations), cursor-paginated. Scoped to the API key's business. With no filter the list is read from MongoDB; any filter reads from Elasticsearch.",
+        "operationId": "listWorkflowEvaluations",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "workflowId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by workflow id."
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Filter by workflow version."
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "RUNNING",
+                "PAUSED",
+                "SUCCESS",
+                "FAILED"
+              ]
+            },
+            "description": "Filter by run status."
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Return runs from this date."
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Return runs up to this date."
+          },
+          {
+            "name": "eventType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "transaction",
+                "account_activity",
+                "onboarding"
+              ]
+            },
+            "description": "Filter by event type."
+          },
+          {
+            "name": "eventCategory",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by event category."
+          },
+          {
+            "name": "eventStatus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "acknowledged",
+                "pending",
+                "completed",
+                "attempted",
+                "successful",
+                "requested",
+                "issued",
+                "activated",
+                "frozen",
+                "suspended",
+                "unfrozen",
+                "pin_changed",
+                "closed",
+                "canceled",
+                "failed"
+              ]
+            },
+            "description": "Filter by event status."
+          },
+          {
+            "name": "lifecycleId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by lifecycle id."
+          },
+          {
+            "name": "entityId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by entity id."
+          },
+          {
+            "name": "decision",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BLOCK",
+                "FREEZE",
+                "HOLD",
+                "REVIEW",
+                "ALERT",
+                "ALLOW"
+              ]
+            },
+            "description": "Filter by decision."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Number of records per page."
+          },
+          {
+            "name": "sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by."
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "description": "Sort direction."
+          },
+          {
+            "name": "next",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for the next page (from `pagination.nextPage`)."
+          },
+          {
+            "name": "prev",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for the previous page (from `pagination.prevPage`)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "docs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Evaluation id."
+                              },
+                              "workflowId": {
+                                "type": "string"
+                              },
+                              "workflowVersion": {
+                                "type": "integer"
+                              },
+                              "businessId": {
+                                "type": "string"
+                              },
+                              "parentId": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "PENDING",
+                                  "RUNNING",
+                                  "PAUSED",
+                                  "SUCCESS",
+                                  "FAILED"
+                                ]
+                              },
+                              "createdBy": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "finishedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "entityId": {
+                                "type": "string"
+                              },
+                              "entityName": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "pagination": {
+                          "$ref": "#/components/schemas/WorkflowPagination"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Executions fetched successfully",
+                  "data": {
+                    "docs": [
+                      {
+                        "id": "string",
+                        "workflowId": "string",
+                        "workflowVersion": 0,
+                        "businessId": "string",
+                        "parentId": "string",
+                        "status": "PENDING",
+                        "createdBy": "string",
+                        "createdAt": "2026-11-03T22:05:40.534Z",
+                        "updatedAt": "2026-11-03T22:05:40.534Z",
+                        "finishedAt": "2026-11-03T22:05:40.534Z",
+                        "entityId": "string",
+                        "entityName": "string"
+                      }
+                    ],
+                    "pagination": {
+                      "type": "cursor",
+                      "perPage": 0,
+                      "nextPage": "string",
+                      "prevPage": "string",
+                      "hasNextPage": true,
+                      "hasPrevPage": true,
+                      "totalDocs": 0,
+                      "totalPages": 0
+                    }
+                  },
+                  "links": [
+                    {}
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/workflows/evaluations/{evaluationId}": {
+      "get": {
+        "tags": [
+          "Workflow Management"
+        ],
+        "summary": "Retrieve an Evaluation",
+        "description": "Fetches one evaluation (execution record) by id, including its full per-node `nodeLogs`. Scoped to the API key's business.",
+        "operationId": "retrieveWorkflowEvaluation",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "evaluationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique id of the evaluation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "execution": {
+                          "type": "object",
+                          "description": "The execution record.",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "workflowId": {
+                              "type": "string"
+                            },
+                            "workflowVersion": {
+                              "type": "integer"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "PENDING",
+                                "RUNNING",
+                                "PAUSED",
+                                "SUCCESS",
+                                "FAILED"
+                              ]
+                            },
+                            "nodeLogs": {
+                              "type": "object",
+                              "description": "Per-node logs, keyed by node id.",
+                              "additionalProperties": {
+                                "type": "object",
+                                "description": "Log of one node in the run.",
+                                "properties": {
+                                  "nodeId": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "example": "UNATTEMPTED"
+                                  },
+                                  "input": {
+                                    "type": "object"
+                                  },
+                                  "output": {
+                                    "type": "object"
+                                  },
+                                  "error": {
+                                    "type": "string"
+                                  },
+                                  "expiresAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "sla": {
+                                    "type": "object",
+                                    "properties": {
+                                      "policyId": {
+                                        "type": "string"
+                                      },
+                                      "policyName": {
+                                        "type": "string"
+                                      },
+                                      "startedAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "warnAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "dueAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "resolvedAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "state": {
+                                        "type": "string",
+                                        "example": "on_track"
+                                      }
+                                    }
+                                  },
+                                  "startedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "finishedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                }
+                              }
+                            },
+                            "businessId": {
+                              "type": "string"
+                            },
+                            "parentId": {
+                              "type": "string"
+                            },
+                            "createdBy": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "finishedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "workflowType": {
+                              "type": "string",
+                              "enum": [
+                                "CO",
+                                "TM"
+                              ]
+                            },
+                            "priority": {
+                              "type": "integer"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "entityName": {
+                              "type": "string"
+                            },
+                            "linkedTransactionIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "linkedTransactionReferences": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "eventId": {
+                              "type": "string"
+                            },
+                            "eventType": {
+                              "type": "string"
+                            },
+                            "eventCategory": {
+                              "type": "string"
+                            },
+                            "eventStatus": {
+                              "type": "string"
+                            },
+                            "externalEventId": {
+                              "type": "string"
+                            },
+                            "lifecycleId": {
+                              "type": "string"
+                            },
+                            "startedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "executionTimeMs": {
+                              "type": "integer"
+                            },
+                            "output": {
+                              "type": "object",
+                              "properties": {
+                                "decision": {
+                                  "type": "string",
+                                  "enum": [
+                                    "BLOCK",
+                                    "FREEZE",
+                                    "HOLD",
+                                    "REVIEW",
+                                    "ALERT",
+                                    "ALLOW"
+                                  ]
+                                },
+                                "actionReason": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "onboarding": {
+                              "type": "object",
+                              "description": "Onboarding (CO) result; present for onboarding runs.",
+                              "properties": {
+                                "decision": {
+                                  "type": "string",
+                                  "example": "REJECTED"
+                                },
+                                "reason": {
+                                  "type": "string"
+                                },
+                                "entity": {
+                                  "type": "object",
+                                  "properties": {
+                                    "entityId": {
+                                      "type": "string"
+                                    },
+                                    "entityType": {
+                                      "type": "string",
+                                      "enum": [
+                                        "INDIVIDUAL",
+                                        "BUSINESS"
+                                      ]
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "risk": {
+                                  "type": "object",
+                                  "properties": {
+                                    "score": {
+                                      "type": "number"
+                                    },
+                                    "rating": {
+                                      "type": "string",
+                                      "example": "LOW"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "example": "PENDING"
+                                    }
+                                  }
+                                },
+                                "documents": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string"
+                                      },
+                                      "dateOfExpiry": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "type": "string",
+                                        "example": "VALID"
+                                      },
+                                      "daysToExpiry": {
+                                        "type": "integer"
+                                      }
+                                    }
+                                  }
+                                },
+                                "issues": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "issueId": {
+                                        "type": "string"
+                                      },
+                                      "issueType": {
+                                        "type": "string"
+                                      },
+                                      "mismatchField": {
+                                        "type": "string"
+                                      },
+                                      "severity": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "type": "string"
+                                      },
+                                      "createdVia": {
+                                        "type": "string",
+                                        "example": "system"
+                                      }
+                                    }
+                                  }
+                                },
+                                "checks": {
+                                  "type": "object",
+                                  "properties": {
+                                    "identity": {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "example": "NOT_RUN"
+                                        }
+                                      }
+                                    },
+                                    "business": {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "example": "NOT_RUN"
+                                        }
+                                      }
+                                    },
+                                    "pep": {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "example": "NOT_RUN"
+                                        },
+                                        "hits": {
+                                          "type": "integer"
+                                        }
+                                      }
+                                    },
+                                    "sanctions": {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string",
+                                          "example": "NOT_RUN"
+                                        },
+                                        "hits": {
+                                          "type": "integer"
+                                        }
+                                      }
+                                    },
+                                    "screeningScore": {
+                                      "type": "number"
+                                    },
+                                    "adverseMedia": {
+                                      "type": "object",
+                                      "properties": {
+                                        "status": {
+                                          "type": "string"
+                                        },
+                                        "score": {
+                                          "type": "number"
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "actions": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "followUp": {
+                                  "type": "object",
+                                  "properties": {
+                                    "assignedQueue": {
+                                      "type": "string"
+                                    },
+                                    "requiredAction": {
+                                      "type": "string"
+                                    },
+                                    "alertCount": {
+                                      "type": "integer"
+                                    },
+                                    "caseCreated": {
+                                      "type": "boolean"
+                                    }
+                                  }
+                                },
+                                "failedStep": {
+                                  "type": "object",
+                                  "properties": {
+                                    "nodeId": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string"
+                                    },
+                                    "error": {
+                                      "type": "string"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "trace": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "nodeId": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "triggered": {
+                                    "type": "boolean"
+                                  },
+                                  "error": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "ruleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "matchedRuleIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "actionsApplied": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "alertCount": {
+                              "type": "integer"
+                            },
+                            "outcome": {
+                              "type": "object",
+                              "properties": {
+                                "result": {
+                                  "type": "string",
+                                  "example": "approved"
+                                },
+                                "flagged": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "counterparties": {
+                              "type": "array",
+                              "items": {
+                                "type": "object"
+                              }
+                            },
+                            "riskScore": {
+                              "type": "number"
+                            },
+                            "flagged": {
+                              "type": "boolean"
+                            },
+                            "valueAtRisk": {
+                              "type": "number"
+                            },
+                            "valueAtRiskCurrency": {
+                              "type": "string"
+                            },
+                            "resolution": {
+                              "type": "object",
+                              "properties": {
+                                "source": {
+                                  "type": "string",
+                                  "example": "alert"
+                                },
+                                "outcome": {
+                                  "type": "string",
+                                  "example": "approved"
+                                },
+                                "reference": {
+                                  "type": "string"
+                                },
+                                "resolvedAt": {
+                                  "type": "string",
+                                  "format": "date-time"
+                                },
+                                "detail": {
+                                  "type": "object"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Execution fetched successfully",
+                  "data": {
+                    "execution": {
+                      "id": "string",
+                      "workflowId": "string",
+                      "workflowVersion": 0,
+                      "status": "PENDING",
+                      "nodeLogs": {
+                        "additionalProp1": {
+                          "nodeId": "string",
+                          "status": "UNATTEMPTED",
+                          "input": {},
+                          "output": {},
+                          "error": "string",
+                          "expiresAt": "2026-11-03T22:08:46.092Z",
+                          "sla": {
+                            "policyId": "string",
+                            "policyName": "string",
+                            "startedAt": "2026-11-03T22:08:46.092Z",
+                            "warnAt": "2026-11-03T22:08:46.092Z",
+                            "dueAt": "2026-11-03T22:08:46.092Z",
+                            "resolvedAt": "2026-11-03T22:08:46.092Z",
+                            "state": "on_track"
+                          },
+                          "startedAt": "2026-11-03T22:08:46.092Z",
+                          "finishedAt": "2026-11-03T22:08:46.092Z"
+                        },
+                        "additionalProp2": {
+                          "nodeId": "string",
+                          "status": "UNATTEMPTED",
+                          "input": {},
+                          "output": {},
+                          "error": "string",
+                          "expiresAt": "2026-11-03T22:08:46.092Z",
+                          "sla": {
+                            "policyId": "string",
+                            "policyName": "string",
+                            "startedAt": "2026-11-03T22:08:46.092Z",
+                            "warnAt": "2026-11-03T22:08:46.092Z",
+                            "dueAt": "2026-11-03T22:08:46.092Z",
+                            "resolvedAt": "2026-11-03T22:08:46.092Z",
+                            "state": "on_track"
+                          },
+                          "startedAt": "2026-11-03T22:08:46.092Z",
+                          "finishedAt": "2026-11-03T22:08:46.092Z"
+                        },
+                        "additionalProp3": {
+                          "nodeId": "string",
+                          "status": "UNATTEMPTED",
+                          "input": {},
+                          "output": {},
+                          "error": "string",
+                          "expiresAt": "2026-11-03T22:08:46.092Z",
+                          "sla": {
+                            "policyId": "string",
+                            "policyName": "string",
+                            "startedAt": "2026-11-03T22:08:46.092Z",
+                            "warnAt": "2026-11-03T22:08:46.092Z",
+                            "dueAt": "2026-11-03T22:08:46.092Z",
+                            "resolvedAt": "2026-11-03T22:08:46.092Z",
+                            "state": "on_track"
+                          },
+                          "startedAt": "2026-11-03T22:08:46.092Z",
+                          "finishedAt": "2026-11-03T22:08:46.092Z"
+                        }
+                      },
+                      "businessId": "string",
+                      "parentId": "string",
+                      "createdBy": "string",
+                      "createdAt": "2026-11-03T22:08:46.092Z",
+                      "updatedAt": "2026-11-03T22:08:46.092Z",
+                      "finishedAt": "2026-11-03T22:08:46.092Z",
+                      "workflowType": "CO",
+                      "priority": 0,
+                      "entityId": "string",
+                      "entityName": "string",
+                      "linkedTransactionIds": [
+                        "string"
+                      ],
+                      "linkedTransactionReferences": [
+                        "string"
+                      ],
+                      "eventId": "string",
+                      "eventType": "string",
+                      "eventCategory": "string",
+                      "eventStatus": "string",
+                      "externalEventId": "string",
+                      "lifecycleId": "string",
+                      "startedAt": "2026-11-03T22:08:46.092Z",
+                      "executionTimeMs": 0,
+                      "output": {
+                        "decision": "BLOCK",
+                        "actionReason": "string"
+                      },
+                      "onboarding": {
+                        "decision": "REJECTED",
+                        "reason": "string",
+                        "entity": {
+                          "entityId": "string",
+                          "entityType": "INDIVIDUAL",
+                          "name": "string"
+                        },
+                        "risk": {
+                          "score": 0,
+                          "rating": "LOW",
+                          "status": "PENDING"
+                        },
+                        "documents": [
+                          {
+                            "type": "string",
+                            "dateOfExpiry": "string",
+                            "status": "VALID",
+                            "daysToExpiry": 0
+                          }
+                        ],
+                        "issues": [
+                          {
+                            "issueId": "string",
+                            "issueType": "string",
+                            "mismatchField": "string",
+                            "severity": "string",
+                            "status": "string",
+                            "createdVia": "system"
+                          }
+                        ],
+                        "checks": {
+                          "identity": {
+                            "status": "NOT_RUN"
+                          },
+                          "business": {
+                            "status": "NOT_RUN"
+                          },
+                          "pep": {
+                            "status": "NOT_RUN",
+                            "hits": 0
+                          },
+                          "sanctions": {
+                            "status": "NOT_RUN",
+                            "hits": 0
+                          },
+                          "screeningScore": 0,
+                          "adverseMedia": {
+                            "status": "string",
+                            "score": 0
+                          }
+                        },
+                        "actions": [
+                          "string"
+                        ],
+                        "followUp": {
+                          "assignedQueue": "string",
+                          "requiredAction": "string",
+                          "alertCount": 0,
+                          "caseCreated": true
+                        },
+                        "failedStep": {
+                          "nodeId": "string",
+                          "type": "string",
+                          "error": "string"
+                        }
+                      },
+                      "trace": [
+                        {
+                          "nodeId": "string",
+                          "type": "string",
+                          "status": "string",
+                          "triggered": true,
+                          "error": "string"
+                        }
+                      ],
+                      "ruleIds": [
+                        "string"
+                      ],
+                      "matchedRuleIds": [
+                        "string"
+                      ],
+                      "actionsApplied": [
+                        "string"
+                      ],
+                      "alertCount": 0,
+                      "outcome": {
+                        "result": "approved",
+                        "flagged": [
+                          "string"
+                        ]
+                      },
+                      "counterparties": [
+                        {}
+                      ],
+                      "riskScore": 0,
+                      "flagged": true,
+                      "valueAtRisk": 0,
+                      "valueAtRiskCurrency": "string",
+                      "resolution": {
+                        "source": "alert",
+                        "outcome": "approved",
+                        "reference": "string",
+                        "resolvedAt": "2026-11-03T22:08:46.092Z",
+                        "detail": {}
+                      }
+                    }
+                  },
+                  "links": [
+                    {}
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "statusCode": 404,
+                  "message": "You have attempted to get a resource that does not exist.",
+                  "name": "ResourceNotFoundError",
+                  "data": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
+        }
+      }
+    },
+    "/v2/workflows": {
+      "get": {
+        "tags": [
+          "Workflow Management"
+        ],
+        "summary": "List Workflows",
+        "description": "Lists the business's published workflows, cursor-paginated. Only published workflows are returned; `status` is not a filter here.",
+        "operationId": "listWorkflows",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API secret token"
+          },
+          {
+            "name": "workflowType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CO",
+                "TM"
+              ]
+            },
+            "description": "Filter by workflow type: `CO` or `TM`."
+          },
+          {
+            "name": "isLive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Filter by whether the workflow is live."
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search text."
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Return workflows from this date."
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Return workflows up to this date."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Number of records per page."
+          },
+          {
+            "name": "sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Field to sort by."
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "description": "Sort direction."
+          },
+          {
+            "name": "next",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for the next page."
+          },
+          {
+            "name": "prev",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Cursor for the previous page."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "docs": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "businessId": {
+                                "type": "string"
+                              },
+                              "parentId": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "workflowType": {
+                                "type": "string",
+                                "enum": [
+                                  "CO",
+                                  "TM"
+                                ]
+                              },
+                              "status": {
+                                "type": "string",
+                                "example": "draft"
+                              },
+                              "lastCreatedVersion": {
+                                "type": "integer"
+                              },
+                              "liveVersion": {
+                                "type": "integer"
+                              },
+                              "registryVersion": {
+                                "type": "integer"
+                              },
+                              "runs": {
+                                "type": "integer"
+                              },
+                              "alerts": {
+                                "type": "integer"
+                              },
+                              "failedRuns": {
+                                "type": "integer"
+                              },
+                              "failedNodes": {
+                                "type": "integer"
+                              },
+                              "triggerCount": {
+                                "type": "integer"
+                              },
+                              "publishedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "activatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "deactivatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "archivedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "deletedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "createdBy": {
+                                "type": "string"
+                              },
+                              "createdByUser": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "firstName": {
+                                    "type": "string"
+                                  },
+                                  "middleName": {
+                                    "type": "string"
+                                  },
+                                  "lastName": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "format": "email"
+                                  }
+                                }
+                              },
+                              "updatedBy": {
+                                "type": "string"
+                              },
+                              "updatedByUser": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "firstName": {
+                                    "type": "string"
+                                  },
+                                  "middleName": {
+                                    "type": "string"
+                                  },
+                                  "lastName": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "format": "email"
+                                  }
+                                }
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "pagination": {
+                          "$ref": "#/components/schemas/WorkflowPagination"
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "success": true,
+                  "statusCode": 200,
+                  "message": "Workflows fetched successfully",
+                  "data": {
+                    "docs": [
+                      {
+                        "id": "string",
+                        "businessId": "string",
+                        "parentId": "string",
+                        "name": "string",
+                        "description": "string",
+                        "workflowType": "CO",
+                        "status": "draft",
+                        "lastCreatedVersion": 0,
+                        "liveVersion": 0,
+                        "registryVersion": 0,
+                        "runs": 0,
+                        "alerts": 0,
+                        "failedRuns": 0,
+                        "failedNodes": 0,
+                        "triggerCount": 0,
+                        "publishedAt": "2026-11-03T22:13:10.007Z",
+                        "activatedAt": "2026-11-03T22:13:10.007Z",
+                        "deactivatedAt": "2026-11-03T22:13:10.007Z",
+                        "archivedAt": "2026-11-03T22:13:10.007Z",
+                        "deletedAt": "2026-11-03T22:13:10.007Z",
+                        "createdBy": "string",
+                        "createdByUser": {
+                          "id": "665f1c2ab7e4d21a9c8b4567",
+                          "firstName": "Ada",
+                          "middleName": "Augusta",
+                          "lastName": "Lovelace",
+                          "email": "ada@example.com"
+                        },
+                        "updatedBy": "string",
+                        "updatedByUser": {
+                          "id": "665f1c2ab7e4d21a9c8b4567",
+                          "firstName": "Ada",
+                          "middleName": "Augusta",
+                          "lastName": "Lovelace",
+                          "email": "ada@example.com"
+                        },
+                        "createdAt": "2026-11-03T22:13:10.007Z",
+                        "updatedAt": "2026-11-03T22:13:10.007Z"
+                      }
+                    ],
+                    "pagination": {
+                      "type": "cursor",
+                      "perPage": 0,
+                      "nextPage": "string",
+                      "prevPage": "string",
+                      "hasNextPage": true,
+                      "hasPrevPage": true,
+                      "totalDocs": 0,
+                      "totalPages": 0
+                    }
+                  },
+                  "links": [
+                    {}
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500ServerError"
+          }
         }
       }
     }

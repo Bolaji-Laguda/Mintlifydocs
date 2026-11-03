@@ -136,6 +136,46 @@
                 }
               }
             ]
+          },
+          {
+            "tab": "How-to Guides",
+            "pages": [
+              "how-to/overview",
+              {
+                "group": "Account and team",
+                "pages": [
+                  "how-to/manage-team-members",
+                  "how-to/user-roles",
+                  "how-to/two-factor-authentication",
+                  "how-to/activate-business-account",
+                  "how-to/api-keys"
+                ]
+              },
+              {
+                "group": "Billing and wallet",
+                "pages": [
+                  "how-to/billing-wallets-invoices",
+                  "how-to/low-balance-alerts",
+                  "how-to/fund-wallet"
+                ]
+              },
+              {
+                "group": "Verification and entities",
+                "pages": [
+                  "how-to/verification-statuses",
+                  "how-to/manage-entities"
+                ]
+              },
+              {
+                "group": "Address verification",
+                "pages": [
+                  "how-to/address-verification",
+                  "how-to/track-address-verification",
+                  "how-to/address-report-statuses"
+                ]
+              },
+              "how-to/faqs"
+            ]
           }
         ]
       },
@@ -231,6 +271,46 @@
                   "fr/api-reference/overview"
                 ]
               }
+            ]
+          },
+          {
+            "tab": "Guides pratiques",
+            "pages": [
+              "fr/how-to/overview",
+              {
+                "group": "Compte et équipe",
+                "pages": [
+                  "fr/how-to/manage-team-members",
+                  "fr/how-to/user-roles",
+                  "fr/how-to/two-factor-authentication",
+                  "fr/how-to/activate-business-account",
+                  "fr/how-to/api-keys"
+                ]
+              },
+              {
+                "group": "Facturation et portefeuille",
+                "pages": [
+                  "fr/how-to/billing-wallets-invoices",
+                  "fr/how-to/low-balance-alerts",
+                  "fr/how-to/fund-wallet"
+                ]
+              },
+              {
+                "group": "Vérification et entités",
+                "pages": [
+                  "fr/how-to/verification-statuses",
+                  "fr/how-to/manage-entities"
+                ]
+              },
+              {
+                "group": "Vérification d'adresse",
+                "pages": [
+                  "fr/how-to/address-verification",
+                  "fr/how-to/track-address-verification",
+                  "fr/how-to/address-report-statuses"
+                ]
+              },
+              "fr/how-to/faqs"
             ]
           }
         ]
