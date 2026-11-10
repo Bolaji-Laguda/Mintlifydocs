@@ -4550,7 +4550,7 @@
           "KYC - Nigeria"
         ],
         "summary": "Verify Phone Number",
-        "description": "Verifies the owner of a phone number in Nigeria using basic phone number verification.",
+        "description": "Verifies a phone number in Nigeria and returns the details linked to it.\n\nBasic search (`advanceSearch: false`) returns `phoneDetails`. The primary date of birth and address stay on `dateOfBirth` and `address`. Extra matches are returned in `datesOfBirth` and `addresses`.\n\n**Data confidence.** `dataConfidence.dateOfBirth.level` and `dataConfidence.address.level` say how well those values agree across records. The matched values are not repeated inside `dataConfidence`.\n\n**Line status.** `lineStatus` is the airtime activity of the number:\n\n- `active`: the number topped up recently.\n- `inactive`: there is no recent top-up.\n- `unknown`: there is no record.\n\nRecently means the last 30 days where that data exists, otherwise September 2026.\n\n**Score.** `score.value` is 0 to 100, from how much airtime the number topped up in July, August and September 2026. A higher score means the number tops up more, more often, and more steadily. It is made up of:\n\n- 60%: the average monthly top-up compared with everyone else.\n- 25%: whether it topped up in all 3 months in similar amounts.\n- 15%: whether September went up or down against July and August.\n\n`score.grade` is a band of `score.value`:\n\n| Grade | Score | Meaning |\n| --- | --- | --- |\n| A | 80 and above | Excellent |\n| B | 65 to 79 | Good |\n| C | 50 to 64 | Fair |\n| D | 35 to 49 | Low |\n| E | Below 35 | Very low |\n",
         "operationId": "verifyPhoneNumberNigeria",
         "parameters": [
           {
@@ -4573,37 +4573,389 @@
                   "statusCode": 200,
                   "message": "success",
                   "data": {
-                    "parentId": "612ce40ab8919f39faf7ae49",
+                    "id": "6af2f8a82f735ea6eddf38a2",
+                    "parentId": null,
                     "status": "found",
+                    "reason": null,
                     "dataValidation": false,
                     "selfieValidation": false,
                     "phoneDetails": [
                       {
-                        "fullName": "EHICHIOYA FAMOUS PRIOR",
-                        "dateOfBirth": "2000-01-01"
-                      },
-                      {
-                        "fullName": "EHICHIOYA FAMOUS PRIOR",
-                        "dateOfBirth": "2000-01-03"
+                        "phoneNumber": "08000000000",
+                        "phoneNumberE164": "+2348000000000",
+                        "network": "MTN",
+                        "lineStatus": "active",
+                        "ported": "yes",
+                        "previousNetworks": [
+                          "9mobile"
+                        ],
+                        "fullName": "JOHN MICHAEL DOE",
+                        "firstName": "JOHN",
+                        "middleName": "MICHAEL",
+                        "lastName": "DOE",
+                        "gender": "Male",
+                        "dateOfBirth": "1988-04-04",
+                        "datesOfBirth": [
+                          "1988-04-04",
+                          "1988-09-12"
+                        ],
+                        "age": 38,
+                        "stateOfOrigin": "Lagos",
+                        "address": {
+                          "residence_AdressLine1": "12 Admiralty Way",
+                          "lga": "Eti Osa",
+                          "residence_state": "Lagos",
+                          "street": "12 Admiralty Way",
+                          "state": "Lagos"
+                        },
+                        "addresses": [
+                          {
+                            "residence_AdressLine1": "12 Admiralty Way",
+                            "lga": "Eti Osa",
+                            "residence_state": "Lagos",
+                            "street": "12 Admiralty Way",
+                            "state": "Lagos"
+                          },
+                          {
+                            "residence_AdressLine1": "4 Gana Street",
+                            "lga": "Municipal Area Council",
+                            "residence_state": "FCT",
+                            "street": "4 Gana Street",
+                            "state": "FCT"
+                          }
+                        ],
+                        "dataConfidence": {
+                          "dateOfBirth": {
+                            "level": "low"
+                          },
+                          "address": {
+                            "level": "low"
+                          }
+                        },
+                        "score": {
+                          "value": 75,
+                          "grade": "B"
+                        },
+                        "linkedToNin": true
                       }
                     ],
                     "isConsent": true,
-                    "idNumber": "08036xxxxxx",
-                    "businessId": "619b683ecb55a2a588f4b83c",
+                    "idNumber": "08000000000",
+                    "businessId": "65114a8ded14f6cf554e6b34",
                     "type": "phone",
-                    "requestedAt": "2021-12-15T00:20:53.143Z",
+                    "allValidationPassed": true,
+                    "requestedAt": "2026-11-10T10:57:44.497Z",
+                    "requestedById": "65114a8eed14f64d2d4e6b35",
                     "country": "NG",
-                    "createdAt": "2021-12-15T00:20:53.334Z",
-                    "lastModifiedAt": "2021-12-15T00:20:53.334Z",
-                    "id": "61b934dfaab326675cdfaab326",
+                    "createdAt": "2026-11-10T10:57:44.505Z",
+                    "lastModifiedAt": "2026-11-10T10:57:44.505Z",
+                    "adverseMediaReport": null,
+                    "amlReport": null,
+                    "advanceSearch": false,
+                    "entityId": null,
+                    "apiKeyPrefix": "qvmcTR6D",
+                    "source": "api",
+                    "metadata": {},
                     "requestedBy": {
                       "firstName": "API",
                       "lastName": "User",
                       "middleName": "",
-                      "id": "619b683ecb55a2a588f4b839"
+                      "id": "65114a8eed14f64d2d4e6b35"
                     }
                   },
                   "links": []
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "statusCode": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "parentId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "status": {
+                          "type": "string",
+                          "example": "found"
+                        },
+                        "reason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "dataValidation": {
+                          "type": "boolean"
+                        },
+                        "selfieValidation": {
+                          "type": "boolean"
+                        },
+                        "phoneDetails": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "phoneNumber": {
+                                "type": "string",
+                                "description": "The phone number as sent."
+                              },
+                              "phoneNumberE164": {
+                                "type": "string",
+                                "description": "The number in E.164 format."
+                              },
+                              "network": {
+                                "type": "string",
+                                "description": "The network the number is on."
+                              },
+                              "lineStatus": {
+                                "type": "string",
+                                "description": "Airtime activity of the number. `active` means it topped up recently, `inactive` means there is no recent top-up, and `unknown` means there is no record. Recently means the last 30 days where that data exists, otherwise September 2026.",
+                                "enum": [
+                                  "active",
+                                  "inactive",
+                                  "unknown"
+                                ]
+                              },
+                              "ported": {
+                                "type": "string",
+                                "description": "Whether the number has been ported to another network."
+                              },
+                              "previousNetworks": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Networks the number was on before."
+                              },
+                              "fullName": {
+                                "type": "string"
+                              },
+                              "firstName": {
+                                "type": "string"
+                              },
+                              "middleName": {
+                                "type": "string"
+                              },
+                              "lastName": {
+                                "type": "string"
+                              },
+                              "gender": {
+                                "type": "string"
+                              },
+                              "dateOfBirth": {
+                                "type": "string",
+                                "description": "The primary date of birth."
+                              },
+                              "datesOfBirth": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Every date of birth matched for the number, including the primary one."
+                              },
+                              "age": {
+                                "type": "integer"
+                              },
+                              "stateOfOrigin": {
+                                "type": "string"
+                              },
+                              "address": {
+                                "type": "object",
+                                "description": "The primary address.",
+                                "properties": {
+                                  "residence_AdressLine1": {
+                                    "type": "string"
+                                  },
+                                  "lga": {
+                                    "type": "string"
+                                  },
+                                  "residence_state": {
+                                    "type": "string"
+                                  },
+                                  "street": {
+                                    "type": "string"
+                                  },
+                                  "state": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "addresses": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "description": "An address linked to the number.",
+                                  "properties": {
+                                    "residence_AdressLine1": {
+                                      "type": "string"
+                                    },
+                                    "lga": {
+                                      "type": "string"
+                                    },
+                                    "residence_state": {
+                                      "type": "string"
+                                    },
+                                    "street": {
+                                      "type": "string"
+                                    },
+                                    "state": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "description": "Every address matched for the number, including the primary one."
+                              },
+                              "dataConfidence": {
+                                "type": "object",
+                                "description": "How well the date of birth and address agree across records. The matched values are not repeated here.",
+                                "properties": {
+                                  "dateOfBirth": {
+                                    "type": "object",
+                                    "description": "Agreement across records for the date of birth.",
+                                    "properties": {
+                                      "level": {
+                                        "type": "string",
+                                        "description": "How well the values agree across records."
+                                      }
+                                    }
+                                  },
+                                  "address": {
+                                    "type": "object",
+                                    "description": "Agreement across records for the address.",
+                                    "properties": {
+                                      "level": {
+                                        "type": "string",
+                                        "description": "How well the values agree across records."
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "score": {
+                                "type": "object",
+                                "description": "Airtime top-up score from July, August and September 2026.",
+                                "properties": {
+                                  "value": {
+                                    "type": "integer",
+                                    "description": "0 to 100. A higher score means the number tops up more, more often, and more steadily. 60% is the average monthly top-up compared with everyone else, 25% is whether it topped up in all 3 months in similar amounts, and 15% is whether September went up or down against July and August.",
+                                    "minimum": 0,
+                                    "maximum": 100
+                                  },
+                                  "grade": {
+                                    "type": "string",
+                                    "description": "A for 80 and above (Excellent), B for 65 to 79 (Good), C for 50 to 64 (Fair), D for 35 to 49 (Low), E for below 35 (Very low).",
+                                    "enum": [
+                                      "A",
+                                      "B",
+                                      "C",
+                                      "D",
+                                      "E"
+                                    ]
+                                  }
+                                }
+                              },
+                              "linkedToNin": {
+                                "type": "boolean",
+                                "description": "Whether the number is linked to a NIN."
+                              }
+                            }
+                          }
+                        },
+                        "isConsent": {
+                          "type": "boolean"
+                        },
+                        "idNumber": {
+                          "type": "string"
+                        },
+                        "businessId": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "example": "phone"
+                        },
+                        "allValidationPassed": {
+                          "type": "boolean"
+                        },
+                        "requestedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "requestedById": {
+                          "type": "string"
+                        },
+                        "country": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "lastModifiedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "adverseMediaReport": {
+                          "type": "object",
+                          "nullable": true
+                        },
+                        "amlReport": {
+                          "type": "object",
+                          "nullable": true
+                        },
+                        "advanceSearch": {
+                          "type": "boolean"
+                        },
+                        "entityId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "apiKeyPrefix": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "metadata": {
+                          "type": "object"
+                        },
+                        "requestedBy": {
+                          "type": "object",
+                          "properties": {
+                            "firstName": {
+                              "type": "string"
+                            },
+                            "lastName": {
+                              "type": "string"
+                            },
+                            "middleName": {
+                              "type": "string"
+                            },
+                            "id": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "links": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -4675,6 +5027,14 @@
                   "metadata": {
                     "type": "object",
                     "description": "Any valid object can be passed here. It gets returned as is."
+                  },
+                  "advanceSearch": {
+                    "type": "boolean",
+                    "description": "`false` for basic search, which returns `phoneDetails`."
+                  },
+                  "premiumNin": {
+                    "type": "boolean",
+                    "description": "Premium NIN option."
                   }
                 },
                 "required": [
@@ -4684,7 +5044,9 @@
               },
               "example": {
                 "mobile": "08000000000",
-                "isSubjectConsent": true
+                "isSubjectConsent": true,
+                "advanceSearch": false,
+                "premiumNin": true
               }
             }
           }
