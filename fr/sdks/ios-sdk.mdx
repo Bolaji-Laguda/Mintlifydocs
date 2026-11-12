@@ -8,13 +8,13 @@ Le SDK iOS Youverify vous permet d'ajouter une détection de vivacité anti-deep
 
 ## Version actuelle
 
-La dernière version compacte du SDK iOS Liveness est la **0.1.5**. Une version de compatibilité est également disponible pour les intégrations plus anciennes.
+La dernière version compat du SDK iOS Liveness est la **0.1.7**. Elle prend en charge iOS 12 et les versions antérieures, et couvre donc aussi les intégrations plus anciennes.
 
 ## Prérequis
 
-- Cible de déploiement iOS minimale : **iOS 13.0**
+- Cible de déploiement iOS minimale : **iOS 12.0**
 - Permission caméra déclarée (`NSCameraUsageDescription` dans `Info.plist`)
-- Swift 5.x ou supérieur
+- Swift **6.1** (défini dans `swift_versions` du pod)
 
 ## Étape 1 — Ajouter le SDK
 
@@ -23,7 +23,7 @@ La dernière version compacte du SDK iOS Liveness est la **0.1.5**. Une version 
     Ajoutez le pod à votre `Podfile` :
 
     ```ruby
-    pod 'YouverifyLivenessSDKCompat'
+    pod 'YouverifyLivenessSDKCompat', '0.1.7'
     ```
 
     Exécutez ensuite :
@@ -247,13 +247,26 @@ Toutes les tâches acceptent un paramètre `difficulty` (`.easy`, `.medium`, `.h
 
 ## Version iOS (Compat)
 
-Une version de compatibilité du SDK est disponible pour les intégrations nécessitant la prise en charge de versions d'iOS plus anciennes ou de bases de code héritées. Installez-la via CocoaPods :
+La version compat du SDK est destinée aux intégrations nécessitant la prise en charge d'iOS 12 et des versions antérieures, ou de bases de code héritées. La version actuelle est la **0.1.7**. Installez-la via CocoaPods :
 
 ```ruby
-pod 'YouverifyLivenessSDKCompat'
+pod 'YouverifyLivenessSDKCompat', '0.1.7'
 ```
 
-La version compat partage la même API d'initialisation que le SDK compact standard.
+La version compat partage la même API d'initialisation que le SDK compact standard. Vous continuez à utiliser `import YouverifyLivenessSDK`, car c'est le nom du module.
+
+| Détail | Valeur |
+| --- | --- |
+| Nom du pod | `YouverifyLivenessSDKCompat` |
+| Version | `0.1.7` |
+| iOS minimal | 12.0 |
+| Version de Swift | 6.1 |
+| Frameworks liés | `UIKit`, `Foundation`, `Metal`, `OpenGLES` |
+| Liaison faible | `SwiftUI` |
+
+<Note>
+  Le pod exclut l'architecture `arm64` pour le simulateur iOS. Sur un Mac Apple silicon, exécutez le simulateur avec Rosetta ou testez sur un appareil physique.
+</Note>
 
 <Note>
   Si vous recevez une erreur `invalid_or_expired_session`, votre identifiant de session a expiré. Générez de nouvelles valeurs `sessionId` et `sessionToken` depuis votre backend et appelez de nouveau `initializeSDK` avec ces valeurs.
