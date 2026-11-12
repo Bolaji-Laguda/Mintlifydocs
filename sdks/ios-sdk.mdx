@@ -8,13 +8,13 @@ The Youverify iOS SDK lets you add anti-deepfake liveness detection to your iPho
 
 ## Current version
 
-The latest iOS Liveness SDK compact version is **0.1.5**. A compatibility version is also available for older integrations.
+The latest iOS Liveness SDK compat version is **0.1.7**. It supports iOS 12 and below, so it also covers older integrations.
 
 ## Prerequisites
 
-- iOS minimum deployment target: **iOS 13.0**
+- iOS minimum deployment target: **iOS 12.0**
 - Camera permission declared (`NSCameraUsageDescription` in `Info.plist`)
-- Swift 5.x or later
+- Swift **6.1** (set in the pod's `swift_versions`)
 
 ## Step 1 — Add the SDK
 
@@ -23,7 +23,7 @@ The latest iOS Liveness SDK compact version is **0.1.5**. A compatibility versio
     Add the pod to your `Podfile`:
 
     ```ruby
-    pod 'YouverifyLivenessSDKCompat'
+    pod 'YouverifyLivenessSDKCompat', '0.1.7'
     ```
 
     Then run:
@@ -251,13 +251,26 @@ All tasks accept a `difficulty` parameter (`.easy`, `.medium`, `.hard`) and an o
 
 ## iOS (Compat) version
 
-A compatibility version of the SDK is available for integrations requiring support for older iOS versions or legacy codebases. Install it via CocoaPods:
+The compat version of the SDK is for integrations requiring support for iOS 12 and below or legacy codebases. The current version is **0.1.7**. Install it via CocoaPods:
 
 ```ruby
-pod 'YouverifyLivenessSDKCompat'
+pod 'YouverifyLivenessSDKCompat', '0.1.7'
 ```
 
-The compat version shares the same initialization API as the standard compact SDK.
+The compat version shares the same initialization API as the standard compact SDK. You still `import YouverifyLivenessSDK`, because that is the module name.
+
+| Detail | Value |
+| --- | --- |
+| Pod name | `YouverifyLivenessSDKCompat` |
+| Version | `0.1.7` |
+| Minimum iOS | 12.0 |
+| Swift version | 6.1 |
+| Linked frameworks | `UIKit`, `Foundation`, `Metal`, `OpenGLES` |
+| Weakly linked | `SwiftUI` |
+
+<Note>
+  The pod excludes the `arm64` architecture for the iOS Simulator. On an Apple silicon Mac, run the simulator with Rosetta or test on a physical device.
+</Note>
 
 <Note>
   If you receive an `invalid_or_expired_session` error, your session ID has expired. Generate a new `sessionId` and `sessionToken` from your backend and call `initializeSDK` again with the fresh values.
