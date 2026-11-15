@@ -27,7 +27,7 @@ Un signal inhabituel isolé peut ne rien signifier. Plusieurs signaux qui évolu
   </Card>
 
   <Card title="Détections de confidentialité et de masquage" icon="user-secret">
-    Détecte la navigation privée, Tor, les navigateurs axés sur la confidentialité comme Brave, les VPN (y compris les VPN mobiles) et l'usurpation de géolocalisation sur mobile, pour voir quand une session masque son environnement.
+    Détecte la navigation privée, Tor, les navigateurs axés sur la confidentialité comme Brave, les VPN et l'usurpation de géolocalisation sur mobile, pour voir quand une session masque son environnement.
 
     **À utiliser pour :** repérer les clients qui masquent délibérément qui ils sont ou où ils se trouvent.
   </Card>
@@ -45,9 +45,9 @@ Un signal inhabituel isolé peut ne rien signifier. Plusieurs signaux qui évolu
   </Card>
 
   <Card title="Environnement et intégrité de l'appareil" icon="desktop">
-    Détecte l'activité de bot, les machines virtuelles, les émulateurs et les environnements pilotés à distance, les appareils rootés ou jailbreakés, les réinitialisations d'usine récentes et l'instrumentation Frida sur mobile, ainsi que l'altération du navigateur et les outils de développement sur le web. Ces éléments servent souvent à faire fonctionner de nombreuses identités depuis un seul endroit.
+    Détecte l'activité de bot, les machines virtuelles, les appareils rootés ou jailbreakés, les émulateurs Android, les réinitialisations d'usine récentes et l'instrumentation Frida, ainsi que l'altération du navigateur sur le web. Ces éléments servent souvent à faire fonctionner de nombreuses identités depuis un seul endroit.
 
-    **À utiliser pour :** bloquer les fermes d'appareils et les sessions pilotées à distance.
+    **À utiliser pour :** bloquer les fermes d'appareils et les appareils altérés.
   </Card>
 </CardGroup>
 
@@ -65,15 +65,15 @@ Les contrôles d'identité vous disent qui une personne prétend être. Fraud In
   </Accordion>
 
   <Accordion title="Environnements altérés et virtuels" icon="robot">
-    Détectez les machines virtuelles, l'altération du navigateur et les outils de développement que de vrais clients utilisent rarement.
+    Détectez les machines virtuelles et l'altération du navigateur que de vrais clients utilisent rarement.
   </Accordion>
 
   <Accordion title="Masquage de lieu et d'identité" icon="eye-slash">
     Signalez les VPN, Tor, les navigateurs axés sur la confidentialité, les sessions en navigation privée et les adresses IP qui ne correspondent pas à la localisation de l'appareil.
   </Accordion>
 
-  <Accordion title="Émulateurs et accès à distance" icon="desktop">
-    Détectez les appareils virtuels, les émulateurs et les environnements pilotés à distance utilisés pour faire fonctionner de nombreuses identités depuis un seul endroit.
+  <Accordion title="Émulateurs et appareils modifiés" icon="desktop">
+    Détectez les machines virtuelles, les émulateurs Android et les appareils rootés ou jailbreakés utilisés pour faire fonctionner de nombreuses identités depuis un seul endroit.
   </Accordion>
 
   <Accordion title="Abus de bonus et de promotions" icon="gift">
@@ -130,33 +130,37 @@ Le SDK collecte les signaux de manière passive et les renvoie sous forme de dé
 
 ## Données et signaux de risque
 
-Le tableau ci-dessous présente les signaux détectés par Fraud Insights selon les plateformes et les environnements.
+Le SDK Fraud Insights détecte 25 signaux d'intelligence d'appareil et de risque sur le web, iOS et Android. Certains signaux sont disponibles sur toutes les plateformes. D'autres ne s'appliquent qu'aux navigateurs ou qu'aux applications mobiles natives.
 
-| Nom du signal | Web, ordinateur | Web, Android | Web, iOS | Applis mobiles, Android | Applis mobiles, iOS |
-| --- | :-: | :-: | :-: | :-: | :-: |
-| Identifiant du navigateur | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Identifiant de l'appareil | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Nom du navigateur | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Système d'exploitation | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Modèle de l'appareil | ❌ | ✅ | ❌ | ✅ | ❌ |
-| Type d'appareil | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Adresse IP | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Numéro de système autonome (ASN) de l'IP | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Type de réseau de l'IP (résidentiel, mobile, hébergement, VPN, etc.) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fournisseur de VPN | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Géolocalisation de l'IP (coordonnées, rayon de confiance en km) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Navigateurs axés sur la confidentialité (Brave, Tor Browser, etc.) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Navigation privée | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Altération du navigateur (usurpation) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Machine virtuelle | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Outils de développement | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Réinitialisation d'usine récente | ❌ | ❌ | ❌ | ✅ | ✅ |
-| VPN mobile | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Usurpation de géolocalisation | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Émulateur Android | ❌ | ❌ | ❌ | ✅ | ❌ |
-| Appareil jailbreaké | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Détection de Frida | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Appareil rooté | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Signal | Web | iOS | Android |
+| --- | :-: | :-: | :-: |
+| Identifiant de l'appareil | ✅ | ✅ | ✅ |
+| Identifiant du navigateur | ✅ | ❌ | ❌ |
+| Nom du navigateur | ✅ | ❌ | ❌ |
+| Système d'exploitation | ✅ | ❌ | ❌ |
+| Modèle de l'appareil | ✅ | ✅ | ✅ |
+| Type d'appareil | ✅ | ✅ | ✅ |
+| Adresse IP | ✅ | ✅ | ✅ |
+| Numéro de système autonome (ASN) de l'IP | ✅ | ✅ | ✅ |
+| Type de réseau de l'IP (résidentiel, mobile, hébergement, VPN, etc.) | ✅ | ✅ | ✅ |
+| Géolocalisation de l'IP (coordonnées, rayon de confiance en km) | ✅ | ✅ | ✅ |
+| Fuseau horaire | ✅ | ✅ | ✅ |
+| Détection de VPN | ✅ | ✅ | ✅ |
+| Activité de bot | ✅ | ✅ | ✅ |
+| Navigateurs axés sur la confidentialité (Brave, Tor Browser, etc.) | ✅ | ❌ | ❌ |
+| Navigation privée | ✅ | ❌ | ❌ |
+| Altération du navigateur (usurpation) | ✅ | ❌ | ❌ |
+| Machine virtuelle | ✅ | ❌ | ❌ |
+| Réinitialisation d'usine récente | ❌ | ✅ | ✅ |
+| Usurpation de géolocalisation | ❌ | ✅ | ✅ |
+| Émulateur Android | ❌ | ❌ | ✅ |
+| Appareil jailbreaké | ❌ | ✅ | ❌ |
+| Appareil rooté | ❌ | ❌ | ✅ |
+| Accès root à l'appareil | ✅ | ✅ | ✅ |
+| Détection de Frida | ❌ | ✅ | ✅ |
+| Score de risque de l'appareil | ✅ | ✅ | ✅ |
+
+✅ = disponible · ❌ = non disponible
 
 <Note>
   Les signaux sont des indicateurs, pas des preuves de fraude. Le score de risque de l'appareil les combine en un seul chiffre sur 100, ce qui vous évite de juger chacun isolément.

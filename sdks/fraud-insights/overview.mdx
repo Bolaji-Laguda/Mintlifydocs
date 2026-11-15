@@ -27,7 +27,7 @@ One unusual signal may mean nothing. Several signals moving together tell a stor
   </Card>
 
   <Card title="Privacy and masking detections" icon="user-secret">
-    Detects private browsing, Tor, privacy-focused browsers such as Brave, VPNs (including mobile VPNs) and location spoofing on mobile, so you can see when a session is hiding its environment.
+    Detects private browsing, Tor, privacy-focused browsers such as Brave, VPNs and geolocation spoofing on mobile, so you can see when a session is hiding its environment.
 
     **Use it to:** spot customers who are deliberately masking who or where they are.
   </Card>
@@ -45,9 +45,9 @@ One unusual signal may mean nothing. Several signals moving together tell a stor
   </Card>
 
   <Card title="Environment and device integrity" icon="desktop">
-    Detects bot activity, virtual machines, emulators and remote-control environments, rooted or jailbroken devices, recent factory resets and Frida instrumentation on mobile, as well as browser tampering and developer tools on the web. These are often used to run many identities from one place.
+    Detects bot activity, virtual machines, rooted or jailbroken devices, Android emulators, recent factory resets and Frida instrumentation, as well as browser tampering on the web. These are often used to run many identities from one place.
 
-    **Use it to:** stop device farms and remotely controlled sessions.
+    **Use it to:** stop device farms and tampered devices.
   </Card>
 </CardGroup>
 
@@ -65,15 +65,15 @@ Identity checks tell you who someone claims to be. Fraud Insights tells you how 
   </Accordion>
 
   <Accordion title="Tampered and virtual environments" icon="robot">
-    Detect virtual machines, browser tampering and developer tools that real customers rarely use.
+    Detect virtual machines and browser tampering that real customers rarely use.
   </Accordion>
 
   <Accordion title="Location and identity masking" icon="eye-slash">
     Flag VPNs, Tor, privacy-focused browsers, incognito sessions, and IP addresses that do not match the device's location.
   </Accordion>
 
-  <Accordion title="Emulators and remote access" icon="desktop">
-    Detect virtual devices, emulators and remote-control environments used to run many identities from one place.
+  <Accordion title="Emulators and modified devices" icon="desktop">
+    Detect virtual machines, Android emulators and rooted or jailbroken devices used to run many identities from one place.
   </Accordion>
 
   <Accordion title="Bonus and promotion abuse" icon="gift">
@@ -130,33 +130,37 @@ The SDK collects signals passively and returns them as detections on the session
 
 ## Data and risk signals
 
-The table below outlines the signals Fraud Insights detects across different platforms and environments.
+The Fraud Insights SDK detects 25 device intelligence and risk signals across Web, iOS and Android. Some signals are available on every platform. Others apply only to browsers or only to native mobile apps.
 
-| Name of signal | Web, Desktop | Web, Android | Web, iOS | Mobile apps, Android | Mobile apps, iOS |
-| --- | :-: | :-: | :-: | :-: | :-: |
-| Browser ID | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Device ID | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Browser name | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Operating system | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Device model | ❌ | ✅ | ❌ | ✅ | ❌ |
-| Device type | ✅ | ✅ | ✅ | ✅ | ✅ |
-| IP address | ✅ | ✅ | ✅ | ✅ | ✅ |
-| IP autonomous system number (ASN) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| IP network type (residential, mobile, hosting, VPN, etc.) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| VPN detection | ✅ | ✅ | ✅ | ✅ | ✅ |
-| IP geolocation (coordinates, confidence radius in km) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Privacy-focused browsers (Brave, Tor Browser, etc.) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Incognito mode | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Browser tampering (spoofing) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Virtual machine | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Developer tools | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Recent factory reset | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Mobile VPN | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Geolocation spoofing | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Android emulator | ❌ | ❌ | ❌ | ✅ | ❌ |
-| Jailbroken device | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Frida detection | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Rooted device | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Signal | Web | iOS | Android |
+| --- | :-: | :-: | :-: |
+| Device ID | ✅ | ✅ | ✅ |
+| Browser ID | ✅ | ❌ | ❌ |
+| Browser Name | ✅ | ❌ | ❌ |
+| Operating System | ✅ | ❌ | ❌ |
+| Device Model | ✅ | ✅ | ✅ |
+| Device Type | ✅ | ✅ | ✅ |
+| IP Address | ✅ | ✅ | ✅ |
+| IP Autonomous System Number (ASN) | ✅ | ✅ | ✅ |
+| IP Network Type (Residential, Mobile, Hosting, VPN, etc.) | ✅ | ✅ | ✅ |
+| IP Geolocation (coordinates, confidence radius in km) | ✅ | ✅ | ✅ |
+| Time Zone | ✅ | ✅ | ✅ |
+| VPN Detection | ✅ | ✅ | ✅ |
+| Bot Activity | ✅ | ✅ | ✅ |
+| Privacy-Focused Browsers (Brave, Tor Browser, etc.) | ✅ | ❌ | ❌ |
+| Incognito Mode | ✅ | ❌ | ❌ |
+| Browser Tampering (Spoofing) | ✅ | ❌ | ❌ |
+| Virtual Machine | ✅ | ❌ | ❌ |
+| Recent Factory Reset | ❌ | ✅ | ✅ |
+| Geolocation Spoofing | ❌ | ✅ | ✅ |
+| Android Emulator | ❌ | ❌ | ✅ |
+| Jailbroken Device | ❌ | ✅ | ❌ |
+| Rooted Device | ❌ | ❌ | ✅ |
+| Device Root Access | ✅ | ✅ | ✅ |
+| Frida Detection | ❌ | ✅ | ✅ |
+| Device Risk Score | ✅ | ✅ | ✅ |
+
+✅ = available · ❌ = not available
 
 <Note>
   Signals are indicators, not proof of fraud. The device risk score combines them into a single number out of 100, so you do not have to judge each one on its own.
