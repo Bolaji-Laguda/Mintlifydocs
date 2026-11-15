@@ -7,45 +7,45 @@ Fraud Insights est le service d'intelligence d'appareil et de comportement de Yo
 
 Chaque appareil est résolu en un identifiant de profil persistant qui survit à la suppression des cookies et à la réinstallation des applications, ce qui permet de rapprocher les sessions et les comptes liés.
 
-Tout ce qu'il apprend est rattaché à l'entité, affiché dans le tableau de bord Youverify sous **Signals**, et utilisé pour enrichir le [score de risque](/fr/concepts/risk-scoring) et les informations de profil de l'entité.
+Tout ce qu'il apprend est rattaché à l'entité, affiché dans le tableau de bord Youverify sous **Signals** et **Behavioural Insights**, et utilisé pour enrichir le [score de risque](/fr/concepts/risk-scoring) et les informations de profil de l'entité.
 
 ## Six capacités, un seul profil
 
 Un signal inhabituel isolé peut ne rien signifier. Plusieurs signaux qui évoluent ensemble racontent une histoire. Fraud Insights regroupe ce qu'il détecte en six capacités et les combine en un seul profil pour chaque appareil.
 
 <CardGroup cols={2}>
-  <Card title="Identifiant de profil et empreinte" icon="fingerprint">
+  <Card title="Device Fingerprint" icon="fingerprint">
     Les signaux de l'appareil et du navigateur sont résolus en un identifiant de profil persistant. Il survit à la suppression des cookies et à la réinstallation des applications, car il est dérivé de l'appareil et non stocké sur celui-ci. Les sessions et les comptes liés apparaissent ensemble, sur le web, iOS et Android.
 
     **À utiliser pour :** reconnaître un appareil qui revient et voir toutes les entités qui l'ont utilisé.
   </Card>
 
-  <Card title="Vélocité des appareils et des comptes" icon="gauge-high">
+  <Card title="IP Velocity et Device-Entity Relationship" icon="gauge-high">
     Montre quand un appareil commence à créer des comptes ou à y accéder plus vite que prévu. Il suit les adresses IP uniques pendant la session en cours, la dernière heure, les dernières 24 heures et les 7 derniers jours, ainsi que le nombre d'entités qui partagent un appareil ou d'appareils qui partagent une entité.
 
     **À utiliser pour :** repérer les fermes de comptes et les abus de bonus.
   </Card>
 
-  <Card title="Signaux de confidentialité et de masquage" icon="user-secret">
+  <Card title="Détections de confidentialité et de masquage" icon="user-secret">
     Détecte la navigation privée, Tor, les navigateurs axés sur la confidentialité comme Brave, les VPN (y compris les VPN mobiles) et l'usurpation de géolocalisation sur mobile, pour voir quand une session masque son environnement.
 
     **À utiliser pour :** repérer les clients qui masquent délibérément qui ils sont ou où ils se trouvent.
   </Card>
 
-  <Card title="Intelligence comportementale" icon="chart-line">
+  <Card title="Behavioural Insights" icon="chart-line">
     Compare la façon dont une session navigue et interagit avec l'activité antérieure de la même entité. Les événements de session, comme les pages consultées et les événements personnalisés que vous envoyez, constituent un historique qui fait ressortir les comportements inhabituels.
 
     **À utiliser pour :** remarquer quand la personne qui utilise un compte se comporte différemment qu'auparavant.
   </Card>
 
-  <Card title="Anomalies de réseau et de localisation" icon="location-crosshairs">
+  <Card title="Location Velocity et Location Pattern Anomaly" icon="location-crosshairs">
     Signale les écarts entre la localisation réseau, le fuseau horaire, les paramètres régionaux et la géographie déclarée par un client. Il signale aussi les anomalies de schéma de localisation, comme plusieurs villes dans une même session, et affiche chaque changement d'IP sur une chronologie.
 
     **À utiliser pour :** repérer les déplacements impossibles, les localisations usurpées et les connexions depuis des lieux inattendus.
   </Card>
 
-  <Card title="Détection des émulateurs et de l'accès à distance" icon="desktop">
-    Détecte les machines virtuelles, les émulateurs et les environnements pilotés à distance, les appareils rootés ou jailbreakés, les réinitialisations d'usine récentes et l'instrumentation Frida sur mobile, ainsi que l'altération du navigateur et les outils de développement sur le web. Ces éléments servent souvent à faire fonctionner de nombreuses identités depuis un seul endroit.
+  <Card title="Environnement et intégrité de l'appareil" icon="desktop">
+    Détecte l'activité de bot, les machines virtuelles, les émulateurs et les environnements pilotés à distance, les appareils rootés ou jailbreakés, les réinitialisations d'usine récentes et l'instrumentation Frida sur mobile, ainsi que l'altération du navigateur et les outils de développement sur le web. Ces éléments servent souvent à faire fonctionner de nombreuses identités depuis un seul endroit.
 
     **À utiliser pour :** bloquer les fermes d'appareils et les sessions pilotées à distance.
   </Card>
@@ -83,34 +83,44 @@ Les contrôles d'identité vous disent qui une personne prétend être. Fraud In
 
 ## Ce que Fraud Insights analyse
 
-Le SDK collecte les signaux de manière passive. Chaque signal apparaît dans l'enregistrement de la session, et plusieurs d'entre eux alimentent le score de risque de l'appareil.
+Le SDK collecte les signaux de manière passive et les renvoie sous forme de détections dans l'enregistrement de la session. Chaque détection affiche un résultat, par exemple **Not Active** ou **No** lorsque rien n'est détecté, ce qui permet à un réviseur de parcourir une session d'un coup d'œil. Plusieurs détections alimentent le **Device Risk Score**.
 
 <Tabs>
-  <Tab title="Empreinte de l'appareil">
-    Un instantané de l'appareil et de son environnement au moment de la session :
+  <Tab title="Device Fingerprint">
+    Un instantané de l'appareil et de son environnement au moment de la session. Chaque détection est renvoyée sous forme de badge d'état :
 
-    - **Contrôles de l'environnement :** machine virtuelle ou émulateur, altération du navigateur, outils de développement, réinitialisation d'usine, accès root ou jailbreak, détection de Frida et environnements pilotés à distance.
-    - **Confidentialité et masquage :** VPN, réseau Tor, navigateurs axés sur la confidentialité et navigation privée.
-    - **Liste de blocage :** indique si l'appareil figure déjà sur votre liste de blocage.
-    - **Plateforme et localisation :** plateforme, adresse IP, fuseau horaire et géolocalisation.
-    - **Familiarité :** indique si l'adresse IP est nouvelle, ainsi que la première et la dernière date à laquelle l'appareil a été vu.
-    - **Identifiant de profil :** un identifiant persistant dérivé de l'appareil, qui permet de reconnaître le même appareil d'une session, d'un compte et d'un canal à l'autre.
+    | Détection | Résultat renvoyé |
+    | --- | --- |
+    | VPN | Active ou Not Active |
+    | Incognito Mode | Yes ou No |
+    | Block List | Listed ou Not Listed |
+    | Jailbreak | Active ou Not Active |
+    | Bot Activity | Detected ou Not Detected |
+    | Virtual machine | Active ou Not Active |
+    | Root Access | Yes ou No |
+    | Tor Network | Active ou Not Active |
+    | Factory Reset | Detected ou Not Detected |
+    | New IP | Yes ou No |
+    | Platform | La plateforme sur laquelle la session s'est exécutée, par exemple `web` |
+    | IP Address | L'adresse IP de la session |
+    | Time Zone | Le fuseau horaire déclaré par l'appareil, par exemple `Africa/Lagos` |
+    | Geolocation | La localisation de la session, par exemple Lagos, Nigeria |
+    | First Seen et Last Seen | La date et l'heure de la première et de la dernière observation de l'appareil |
   </Tab>
-  <Tab title="Indicateurs de menace">
-    Des schémas observés sur plusieurs sessions, qu'un contrôle isolé ne peut pas révéler :
+  <Tab title="Threat Indicator">
+    **Threat Indicator Analysis** montre des schémas observés sur plusieurs sessions, qu'un contrôle isolé ne peut pas révéler :
 
-    - **Vélocité des IP :** nombre d'adresses IP uniques pendant la session en cours, la dernière heure, les dernières 24 heures et les 7 derniers jours.
-    - **Relation appareil-entité :** nombre d'entités qui utilisent le même appareil, nombre d'appareils associés à la même entité, et indication qu'il s'agit ou non d'un nouvel appareil pour l'entité.
-    - **Vélocité de localisation :** indique si l'adresse IP et la géolocalisation sont en désaccord.
-    - **Anomalie de schéma de localisation :** nombre de villes dans une session, et indication d'un déplacement inhabituel de l'entité.
-    - **Chronologie des changements d'IP :** chaque adresse IP vue pendant la session, avec une mention lorsqu'elle revient à l'adresse d'origine.
+    - **IP Velocity Indicator :** le nombre d'adresses IP uniques pour Current Session, Last Hour, Last 24 Hours et Last 7 Days, chacun affiché par exemple sous la forme "1 Unique IP".
+    - **Device-Entity Relationship :** Entities on This Device, Devices for This Entity, et indication qu'il s'agit ou non d'un New Device for Entity (Yes ou No).
+    - **Location Velocity :** le contrôle `IP <> Geo Mismatch` (Yes ou No), qui compare la localisation réseau et la géolocalisation.
+    - **Location Pattern Anomaly :** des détails tels que "1 city in this session".
+    - **IP Change Timeline :** chaque adresse IP vue pendant la session, avec sa ville et son pays, la date et l'heure, et une mention telle que Returned to Original.
   </Tab>
-  <Tab title="Événements de session">
-    Une chronologie de ce qui s'est passé pendant la session :
+  <Tab title="Events">
+    **All Events** liste tout ce qui a été enregistré pendant la session. Vous pouvez y faire une recherche, et chaque événement affiche son nom, une étiquette de type, la date et l'heure, ainsi qu'un lien **Preview**.
 
-    - Les événements automatiques `session_start` et `session_end`.
-    - Les événements personnalisés que vous envoyez, comme une page consultée, un paiement démarré ou un retrait demandé, chacun avec des métadonnées facultatives.
-    - La durée de la session, ainsi que ses heures de début et de fin.
+    - Les événements automatiques `session_start` et `session_end`, étiquetés session start et session end.
+    - Les événements personnalisés que vous envoyez, étiquetés custom, comme "Page View: dashboard", un paiement démarré ou un retrait demandé, chacun avec des métadonnées facultatives.
   </Tab>
 </Tabs>
 
@@ -179,14 +189,14 @@ Les signaux ne servent que s'ils débouchent sur une action. Fraud Insights les 
 
 ## Consultez les résultats dans le tableau de bord
 
-Ouvrez **Signals** et sélectionnez **Behavioural Insights**. Chaque ligne correspond à une session sur un appareil, avec l'entité, l'identifiant de l'appareil, le nom de l'application, le type d'appareil et l'OS, le nombre d'événements, la durée de la session, la date et un indicateur d'anomalie. Vous pouvez y sélectionner des sessions et créer un dossier.
+Ouvrez **Signals** et sélectionnez **Behavioural Insights**. Chaque ligne correspond à une session sur un appareil, avec les colonnes Entity, Device ID, Application Name, Device Type & OS, Event Count, Session Duration, Date Occurred et Anomaly Flag. Sélectionnez des sessions et choisissez **Create a new case** pour démarrer une investigation.
 
 Ouvrez une session pour voir son enregistrement complet :
 
-- **Résumé :** identifiant de l'entité, identifiant du signal, nom de l'application, source du signal (par exemple Web SDK), score de risque de l'appareil sur 100, statut de l'alerte de fraude, ainsi que début, fin et durée de la session.
-- **Empreinte de l'appareil :** les contrôles d'environnement, les indicateurs de confidentialité, l'adresse IP et la localisation décrits ci-dessus.
-- **Onglet Threat Indicator :** vélocité des IP, relation appareil-entité, contrôles de localisation et chronologie des changements d'IP.
-- **Onglet Events :** tous les événements de la session, avec un aperçu de chacun.
+- **Résumé :** Entity ID, Signal ID, Application Name, Signal Source (par exemple Web SDK), Device Risk Score (par exemple 46/100), User Email, Fraud Alert Status, Session Duration, Session Start, Session End, First Seen et Last Seen.
+- **Device Fingerprint :** les détections décrites ci-dessus.
+- **Onglet Threat Indicator :** Threat Indicator Analysis, avec l'IP Velocity Indicator, la Device-Entity Relationship, la Location Velocity, la Location Pattern Anomaly et l'IP Change Timeline.
+- **Onglet Events :** All Events de la session, avec un Preview de chacun.
 
 Les mêmes données de session alimentent les autres onglets de **Signals** : Activities, Events, Alerts et Cases.
 
