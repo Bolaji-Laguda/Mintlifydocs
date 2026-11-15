@@ -39,6 +39,48 @@ Identity checks tell you who someone claims to be. Fraud Insights tells you how 
   </Card>
 </CardGroup>
 
+## Six capabilities, one profile
+
+One unusual signal may mean nothing. Several signals moving together tell a story. Fraud Insights groups what it detects into six capabilities, and combines them into a single profile for each device.
+
+<AccordionGroup>
+  <Accordion title="1. Profile identifier and fingerprinting" icon="fingerprint">
+    Device and browser signals resolve into one persistent profile identifier. It survives cleared cookies and reinstalled apps, because it is derived from the device and not stored on it. Related sessions and accounts surface together, across web, iOS and Android.
+
+    **Use it to:** recognise a returning device, and see every entity that has used it.
+  </Accordion>
+
+  <Accordion title="2. Device and account velocity" icon="gauge-high">
+    Shows when a device starts creating or accessing accounts faster than expected. It tracks unique IP addresses in the current session, the last hour, the last 24 hours and the last 7 days, and how many entities share a device or devices share an entity.
+
+    **Use it to:** catch account farming, bonus abuse and credential stuffing.
+  </Accordion>
+
+  <Accordion title="3. Privacy and anti-detect signals" icon="user-secret">
+    Detects private browsing, Tor, VPNs, anti-detect browsers and other attempts to hide the environment a session is running in.
+
+    **Use it to:** spot customers who are deliberately masking who or where they are.
+  </Accordion>
+
+  <Accordion title="4. Behavioural intelligence" icon="chart-line">
+    Compares how a session navigates and interacts with earlier activity on the same entity. Session events, such as page views and custom events you send, build up a history that makes unusual behaviour stand out.
+
+    **Use it to:** notice when the person using an account behaves differently from before.
+  </Accordion>
+
+  <Accordion title="5. Network and location anomalies" icon="location-crosshairs">
+    Flags mismatches between network location, time zone, locale and the geography a customer claims. It also reports location pattern anomalies, such as several cities in one session, and shows each IP change on a timeline.
+
+    **Use it to:** catch impossible travel, spoofed locations and logins from unexpected places.
+  </Accordion>
+
+  <Accordion title="6. Emulator and remote access detection" icon="desktop">
+    Detects virtual machines, emulators and remote-control environments, as well as rooted or jailbroken devices and factory resets, which are often used to run many identities from one place.
+
+    **Use it to:** stop device farms and remotely controlled sessions.
+  </Accordion>
+</AccordionGroup>
+
 ## What Fraud Insights looks at
 
 The SDK collects signals passively. Each signal is shown on the session record, and several of them feed the device risk score.
