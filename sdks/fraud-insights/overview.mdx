@@ -118,6 +118,41 @@ The SDK collects signals passively. Each signal is shown on the session record, 
   Signals are indicators, not proof of fraud. A single signal, such as a VPN, is rarely enough to act on alone. The value comes from combining signals, which the device risk score and the entity risk score do for you.
 </Note>
 
+## Data and risk signals
+
+This table lists the data Fraud Insights collects and the risk signals it produces from it.
+
+| Category | Signal | What it tells you |
+| --- | --- | --- |
+| Device and identity | Profile identifier | A persistent identifier derived from the device, used to recognise the same device across sessions, accounts and channels. |
+| Device and identity | Platform, device type and OS | Whether the session comes from web, Android or iOS, and which device and operating system it runs on. |
+| Device and identity | First seen and last seen | How long Youverify has known this device. A brand-new device on an established entity deserves a closer look. |
+| Device and identity | New device for entity | Whether the entity has used this device before. |
+| Network | IP address | The address the session connects from. |
+| Network | New IP | Whether this IP address has been seen for the entity or device before. |
+| Network | IP velocity | The number of unique IP addresses in the current session, the last hour, the last 24 hours and the last 7 days. Many IPs in a short time can point to automation or proxying. |
+| Network | IP change timeline | Each IP address seen in a session, and when the session returns to its original one. |
+| Location | Geolocation, time zone and locale | Where the device appears to be, and the time zone and language it reports. |
+| Location | IP and geolocation mismatch | Whether the network location and the geolocation disagree, which can indicate location spoofing. |
+| Location | Location pattern anomaly | How many cities appear in a session, and whether the movement looks unusual. |
+| Privacy and masking | VPN | Whether the session is routed through a VPN. |
+| Privacy and masking | Tor network | Whether the session comes through Tor. |
+| Privacy and masking | Incognito mode | Whether the browser is in private mode. |
+| Privacy and masking | Anti-detect browser | Whether tools built to hide or fake the browser environment are in use. |
+| Automation and environment | Bot activity | Whether the session looks scripted or automated. |
+| Automation and environment | Virtual machine and emulator | Whether the session runs on a virtual device, often used to run many identities from one place. |
+| Automation and environment | Remote-control environment | Whether the device is being operated remotely. |
+| Device integrity | Root access and jailbreak | Whether the device has been modified to remove operating system protections. |
+| Device integrity | Factory reset | Whether the device was recently reset, which is common when a device is being reused. |
+| Reputation | Block list | Whether the device is already on your block list. |
+| Relationships | Entities on this device | How many entities use the same device. A high number can point to multi-accounting. |
+| Relationships | Devices for this entity | How many devices the same entity uses. |
+| Behaviour | Session events and duration | The events in the session, such as page views and your own custom events, and how long it lasted. |
+
+<Note>
+  Signals are indicators, not proof of fraud. The device risk score combines them into a single number out of 100, so you do not have to judge each one on its own.
+</Note>
+
 ## How it works
 
 <Steps>

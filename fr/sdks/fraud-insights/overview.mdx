@@ -118,6 +118,41 @@ Le SDK collecte les signaux de manière passive. Chaque signal apparaît dans l'
   Les signaux sont des indicateurs, pas des preuves de fraude. Un signal isolé, comme un VPN, suffit rarement pour agir. La valeur vient de la combinaison des signaux, que le score de risque de l'appareil et celui de l'entité font pour vous.
 </Note>
 
+## Données et signaux de risque
+
+Ce tableau liste les données collectées par Fraud Insights et les signaux de risque qu'il en déduit.
+
+| Catégorie | Signal | Ce qu'il vous apprend |
+| --- | --- | --- |
+| Appareil et identité | Identifiant de profil | Un identifiant persistant dérivé de l'appareil, utilisé pour reconnaître le même appareil d'une session, d'un compte et d'un canal à l'autre. |
+| Appareil et identité | Plateforme, type d'appareil et OS | Indique si la session provient du web, d'Android ou d'iOS, et sur quel appareil et quel système d'exploitation elle s'exécute. |
+| Appareil et identité | Première et dernière observation | Depuis combien de temps Youverify connaît cet appareil. Un appareil tout neuf sur une entité établie mérite un examen plus attentif. |
+| Appareil et identité | Nouvel appareil pour l'entité | Indique si l'entité a déjà utilisé cet appareil. |
+| Réseau | Adresse IP | L'adresse depuis laquelle la session se connecte. |
+| Réseau | Nouvelle IP | Indique si cette adresse IP a déjà été vue pour l'entité ou l'appareil. |
+| Réseau | Vélocité des IP | Le nombre d'adresses IP uniques pendant la session en cours, la dernière heure, les dernières 24 heures et les 7 derniers jours. De nombreuses IP en peu de temps peuvent révéler une automatisation ou l'usage de proxys. |
+| Réseau | Chronologie des changements d'IP | Chaque adresse IP vue pendant une session, et le moment où la session revient à l'adresse d'origine. |
+| Localisation | Géolocalisation, fuseau horaire et paramètres régionaux | L'endroit où l'appareil semble se trouver, ainsi que le fuseau horaire et la langue qu'il déclare. |
+| Localisation | Écart entre IP et géolocalisation | Indique si la localisation réseau et la géolocalisation sont en désaccord, ce qui peut révéler une localisation usurpée. |
+| Localisation | Anomalie de schéma de localisation | Le nombre de villes dans une session, et si le déplacement semble inhabituel. |
+| Confidentialité et masquage | VPN | Indique si la session passe par un VPN. |
+| Confidentialité et masquage | Réseau Tor | Indique si la session passe par Tor. |
+| Confidentialité et masquage | Navigation privée | Indique si le navigateur est en mode privé. |
+| Confidentialité et masquage | Navigateur anti-détection | Indique si des outils conçus pour masquer ou falsifier l'environnement du navigateur sont utilisés. |
+| Automatisation et environnement | Activité de bot | Indique si la session semble automatisée ou pilotée par un script. |
+| Automatisation et environnement | Machine virtuelle et émulateur | Indique si la session s'exécute sur un appareil virtuel, souvent utilisé pour faire fonctionner de nombreuses identités depuis un seul endroit. |
+| Automatisation et environnement | Environnement piloté à distance | Indique si l'appareil est utilisé à distance. |
+| Intégrité de l'appareil | Accès root et jailbreak | Indique si l'appareil a été modifié pour supprimer les protections du système d'exploitation. |
+| Intégrité de l'appareil | Réinitialisation d'usine | Indique si l'appareil a été récemment réinitialisé, ce qui est fréquent lorsqu'un appareil est réutilisé. |
+| Réputation | Liste de blocage | Indique si l'appareil figure déjà sur votre liste de blocage. |
+| Relations | Entités sur cet appareil | Le nombre d'entités qui utilisent le même appareil. Un nombre élevé peut révéler du multi-comptes. |
+| Relations | Appareils de cette entité | Le nombre d'appareils utilisés par la même entité. |
+| Comportement | Événements et durée de session | Les événements de la session, comme les pages consultées et vos propres événements personnalisés, et sa durée. |
+
+<Note>
+  Les signaux sont des indicateurs, pas des preuves de fraude. Le score de risque de l'appareil les combine en un seul chiffre sur 100, ce qui vous évite de juger chacun isolément.
+</Note>
+
 ## Comment ça fonctionne
 
 <Steps>
