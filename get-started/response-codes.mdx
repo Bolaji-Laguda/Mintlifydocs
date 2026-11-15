@@ -13,7 +13,7 @@ A successful response always has `success: true`, an HTTP `2xx` status, and a `d
 ```json
 {
   "success": true,
-  "status_code": 200,
+  "statusCode": 200,
   "message": "Entity retrieved successfully.",
   "data": {
     "id": "ent_685c73c8519d82bd21a42fae",
@@ -32,7 +32,7 @@ A successful response always has `success: true`, an HTTP `2xx` status, and a `d
   `true` for every successful response.
 </ResponseField>
 
-<ResponseField name="status_code" type="integer" required>
+<ResponseField name="statusCode" type="integer" required>
   Mirrors the HTTP status code (e.g. `200`, `201`).
 </ResponseField>
 
@@ -66,7 +66,7 @@ When a request fails, `success` is `false` and the envelope adds a machine-reada
 </ResponseField>
 
 <ResponseField name="statusCode" type="integer" required>
-  The HTTP status code. Note the camelCase spelling (`statusCode`) on error responses, compared to `status_code` on success responses.
+  The HTTP status code.
 </ResponseField>
 
 <ResponseField name="name" type="string" required>
@@ -210,7 +210,7 @@ List endpoints (e.g. `GET /v2/api/entities`) use offset pagination. The `links` 
 ```json
 {
   "success": true,
-  "status_code": 200,
+  "statusCode": 200,
   "message": "Entities retrieved successfully.",
   "data": [ ],
   "links": [

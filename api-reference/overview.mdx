@@ -39,7 +39,7 @@ Every successful response shares the same shape, so you write your deserializati
 ```json
 {
   "success": true,
-  "status_code": 200,
+  "statusCode": 200,
   "message": "Human-readable outcome.",
   "data": {},
   "links": []
@@ -50,7 +50,7 @@ Every successful response shares the same shape, so you write your deserializati
   `true` on all successful responses.
 </ResponseField>
 
-<ResponseField name="status_code" type="integer">
+<ResponseField name="statusCode" type="integer">
   HTTP status code mirrored in the body, e.g. `200`, `201`.
 </ResponseField>
 
@@ -132,7 +132,7 @@ The paginated response includes metadata alongside the `data` array:
 ```json
 {
   "success": true,
-  "status_code": 200,
+  "statusCode": 200,
   "message": "Entities retrieved successfully.",
   "data": {
     "total": 342,
@@ -152,7 +152,7 @@ High-volume streams such as Signals support cursor-based pagination, which is pr
 
 All entities carry a stable, globally unique identifier prefixed with `ent_`:
 
-```
+```text
 ent_685c73c8519d82bd21a42fae
 ```
 

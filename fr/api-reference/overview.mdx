@@ -39,7 +39,7 @@ Chaque réponse réussie partage la même structure, ce qui vous permet d'écrir
 ```json
 {
   "success": true,
-  "status_code": 200,
+  "statusCode": 200,
   "message": "Human-readable outcome.",
   "data": {},
   "links": []
@@ -50,7 +50,7 @@ Chaque réponse réussie partage la même structure, ce qui vous permet d'écrir
   `true` pour toutes les réponses réussies.
 </ResponseField>
 
-<ResponseField name="status_code" type="integer">
+<ResponseField name="statusCode" type="integer">
   Code de statut HTTP reproduit dans le corps de la réponse, par exemple `200`, `201`.
 </ResponseField>
 
@@ -132,7 +132,7 @@ La réponse paginée inclut des métadonnées en plus du tableau `data` :
 ```json
 {
   "success": true,
-  "status_code": 200,
+  "statusCode": 200,
   "message": "Entities retrieved successfully.",
   "data": {
     "total": 342,
