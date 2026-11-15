@@ -5,6 +5,8 @@ description: "Fraud Insights identifies the devices and sessions behind every cu
 
 Fraud Insights is Youverify's device and behavioural intelligence service. It runs quietly in the background of your web or mobile app, recognises the device behind each session, and checks it for signs of risk. It also records what happens during the session and other events you choose to send. Your users never see a screen, a prompt or a delay.
 
+Each device resolves to a persistent profile identifier that survives cleared cookies and reinstalled apps, so related sessions and accounts surface together.
+
 Everything it learns is tied to the entity, shown in the Youverify dashboard under **Signals**, and used to enrich the entity's [risk score](/concepts/risk-scoring) and profile information.
 
 ## Why use Fraud Insights
@@ -25,7 +27,15 @@ Identity checks tell you who someone claims to be. Fraud Insights tells you how 
   </Card>
 
   <Card title="Location and identity masking" icon="eye-slash">
-    Flag VPNs, Tor, incognito sessions, and IP addresses that do not match the device's location.
+    Flag VPNs, Tor, incognito sessions, anti-detect browsers, and IP addresses that do not match the device's location.
+  </Card>
+
+  <Card title="Emulators and remote access" icon="desktop">
+    Detect virtual devices, emulators and remote-control environments used to run many identities from one place.
+  </Card>
+
+  <Card title="Bonus and promotion abuse" icon="gift">
+    Catch one device claiming welcome bonuses or offers across many accounts, before the payout is made.
   </Card>
 </CardGroup>
 
@@ -37,11 +47,12 @@ The SDK collects signals passively. Each signal is shown on the session record, 
   <Tab title="Device fingerprint">
     A snapshot of the device and its environment at the time of the session:
 
-    - **Environment checks:** virtual machine, bot activity, factory reset, and root access or jailbreak.
-    - **Privacy and masking:** VPN, Tor network and incognito mode.
+    - **Environment checks:** virtual machine or emulator, bot activity, factory reset, root access or jailbreak, and remote-control environments.
+    - **Privacy and masking:** VPN, Tor network, incognito mode and anti-detect browsers.
     - **Block list:** whether the device is already on your block list.
     - **Platform and location:** platform, IP address, time zone and geolocation.
     - **Familiarity:** whether the IP address is new, plus when the device was first and last seen.
+    - **Profile identifier:** a persistent identifier derived from the device, so the same device is recognised across sessions, accounts and channels.
   </Tab>
   <Tab title="Threat indicators">
     Patterns across sessions that a single check cannot show:
@@ -82,6 +93,14 @@ The SDK collects signals passively. Each signal is shown on the session record, 
   </Step>
 </Steps>
 
+## From signal to decision
+
+Signals are only useful if they lead to action. Fraud Insights connects them to the rest of your fraud and compliance workflow.
+
+- **Rules:** your fraud team decides what a risky pattern looks like, for example one profile identifier appearing on many accounts within a day, and what should happen when it is seen.
+- **Cases:** a rule can hold activity, open a case and attach every linked account. An analyst can also open a case by hand. It is the same case record used for onboarding reviews.
+- **Vyra:** Vyra groups linked activity, explains the signals the sessions share and drafts the investigation narrative. Evidence stays attached to the case, and the decision stays with a named officer.
+
 ## See the results in the dashboard
 
 Open **Signals** and select **Behavioural Insights**. Each row is one session on one device, showing the entity, device ID, application name, device type and OS, event count, session duration, date and an anomaly flag. From here you can select sessions and create a case.
@@ -95,6 +114,16 @@ Open a session to see its full record:
 
 The same session data supports the other tabs in **Signals**: Activities, Events, Alerts and Cases.
 
+## Where it is used
+
+The same signals catch different fraud in different industries:
+
+- **Commercial banks:** account takeover and mule accounts.
+- **Fintech and payments:** fake onboarding, device farms and payout fraud.
+- **Gaming and betting:** bonus abuse and multi-accounting.
+- **Gig platforms:** fake and shared worker or customer accounts.
+- **Government:** duplicate and fraudulent claims on public services.
+
 ## How it fits with the rest of Youverify
 
 - **Risk scoring:** at onboarding the risk score reflects identity and AML data. Fraud Insights adds behavioural history over time, so the score gets more accurate as the entity uses your product. See [Risk scoring](/concepts/risk-scoring).
@@ -102,7 +131,7 @@ The same session data supports the other tabs in **Signals**: Activities, Events
 - **Verification SDKs:** Fraud Insights adds no screens or prompts, so it runs alongside the [Anti-Deepfake Liveness](/sdks/liveness/overview) and [Document Capture](/sdks/document-capture/overview) SDKs.
 
 <Info>
-  Fraud Insights works on web and on mobile (Android and iOS). The session model, events and configuration are the same on every platform. Signals can differ slightly by platform, because browsers and mobile operating systems expose different information about the device.
+  Fraud Insights works on web and on mobile (Android and iOS). The session model, events and configuration are the same on every platform. Web, iOS and Android return the same profile identifier and signal set, so you get one record for each device across channels.
 </Info>
 
 ## Good practice
@@ -112,6 +141,10 @@ The same session data supports the other tabs in **Signals**: Activities, Events
 - **Name events clearly.** Use consistent, descriptive names and add metadata, so patterns are easy to spot later.
 - **Prefer extra checks over hard blocks.** For a medium-risk session, step up with liveness, email or phone verification rather than rejecting the customer outright.
 - **Use the right key.** Use the sandbox setting and key while testing, and the production setting and key when you go live.
+
+## Privacy
+
+Fraud Insights reads device and browser attributes, rendering characteristics, time zone and locale, network posture and interaction patterns. It does not collect document contents or biometric data. Make sure your privacy notice tells users that device and behavioural signals are collected for fraud prevention.
 
 ## Next steps
 
