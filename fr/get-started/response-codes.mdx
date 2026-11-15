@@ -13,7 +13,7 @@ Une réponse réussie comporte toujours `success: true`, un statut HTTP `2xx` et
 ```json
 {
   "success": true,
-  "status_code": 200,
+  "statusCode": 200,
   "message": "Entity retrieved successfully.",
   "data": {
     "id": "ent_685c73c8519d82bd21a42fae",
@@ -32,7 +32,7 @@ Une réponse réussie comporte toujours `success: true`, un statut HTTP `2xx` et
   `true` pour toute réponse réussie.
 </ResponseField>
 
-<ResponseField name="status_code" type="integer" required>
+<ResponseField name="statusCode" type="integer" required>
   Reprend le code de statut HTTP (par exemple `200`, `201`).
 </ResponseField>
 
@@ -66,7 +66,7 @@ Lorsqu'une requête échoue, `success` vaut `false` et l'enveloppe ajoute un cha
 </ResponseField>
 
 <ResponseField name="statusCode" type="integer" required>
-  Le code de statut HTTP. Notez l'orthographe en camelCase (`statusCode`) sur les réponses d'erreur, contrairement à `status_code` sur les réponses réussies.
+  Le code de statut HTTP.
 </ResponseField>
 
 <ResponseField name="name" type="string" required>
@@ -210,7 +210,7 @@ Les points de terminaison de liste (par exemple `GET /v2/api/entities`) utilisen
 ```json
 {
   "success": true,
-  "status_code": 200,
+  "statusCode": 200,
   "message": "Entities retrieved successfully.",
   "data": [ ],
   "links": [
