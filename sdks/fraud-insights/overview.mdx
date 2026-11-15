@@ -7,45 +7,45 @@ Fraud Insights is Youverify's device and behavioural intelligence service. It ru
 
 Each device resolves to a persistent profile identifier that survives cleared cookies and reinstalled apps, so related sessions and accounts surface together.
 
-Everything it learns is tied to the entity, shown in the Youverify dashboard under **Signals**, and used to enrich the entity's [risk score](/concepts/risk-scoring) and profile information.
+Everything it learns is tied to the entity, shown in the Youverify dashboard under **Signals** and **Behavioural Insights**, and used to enrich the entity's [risk score](/concepts/risk-scoring) and profile information.
 
 ## Six capabilities, one profile
 
 One unusual signal may mean nothing. Several signals moving together tell a story. Fraud Insights groups what it detects into six capabilities, and combines them into a single profile for each device.
 
 <CardGroup cols={2}>
-  <Card title="Profile identifier and fingerprinting" icon="fingerprint">
+  <Card title="Device Fingerprint" icon="fingerprint">
     Device and browser signals resolve into one persistent profile identifier. It survives cleared cookies and reinstalled apps, because it is derived from the device and not stored on it. Related sessions and accounts surface together, across web, iOS and Android.
 
     **Use it to:** recognise a returning device, and see every entity that has used it.
   </Card>
 
-  <Card title="Device and account velocity" icon="gauge-high">
+  <Card title="IP Velocity and Device-Entity Relationship" icon="gauge-high">
     Shows when a device starts creating or accessing accounts faster than expected. It tracks unique IP addresses in the current session, the last hour, the last 24 hours and the last 7 days, and how many entities share a device or devices share an entity.
 
     **Use it to:** catch account farming and bonus abuse.
   </Card>
 
-  <Card title="Privacy and masking signals" icon="user-secret">
+  <Card title="Privacy and masking detections" icon="user-secret">
     Detects private browsing, Tor, privacy-focused browsers such as Brave, VPNs (including mobile VPNs) and location spoofing on mobile, so you can see when a session is hiding its environment.
 
     **Use it to:** spot customers who are deliberately masking who or where they are.
   </Card>
 
-  <Card title="Behavioural intelligence" icon="chart-line">
+  <Card title="Behavioural Insights" icon="chart-line">
     Compares how a session navigates and interacts with earlier activity on the same entity. Session events, such as page views and custom events you send, build up a history that makes unusual behaviour stand out.
 
     **Use it to:** notice when the person using an account behaves differently from before.
   </Card>
 
-  <Card title="Network and location anomalies" icon="location-crosshairs">
+  <Card title="Location Velocity and Location Pattern Anomaly" icon="location-crosshairs">
     Flags mismatches between network location, time zone, locale and the geography a customer claims. It also reports location pattern anomalies, such as several cities in one session, and shows each IP change on a timeline.
 
     **Use it to:** catch impossible travel, spoofed locations and logins from unexpected places.
   </Card>
 
-  <Card title="Emulator and remote access detection" icon="desktop">
-    Detects virtual machines, emulators and remote-control environments, rooted or jailbroken devices, recent factory resets and Frida instrumentation on mobile, as well as browser tampering and developer tools on the web. These are often used to run many identities from one place.
+  <Card title="Environment and device integrity" icon="desktop">
+    Detects bot activity, virtual machines, emulators and remote-control environments, rooted or jailbroken devices, recent factory resets and Frida instrumentation on mobile, as well as browser tampering and developer tools on the web. These are often used to run many identities from one place.
 
     **Use it to:** stop device farms and remotely controlled sessions.
   </Card>
@@ -83,34 +83,44 @@ Identity checks tell you who someone claims to be. Fraud Insights tells you how 
 
 ## What Fraud Insights looks at
 
-The SDK collects signals passively. Each signal is shown on the session record, and several of them feed the device risk score.
+The SDK collects signals passively and returns them as detections on the session record. Each detection shows a result, such as **Not Active** or **No** when nothing is found, so a reviewer can scan a session at a glance. Several detections feed the **Device Risk Score**.
 
 <Tabs>
-  <Tab title="Device fingerprint">
-    A snapshot of the device and its environment at the time of the session:
+  <Tab title="Device Fingerprint">
+    A snapshot of the device and its environment at the time of the session. Each detection is returned as a status badge:
 
-    - **Environment checks:** virtual machine or emulator, browser tampering, developer tools, factory reset, root access or jailbreak, Frida detection and remote-control environments.
-    - **Privacy and masking:** VPN, Tor network, privacy-focused browsers and incognito mode.
-    - **Block list:** whether the device is already on your block list.
-    - **Platform and location:** platform, IP address, time zone and geolocation.
-    - **Familiarity:** whether the IP address is new, plus when the device was first and last seen.
-    - **Profile identifier:** a persistent identifier derived from the device, so the same device is recognised across sessions, accounts and channels.
+    | Detection | Result returned |
+    | --- | --- |
+    | VPN | Active or Not Active |
+    | Incognito Mode | Yes or No |
+    | Block List | Listed or Not Listed |
+    | Jailbreak | Active or Not Active |
+    | Bot Activity | Detected or Not Detected |
+    | Virtual machine | Active or Not Active |
+    | Root Access | Yes or No |
+    | Tor Network | Active or Not Active |
+    | Factory Reset | Detected or Not Detected |
+    | New IP | Yes or No |
+    | Platform | The platform the session ran on, for example `web` |
+    | IP Address | The IP address of the session |
+    | Time Zone | The time zone the device reports, for example `Africa/Lagos` |
+    | Geolocation | The location of the session, for example Lagos, Nigeria |
+    | First Seen and Last Seen | The date and time the device was first and last seen |
   </Tab>
-  <Tab title="Threat indicators">
-    Patterns across sessions that a single check cannot show:
+  <Tab title="Threat Indicator">
+    **Threat Indicator Analysis** shows patterns across sessions that a single check cannot reveal:
 
-    - **IP velocity:** how many unique IP addresses appear in the current session, the last hour, the last 24 hours and the last 7 days.
-    - **Device and entity relationship:** how many entities use the same device, how many devices belong to the same entity, and whether this is a new device for the entity.
-    - **Location velocity:** whether the IP address and the geolocation disagree.
-    - **Location pattern anomaly:** how many cities appear in a session, and whether the entity looks like it is moving unusually.
-    - **IP change timeline:** each IP address seen in the session, with a note when it returns to the original.
+    - **IP Velocity Indicator:** the number of unique IP addresses in the Current Session, the Last Hour, the Last 24 Hours and the Last 7 Days, each shown as, for example, "1 Unique IP".
+    - **Device-Entity Relationship:** Entities on This Device, Devices for This Entity, and whether this is a New Device for Entity (Yes or No).
+    - **Location Velocity:** the `IP <> Geo Mismatch` check (Yes or No), which compares the network location with the geolocation.
+    - **Location Pattern Anomaly:** details such as "1 city in this session".
+    - **IP Change Timeline:** each IP address seen in the session, with its city and country, the date and time, and a label such as Returned to Original.
   </Tab>
-  <Tab title="Session events">
-    A timeline of what happened in the session:
+  <Tab title="Events">
+    **All Events** lists everything recorded in the session. You can search it, and each event shows its name, a type tag, the date and time, and a **Preview** link.
 
-    - Automatic `session_start` and `session_end` events.
-    - Custom events you send, such as page views, a checkout started or a withdrawal requested, each with optional metadata.
-    - Session duration, start and end times.
+    - Automatic `session_start` and `session_end` events, tagged as session start and session end.
+    - Custom events you send, tagged as custom, such as "Page View: dashboard", a checkout started or a withdrawal requested, each with optional metadata.
   </Tab>
 </Tabs>
 
@@ -179,14 +189,14 @@ Signals are only useful if they lead to action. Fraud Insights connects them to 
 
 ## See the results in the dashboard
 
-Open **Signals** and select **Behavioural Insights**. Each row is one session on one device, showing the entity, device ID, application name, device type and OS, event count, session duration, date and an anomaly flag. From here you can select sessions and create a case.
+Open **Signals** and select **Behavioural Insights**. Each row is one session on one device, with columns for Entity, Device ID, Application Name, Device Type & OS, Event Count, Session Duration, Date Occurred and Anomaly Flag. Select sessions and choose **Create a new case** to start an investigation.
 
 Open a session to see its full record:
 
-- **Summary:** entity ID, signal ID, application name, signal source (for example, Web SDK), device risk score out of 100, fraud alert status, and session start, end and duration.
-- **Device fingerprint:** the environment checks, privacy flags, IP address and location described above.
-- **Threat indicator tab:** IP velocity, device and entity relationship, location checks and the IP change timeline.
-- **Events tab:** every event in the session, with a preview of each one.
+- **Summary:** Entity ID, Signal ID, Application Name, Signal Source (for example, Web SDK), Device Risk Score (for example, 46/100), User Email, Fraud Alert Status, Session Duration, Session Start, Session End, First Seen and Last Seen.
+- **Device Fingerprint:** the detections described above.
+- **Threat Indicator tab:** Threat Indicator Analysis, with the IP Velocity Indicator, Device-Entity Relationship, Location Velocity, Location Pattern Anomaly and IP Change Timeline.
+- **Events tab:** All Events in the session, with a Preview of each one.
 
 The same session data supports the other tabs in **Signals**: Activities, Events, Alerts and Cases.
 
