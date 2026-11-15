@@ -13,73 +13,73 @@ Everything it learns is tied to the entity, shown in the Youverify dashboard und
 
 Identity checks tell you who someone claims to be. Fraud Insights tells you how they are actually connecting. That is where most fraud shows up first, because the person who passed onboarding is not always the person using the account later.
 
-<CardGroup cols={2}>
-  <Card title="Account takeover" icon="user-lock">
+<AccordionGroup>
+  <Accordion title="Account takeover" icon="user-lock">
     Spot a login from a new device, a new IP address or an unexpected location for an entity that has behaved consistently before.
-  </Card>
+  </Accordion>
 
-  <Card title="Multi-accounting" icon="users">
+  <Accordion title="Multi-accounting" icon="users">
     See when one device is linked to several entities, a common sign of one person opening many accounts.
-  </Card>
+  </Accordion>
 
-  <Card title="Bots and automation" icon="robot">
+  <Accordion title="Bots and automation" icon="robot">
     Detect scripted activity, virtual machines and tampered environments that real customers rarely use.
-  </Card>
+  </Accordion>
 
-  <Card title="Location and identity masking" icon="eye-slash">
+  <Accordion title="Location and identity masking" icon="eye-slash">
     Flag VPNs, Tor, incognito sessions, anti-detect browsers, and IP addresses that do not match the device's location.
-  </Card>
+  </Accordion>
 
-  <Card title="Emulators and remote access" icon="desktop">
+  <Accordion title="Emulators and remote access" icon="desktop">
     Detect virtual devices, emulators and remote-control environments used to run many identities from one place.
-  </Card>
+  </Accordion>
 
-  <Card title="Bonus and promotion abuse" icon="gift">
+  <Accordion title="Bonus and promotion abuse" icon="gift">
     Catch one device claiming welcome bonuses or offers across many accounts, before the payout is made.
-  </Card>
-</CardGroup>
+  </Accordion>
+</AccordionGroup>
 
 ## Six capabilities, one profile
 
 One unusual signal may mean nothing. Several signals moving together tell a story. Fraud Insights groups what it detects into six capabilities, and combines them into a single profile for each device.
 
-<AccordionGroup>
-  <Accordion title="1. Profile identifier and fingerprinting" icon="fingerprint">
+<CardGroup cols={2}>
+  <Card title="Profile identifier and fingerprinting" icon="fingerprint">
     Device and browser signals resolve into one persistent profile identifier. It survives cleared cookies and reinstalled apps, because it is derived from the device and not stored on it. Related sessions and accounts surface together, across web, iOS and Android.
 
     **Use it to:** recognise a returning device, and see every entity that has used it.
-  </Accordion>
+  </Card>
 
-  <Accordion title="2. Device and account velocity" icon="gauge-high">
+  <Card title="Device and account velocity" icon="gauge-high">
     Shows when a device starts creating or accessing accounts faster than expected. It tracks unique IP addresses in the current session, the last hour, the last 24 hours and the last 7 days, and how many entities share a device or devices share an entity.
 
     **Use it to:** catch account farming, bonus abuse and credential stuffing.
-  </Accordion>
+  </Card>
 
-  <Accordion title="3. Privacy and anti-detect signals" icon="user-secret">
+  <Card title="Privacy and anti-detect signals" icon="user-secret">
     Detects private browsing, Tor, VPNs, anti-detect browsers and other attempts to hide the environment a session is running in.
 
     **Use it to:** spot customers who are deliberately masking who or where they are.
-  </Accordion>
+  </Card>
 
-  <Accordion title="4. Behavioural intelligence" icon="chart-line">
+  <Card title="Behavioural intelligence" icon="chart-line">
     Compares how a session navigates and interacts with earlier activity on the same entity. Session events, such as page views and custom events you send, build up a history that makes unusual behaviour stand out.
 
     **Use it to:** notice when the person using an account behaves differently from before.
-  </Accordion>
+  </Card>
 
-  <Accordion title="5. Network and location anomalies" icon="location-crosshairs">
+  <Card title="Network and location anomalies" icon="location-crosshairs">
     Flags mismatches between network location, time zone, locale and the geography a customer claims. It also reports location pattern anomalies, such as several cities in one session, and shows each IP change on a timeline.
 
     **Use it to:** catch impossible travel, spoofed locations and logins from unexpected places.
-  </Accordion>
+  </Card>
 
-  <Accordion title="6. Emulator and remote access detection" icon="desktop">
+  <Card title="Emulator and remote access detection" icon="desktop">
     Detects virtual machines, emulators and remote-control environments, as well as rooted or jailbroken devices and factory resets, which are often used to run many identities from one place.
 
     **Use it to:** stop device farms and remotely controlled sessions.
-  </Accordion>
-</AccordionGroup>
+  </Card>
+</CardGroup>
 
 ## What Fraud Insights looks at
 

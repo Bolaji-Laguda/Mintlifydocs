@@ -13,73 +13,73 @@ Tout ce qu'il apprend est rattaché à l'entité, affiché dans le tableau de bo
 
 Les contrôles d'identité vous disent qui une personne prétend être. Fraud Insights vous dit comment elle se connecte réellement. C'est souvent là que la fraude apparaît en premier, car la personne qui a passé l'intégration n'est pas toujours celle qui utilise le compte par la suite.
 
-<CardGroup cols={2}>
-  <Card title="Prise de contrôle de compte" icon="user-lock">
+<AccordionGroup>
+  <Accordion title="Prise de contrôle de compte" icon="user-lock">
     Repérez une connexion depuis un nouvel appareil, une nouvelle adresse IP ou un lieu inattendu pour une entité qui avait jusque-là un comportement cohérent.
-  </Card>
+  </Accordion>
 
-  <Card title="Multi-comptes" icon="users">
+  <Accordion title="Multi-comptes" icon="users">
     Voyez quand un même appareil est lié à plusieurs entités, signe fréquent qu'une seule personne ouvre de nombreux comptes.
-  </Card>
+  </Accordion>
 
-  <Card title="Bots et automatisation" icon="robot">
+  <Accordion title="Bots et automatisation" icon="robot">
     Détectez les activités automatisées, les machines virtuelles et les environnements altérés que de vrais clients utilisent rarement.
-  </Card>
+  </Accordion>
 
-  <Card title="Masquage de lieu et d'identité" icon="eye-slash">
+  <Accordion title="Masquage de lieu et d'identité" icon="eye-slash">
     Signalez les VPN, Tor, les sessions en navigation privée, les navigateurs anti-détection et les adresses IP qui ne correspondent pas à la localisation de l'appareil.
-  </Card>
+  </Accordion>
 
-  <Card title="Émulateurs et accès à distance" icon="desktop">
+  <Accordion title="Émulateurs et accès à distance" icon="desktop">
     Détectez les appareils virtuels, les émulateurs et les environnements pilotés à distance utilisés pour faire fonctionner de nombreuses identités depuis un seul endroit.
-  </Card>
+  </Accordion>
 
-  <Card title="Abus de bonus et de promotions" icon="gift">
+  <Accordion title="Abus de bonus et de promotions" icon="gift">
     Repérez un même appareil qui réclame des bonus de bienvenue ou des offres sur de nombreux comptes, avant le versement.
-  </Card>
-</CardGroup>
+  </Accordion>
+</AccordionGroup>
 
 ## Six capacités, un seul profil
 
 Un signal inhabituel isolé peut ne rien signifier. Plusieurs signaux qui évoluent ensemble racontent une histoire. Fraud Insights regroupe ce qu'il détecte en six capacités et les combine en un seul profil pour chaque appareil.
 
-<AccordionGroup>
-  <Accordion title="1. Identifiant de profil et empreinte" icon="fingerprint">
+<CardGroup cols={2}>
+  <Card title="Identifiant de profil et empreinte" icon="fingerprint">
     Les signaux de l'appareil et du navigateur sont résolus en un identifiant de profil persistant. Il survit à la suppression des cookies et à la réinstallation des applications, car il est dérivé de l'appareil et non stocké sur celui-ci. Les sessions et les comptes liés apparaissent ensemble, sur le web, iOS et Android.
 
     **À utiliser pour :** reconnaître un appareil qui revient et voir toutes les entités qui l'ont utilisé.
-  </Accordion>
+  </Card>
 
-  <Accordion title="2. Vélocité des appareils et des comptes" icon="gauge-high">
+  <Card title="Vélocité des appareils et des comptes" icon="gauge-high">
     Montre quand un appareil commence à créer des comptes ou à y accéder plus vite que prévu. Il suit les adresses IP uniques pendant la session en cours, la dernière heure, les dernières 24 heures et les 7 derniers jours, ainsi que le nombre d'entités qui partagent un appareil ou d'appareils qui partagent une entité.
 
     **À utiliser pour :** repérer les fermes de comptes, les abus de bonus et le credential stuffing.
-  </Accordion>
+  </Card>
 
-  <Accordion title="3. Signaux de confidentialité et d'anti-détection" icon="user-secret">
+  <Card title="Signaux de confidentialité et d'anti-détection" icon="user-secret">
     Détecte la navigation privée, Tor, les VPN, les navigateurs anti-détection et les autres tentatives de masquer l'environnement dans lequel une session s'exécute.
 
     **À utiliser pour :** repérer les clients qui masquent délibérément qui ils sont ou où ils se trouvent.
-  </Accordion>
+  </Card>
 
-  <Accordion title="4. Intelligence comportementale" icon="chart-line">
+  <Card title="Intelligence comportementale" icon="chart-line">
     Compare la façon dont une session navigue et interagit avec l'activité antérieure de la même entité. Les événements de session, comme les pages consultées et les événements personnalisés que vous envoyez, constituent un historique qui fait ressortir les comportements inhabituels.
 
     **À utiliser pour :** remarquer quand la personne qui utilise un compte se comporte différemment qu'auparavant.
-  </Accordion>
+  </Card>
 
-  <Accordion title="5. Anomalies de réseau et de localisation" icon="location-crosshairs">
+  <Card title="Anomalies de réseau et de localisation" icon="location-crosshairs">
     Signale les écarts entre la localisation réseau, le fuseau horaire, les paramètres régionaux et la géographie déclarée par un client. Il signale aussi les anomalies de schéma de localisation, comme plusieurs villes dans une même session, et affiche chaque changement d'IP sur une chronologie.
 
     **À utiliser pour :** repérer les déplacements impossibles, les localisations usurpées et les connexions depuis des lieux inattendus.
-  </Accordion>
+  </Card>
 
-  <Accordion title="6. Détection des émulateurs et de l'accès à distance" icon="desktop">
+  <Card title="Détection des émulateurs et de l'accès à distance" icon="desktop">
     Détecte les machines virtuelles, les émulateurs et les environnements pilotés à distance, ainsi que les appareils rootés ou jailbreakés et les réinitialisations d'usine, souvent utilisés pour faire fonctionner de nombreuses identités depuis un seul endroit.
 
     **À utiliser pour :** bloquer les fermes d'appareils et les sessions pilotées à distance.
-  </Accordion>
-</AccordionGroup>
+  </Card>
+</CardGroup>
 
 ## Ce que Fraud Insights analyse
 
