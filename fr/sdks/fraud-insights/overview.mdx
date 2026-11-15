@@ -1,6 +1,6 @@
 ---
 title: "Overview"
-description: "Fraud Insights identifie les appareils et les sessions derrière chaque action client, repère les schémas à risque (prise de contrôle de compte, bots, multi-comptes) et alimente le score de risque de l'entité."
+description: "Fraud Insights identifie les appareils et les sessions derrière chaque action client, repère les schémas à risque (prise de contrôle de compte, multi-comptes, usurpation d'appareil) et alimente le score de risque de l'entité."
 ---
 
 Fraud Insights est le service d'intelligence d'appareil et de comportement de Youverify. Il s'exécute discrètement en arrière-plan de votre application web ou mobile, reconnaît l'appareil derrière chaque session et recherche des signes de risque. Il enregistre aussi ce qui se passe pendant la session et les autres événements que vous choisissez d'envoyer. Vos utilisateurs ne voient ni écran, ni invite, ni délai.
@@ -23,11 +23,11 @@ Un signal inhabituel isolé peut ne rien signifier. Plusieurs signaux qui évolu
   <Card title="Vélocité des appareils et des comptes" icon="gauge-high">
     Montre quand un appareil commence à créer des comptes ou à y accéder plus vite que prévu. Il suit les adresses IP uniques pendant la session en cours, la dernière heure, les dernières 24 heures et les 7 derniers jours, ainsi que le nombre d'entités qui partagent un appareil ou d'appareils qui partagent une entité.
 
-    **À utiliser pour :** repérer les fermes de comptes, les abus de bonus et le credential stuffing.
+    **À utiliser pour :** repérer les fermes de comptes et les abus de bonus.
   </Card>
 
   <Card title="Signaux de confidentialité et de masquage" icon="user-secret">
-    Détecte la navigation privée, Tor, les VPN et les autres tentatives de masquer l'environnement dans lequel une session s'exécute.
+    Détecte la navigation privée, Tor, les navigateurs axés sur la confidentialité comme Brave, les VPN (y compris les VPN mobiles) et l'usurpation de géolocalisation sur mobile, pour voir quand une session masque son environnement.
 
     **À utiliser pour :** repérer les clients qui masquent délibérément qui ils sont ou où ils se trouvent.
   </Card>
@@ -45,7 +45,7 @@ Un signal inhabituel isolé peut ne rien signifier. Plusieurs signaux qui évolu
   </Card>
 
   <Card title="Détection des émulateurs et de l'accès à distance" icon="desktop">
-    Détecte les machines virtuelles, les émulateurs et les environnements pilotés à distance, ainsi que les appareils rootés ou jailbreakés et les réinitialisations d'usine, souvent utilisés pour faire fonctionner de nombreuses identités depuis un seul endroit.
+    Détecte les machines virtuelles, les émulateurs et les environnements pilotés à distance, les appareils rootés ou jailbreakés, les réinitialisations d'usine récentes et l'instrumentation Frida sur mobile, ainsi que l'altération du navigateur et les outils de développement sur le web. Ces éléments servent souvent à faire fonctionner de nombreuses identités depuis un seul endroit.
 
     **À utiliser pour :** bloquer les fermes d'appareils et les sessions pilotées à distance.
   </Card>
@@ -64,12 +64,12 @@ Les contrôles d'identité vous disent qui une personne prétend être. Fraud In
     Voyez quand un même appareil est lié à plusieurs entités, signe fréquent qu'une seule personne ouvre de nombreux comptes.
   </Accordion>
 
-  <Accordion title="Bots et automatisation" icon="robot">
-    Détectez les activités automatisées, les machines virtuelles et les environnements altérés que de vrais clients utilisent rarement.
+  <Accordion title="Environnements altérés et virtuels" icon="robot">
+    Détectez les machines virtuelles, l'altération du navigateur et les outils de développement que de vrais clients utilisent rarement.
   </Accordion>
 
   <Accordion title="Masquage de lieu et d'identité" icon="eye-slash">
-    Signalez les VPN, Tor, les sessions en navigation privée et les adresses IP qui ne correspondent pas à la localisation de l'appareil.
+    Signalez les VPN, Tor, les navigateurs axés sur la confidentialité, les sessions en navigation privée et les adresses IP qui ne correspondent pas à la localisation de l'appareil.
   </Accordion>
 
   <Accordion title="Émulateurs et accès à distance" icon="desktop">
@@ -89,8 +89,8 @@ Le SDK collecte les signaux de manière passive. Chaque signal apparaît dans l'
   <Tab title="Empreinte de l'appareil">
     Un instantané de l'appareil et de son environnement au moment de la session :
 
-    - **Contrôles de l'environnement :** machine virtuelle ou émulateur, activité de bot, réinitialisation d'usine, accès root ou jailbreak, et environnements pilotés à distance.
-    - **Confidentialité et masquage :** VPN, réseau Tor et navigation privée.
+    - **Contrôles de l'environnement :** machine virtuelle ou émulateur, altération du navigateur, outils de développement, réinitialisation d'usine, accès root ou jailbreak, détection de Frida et environnements pilotés à distance.
+    - **Confidentialité et masquage :** VPN, réseau Tor, navigateurs axés sur la confidentialité et navigation privée.
     - **Liste de blocage :** indique si l'appareil figure déjà sur votre liste de blocage.
     - **Plateforme et localisation :** plateforme, adresse IP, fuseau horaire et géolocalisation.
     - **Familiarité :** indique si l'adresse IP est nouvelle, ainsi que la première et la dernière date à laquelle l'appareil a été vu.
