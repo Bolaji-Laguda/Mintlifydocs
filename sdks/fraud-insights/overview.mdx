@@ -26,8 +26,8 @@ One unusual signal may mean nothing. Several signals moving together tell a stor
     **Use it to:** catch account farming, bonus abuse and credential stuffing.
   </Card>
 
-  <Card title="Privacy and anti-detect signals" icon="user-secret">
-    Detects private browsing, Tor, VPNs, anti-detect browsers and other attempts to hide the environment a session is running in.
+  <Card title="Privacy and masking signals" icon="user-secret">
+    Detects private browsing, Tor, VPNs and other attempts to hide the environment a session is running in.
 
     **Use it to:** spot customers who are deliberately masking who or where they are.
   </Card>
@@ -69,7 +69,7 @@ Identity checks tell you who someone claims to be. Fraud Insights tells you how 
   </Accordion>
 
   <Accordion title="Location and identity masking" icon="eye-slash">
-    Flag VPNs, Tor, incognito sessions, anti-detect browsers, and IP addresses that do not match the device's location.
+    Flag VPNs, Tor, incognito sessions, and IP addresses that do not match the device's location.
   </Accordion>
 
   <Accordion title="Emulators and remote access" icon="desktop">
@@ -90,7 +90,7 @@ The SDK collects signals passively. Each signal is shown on the session record, 
     A snapshot of the device and its environment at the time of the session:
 
     - **Environment checks:** virtual machine or emulator, bot activity, factory reset, root access or jailbreak, and remote-control environments.
-    - **Privacy and masking:** VPN, Tor network, incognito mode and anti-detect browsers.
+    - **Privacy and masking:** VPN, Tor network and incognito mode.
     - **Block list:** whether the device is already on your block list.
     - **Platform and location:** platform, IP address, time zone and geolocation.
     - **Familiarity:** whether the IP address is new, plus when the device was first and last seen.
@@ -120,34 +120,33 @@ The SDK collects signals passively. Each signal is shown on the session record, 
 
 ## Data and risk signals
 
-This table lists the data Fraud Insights collects and the risk signals it produces from it.
+The table below outlines the signals Fraud Insights detects across different platforms and environments.
 
-| Category | Signal | What it tells you |
-| --- | --- | --- |
-| Device and identity | Profile identifier | A persistent identifier derived from the device, used to recognise the same device across sessions, accounts and channels. |
-| Device and identity | Platform, device type and OS | Whether the session comes from web, Android or iOS, and which device and operating system it runs on. |
-| Device and identity | First seen and last seen | How long Youverify has known this device. A brand-new device on an established entity deserves a closer look. |
-| Device and identity | New device for entity | Whether the entity has used this device before. |
-| Network | IP address | The address the session connects from. |
-| Network | New IP | Whether this IP address has been seen for the entity or device before. |
-| Network | IP velocity | The number of unique IP addresses in the current session, the last hour, the last 24 hours and the last 7 days. Many IPs in a short time can point to automation or proxying. |
-| Network | IP change timeline | Each IP address seen in a session, and when the session returns to its original one. |
-| Location | Geolocation, time zone and locale | Where the device appears to be, and the time zone and language it reports. |
-| Location | IP and geolocation mismatch | Whether the network location and the geolocation disagree, which can indicate location spoofing. |
-| Location | Location pattern anomaly | How many cities appear in a session, and whether the movement looks unusual. |
-| Privacy and masking | VPN | Whether the session is routed through a VPN. |
-| Privacy and masking | Tor network | Whether the session comes through Tor. |
-| Privacy and masking | Incognito mode | Whether the browser is in private mode. |
-| Privacy and masking | Anti-detect browser | Whether tools built to hide or fake the browser environment are in use. |
-| Automation and environment | Bot activity | Whether the session looks scripted or automated. |
-| Automation and environment | Virtual machine and emulator | Whether the session runs on a virtual device, often used to run many identities from one place. |
-| Automation and environment | Remote-control environment | Whether the device is being operated remotely. |
-| Device integrity | Root access and jailbreak | Whether the device has been modified to remove operating system protections. |
-| Device integrity | Factory reset | Whether the device was recently reset, which is common when a device is being reused. |
-| Reputation | Block list | Whether the device is already on your block list. |
-| Relationships | Entities on this device | How many entities use the same device. A high number can point to multi-accounting. |
-| Relationships | Devices for this entity | How many devices the same entity uses. |
-| Behaviour | Session events and duration | The events in the session, such as page views and your own custom events, and how long it lasted. |
+| Name of signal | Web, Desktop | Web, Android | Web, iOS | Mobile apps, Android | Mobile apps, iOS |
+| --- | :-: | :-: | :-: | :-: | :-: |
+| Browser ID | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Device ID | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Browser name | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Operating system | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Device model | ❌ | ✅ | ❌ | ✅ | ❌ |
+| Device type | ✅ | ✅ | ✅ | ✅ | ✅ |
+| IP address | ✅ | ✅ | ✅ | ✅ | ✅ |
+| IP autonomous system number (ASN) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| IP network type (residential, mobile, hosting, VPN, etc.) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| VPN provider | ✅ | ✅ | ✅ | ✅ | ✅ |
+| IP geolocation (coordinates, confidence radius in km) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Privacy-focused browsers (Brave, Tor Browser, etc.) | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Incognito mode | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Browser tampering (spoofing) | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Virtual machine | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Developer tools | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Recent factory reset | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Mobile VPN | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Geolocation spoofing | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Android emulator | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Jailbroken device | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Frida detection | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Rooted device | ❌ | ❌ | ❌ | ✅ | ❌ |
 
 <Note>
   Signals are indicators, not proof of fraud. The device risk score combines them into a single number out of 100, so you do not have to judge each one on its own.
@@ -208,7 +207,7 @@ The same signals catch different fraud in different industries:
 - **Verification SDKs:** Fraud Insights adds no screens or prompts, so it runs alongside the [Anti-Deepfake Liveness](/sdks/liveness/overview) and [Document Capture](/sdks/document-capture/overview) SDKs.
 
 <Info>
-  Fraud Insights works on web and on mobile (Android and iOS). The session model, events and configuration are the same on every platform. Web, iOS and Android return the same profile identifier and signal set, so you get one record for each device across channels.
+  Fraud Insights works on web and on mobile (Android and iOS). The session model, events and configuration are the same on every platform. Web, iOS and Android all return a profile for each device, but the signals available differ by platform, as the table above shows.
 </Info>
 
 ## Good practice
