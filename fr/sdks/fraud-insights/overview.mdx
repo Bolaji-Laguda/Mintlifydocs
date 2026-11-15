@@ -1,17 +1,251 @@
-Le SDK Fraud Insights collecte des signaux passifs liés à l'appareil et au comportement pendant une session. Ces signaux enrichissent le score de risque calculé par la plateforme Youverify sans ajouter de friction pour l'utilisateur.
+---
+title: "Overview"
+description: "Fraud Insights identifie les appareils et les sessions derrière chaque action client, repère les schémas à risque (prise de contrôle de compte, multi-comptes, usurpation d'appareil) et alimente le score de risque de l'entité."
+---
 
-## Fonctionne sur toutes les plateformes
+Fraud Insights est le service d'intelligence d'appareil et de comportement de Youverify. Il s'exécute discrètement en arrière-plan de votre application web ou mobile, reconnaît l'appareil derrière chaque session et recherche des signes de risque. Il enregistre aussi ce qui se passe pendant la session et les autres événements que vous choisissez d'envoyer. Vos utilisateurs ne voient ni écran, ni invite, ni délai.
 
-Fraud Insights s'exécute en arrière-plan : il n'est donc lié à aucune plateforme en particulier. Il fonctionne sur le web et sur mobile (Android et iOS), et vos utilisateurs ne voient rien et n'interagissent avec rien.
+Chaque appareil est résolu en un identifiant de profil persistant qui survit à la suppression des cookies et à la réinstallation des applications, ce qui permet de rapprocher les sessions et les comptes liés.
+
+Tout ce qu'il apprend est rattaché à l'entité, affiché dans le tableau de bord Youverify sous **Signals** et **Behavioural Insights**, et utilisé pour enrichir le [score de risque](/fr/concepts/risk-scoring) et les informations de profil de l'entité.
+
+## Six capacités, un seul profil
+
+Un signal inhabituel isolé peut ne rien signifier. Plusieurs signaux qui évoluent ensemble racontent une histoire. Fraud Insights regroupe ce qu'il détecte en six capacités et les combine en un seul profil pour chaque appareil.
+
+<CardGroup cols={2}>
+  <Card title="Device Fingerprint" icon="fingerprint">
+    Les signaux de l'appareil et du navigateur sont résolus en un identifiant de profil persistant. Il survit à la suppression des cookies et à la réinstallation des applications, car il est dérivé de l'appareil et non stocké sur celui-ci. Les sessions et les comptes liés apparaissent ensemble, sur le web, iOS et Android.
+
+    **À utiliser pour :** reconnaître un appareil qui revient et voir toutes les entités qui l'ont utilisé.
+  </Card>
+
+  <Card title="IP Velocity et Device-Entity Relationship" icon="gauge-high">
+    Montre quand un appareil commence à créer des comptes ou à y accéder plus vite que prévu. Il suit les adresses IP uniques pendant la session en cours, la dernière heure, les dernières 24 heures et les 7 derniers jours, ainsi que le nombre d'entités qui partagent un appareil ou d'appareils qui partagent une entité.
+
+    **À utiliser pour :** repérer les fermes de comptes et les abus de bonus.
+  </Card>
+
+  <Card title="Détections de confidentialité et de masquage" icon="user-secret">
+    Détecte la navigation privée, Tor, les navigateurs axés sur la confidentialité comme Brave, les VPN et l'usurpation de géolocalisation sur mobile, pour voir quand une session masque son environnement.
+
+    **À utiliser pour :** repérer les clients qui masquent délibérément qui ils sont ou où ils se trouvent.
+  </Card>
+
+  <Card title="Behavioural Insights" icon="chart-line">
+    Compare la façon dont une session navigue et interagit avec l'activité antérieure de la même entité. Les événements de session, comme les pages consultées et les événements personnalisés que vous envoyez, constituent un historique qui fait ressortir les comportements inhabituels.
+
+    **À utiliser pour :** remarquer quand la personne qui utilise un compte se comporte différemment qu'auparavant.
+  </Card>
+
+  <Card title="Location Velocity et Location Pattern Anomaly" icon="location-crosshairs">
+    Signale les écarts entre la localisation réseau, le fuseau horaire, les paramètres régionaux et la géographie déclarée par un client. Il signale aussi les anomalies de schéma de localisation, comme plusieurs villes dans une même session, et affiche chaque changement d'IP sur une chronologie.
+
+    **À utiliser pour :** repérer les déplacements impossibles, les localisations usurpées et les connexions depuis des lieux inattendus.
+  </Card>
+
+  <Card title="Environnement et intégrité de l'appareil" icon="desktop">
+    Détecte l'activité de bot, les machines virtuelles, les appareils rootés ou jailbreakés, les émulateurs Android, les réinitialisations d'usine récentes et l'instrumentation Frida, ainsi que l'altération du navigateur sur le web. Ces éléments servent souvent à faire fonctionner de nombreuses identités depuis un seul endroit.
+
+    **À utiliser pour :** bloquer les fermes d'appareils et les appareils altérés.
+  </Card>
+</CardGroup>
+
+## Pourquoi utiliser Fraud Insights
+
+Les contrôles d'identité vous disent qui une personne prétend être. Fraud Insights vous dit comment elle se connecte réellement. C'est souvent là que la fraude apparaît en premier, car la personne qui a passé l'intégration n'est pas toujours celle qui utilise le compte par la suite.
+
+<AccordionGroup>
+  <Accordion title="Prise de contrôle de compte" icon="user-lock">
+    Repérez une connexion depuis un nouvel appareil, une nouvelle adresse IP ou un lieu inattendu pour une entité qui avait jusque-là un comportement cohérent.
+  </Accordion>
+
+  <Accordion title="Multi-comptes" icon="users">
+    Voyez quand un même appareil est lié à plusieurs entités, signe fréquent qu'une seule personne ouvre de nombreux comptes.
+  </Accordion>
+
+  <Accordion title="Environnements altérés et virtuels" icon="robot">
+    Détectez les machines virtuelles et l'altération du navigateur que de vrais clients utilisent rarement.
+  </Accordion>
+
+  <Accordion title="Masquage de lieu et d'identité" icon="eye-slash">
+    Signalez les VPN, Tor, les navigateurs axés sur la confidentialité, les sessions en navigation privée et les adresses IP qui ne correspondent pas à la localisation de l'appareil.
+  </Accordion>
+
+  <Accordion title="Émulateurs et appareils modifiés" icon="desktop">
+    Détectez les machines virtuelles, les émulateurs Android et les appareils rootés ou jailbreakés utilisés pour faire fonctionner de nombreuses identités depuis un seul endroit.
+  </Accordion>
+
+  <Accordion title="Abus de bonus et de promotions" icon="gift">
+    Repérez un même appareil qui réclame des bonus de bienvenue ou des offres sur de nombreux comptes, avant le versement.
+  </Accordion>
+</AccordionGroup>
+
+## Ce que Fraud Insights analyse
+
+Le SDK collecte les signaux de manière passive et les renvoie sous forme de détections dans l'enregistrement de la session. Chaque détection affiche un résultat, par exemple **Not Active** ou **No** lorsque rien n'est détecté, ce qui permet à un réviseur de parcourir une session d'un coup d'œil. Plusieurs détections alimentent le **Device Risk Score**.
+
+<Tabs>
+  <Tab title="Device Fingerprint">
+    Un instantané de l'appareil et de son environnement au moment de la session. Chaque détection est renvoyée sous forme de badge d'état :
+
+    | Détection | Résultat renvoyé |
+    | --- | --- |
+    | VPN | Active ou Not Active |
+    | Incognito Mode | Yes ou No |
+    | Block List | Listed ou Not Listed |
+    | Jailbreak | Active ou Not Active |
+    | Bot Activity | Detected ou Not Detected |
+    | Virtual machine | Active ou Not Active |
+    | Root Access | Yes ou No |
+    | Tor Network | Active ou Not Active |
+    | Factory Reset | Detected ou Not Detected |
+    | New IP | Yes ou No |
+    | Platform | La plateforme sur laquelle la session s'est exécutée, par exemple `web` |
+    | IP Address | L'adresse IP de la session |
+    | Time Zone | Le fuseau horaire déclaré par l'appareil, par exemple `Africa/Lagos` |
+    | Geolocation | La localisation de la session, par exemple Lagos, Nigeria |
+    | First Seen et Last Seen | La date et l'heure de la première et de la dernière observation de l'appareil |
+  </Tab>
+  <Tab title="Threat Indicator">
+    **Threat Indicator Analysis** montre des schémas observés sur plusieurs sessions, qu'un contrôle isolé ne peut pas révéler :
+
+    - **IP Velocity Indicator :** le nombre d'adresses IP uniques pour Current Session, Last Hour, Last 24 Hours et Last 7 Days, chacun affiché par exemple sous la forme "1 Unique IP".
+    - **Device-Entity Relationship :** Entities on This Device, Devices for This Entity, et indication qu'il s'agit ou non d'un New Device for Entity (Yes ou No).
+    - **Location Velocity :** le contrôle `IP <> Geo Mismatch` (Yes ou No), qui compare la localisation réseau et la géolocalisation.
+    - **Location Pattern Anomaly :** des détails tels que "1 city in this session".
+    - **IP Change Timeline :** chaque adresse IP vue pendant la session, avec sa ville et son pays, la date et l'heure, et une mention telle que Returned to Original.
+  </Tab>
+  <Tab title="Events">
+    **All Events** liste tout ce qui a été enregistré pendant la session. Vous pouvez y faire une recherche, et chaque événement affiche son nom, une étiquette de type, la date et l'heure, ainsi qu'un lien **Preview**.
+
+    - Les événements automatiques `session_start` et `session_end`, étiquetés session start et session end.
+    - Les événements personnalisés que vous envoyez, étiquetés custom, comme "Page View: dashboard", un paiement démarré ou un retrait demandé, chacun avec des métadonnées facultatives.
+  </Tab>
+</Tabs>
+
+<Note>
+  Les signaux sont des indicateurs, pas des preuves de fraude. Un signal isolé, comme un VPN, suffit rarement pour agir. La valeur vient de la combinaison des signaux, que le score de risque de l'appareil et celui de l'entité font pour vous.
+</Note>
+
+## Données et signaux de risque
+
+Le SDK Fraud Insights détecte 25 signaux d'intelligence d'appareil et de risque sur le web, iOS et Android. Certains signaux sont disponibles sur toutes les plateformes. D'autres ne s'appliquent qu'aux navigateurs ou qu'aux applications mobiles natives.
+
+| Signal | Web | iOS | Android |
+| --- | :-: | :-: | :-: |
+| Identifiant de l'appareil | ✅ | ✅ | ✅ |
+| Identifiant du navigateur | ✅ | ❌ | ❌ |
+| Nom du navigateur | ✅ | ❌ | ❌ |
+| Système d'exploitation | ✅ | ❌ | ❌ |
+| Modèle de l'appareil | ✅ | ✅ | ✅ |
+| Type d'appareil | ✅ | ✅ | ✅ |
+| Adresse IP | ✅ | ✅ | ✅ |
+| Numéro de système autonome (ASN) de l'IP | ✅ | ✅ | ✅ |
+| Type de réseau de l'IP (résidentiel, mobile, hébergement, VPN, etc.) | ✅ | ✅ | ✅ |
+| Géolocalisation de l'IP (coordonnées, rayon de confiance en km) | ✅ | ✅ | ✅ |
+| Fuseau horaire | ✅ | ✅ | ✅ |
+| Détection de VPN | ✅ | ✅ | ✅ |
+| Activité de bot | ✅ | ✅ | ✅ |
+| Navigateurs axés sur la confidentialité (Brave, Tor Browser, etc.) | ✅ | ❌ | ❌ |
+| Navigation privée | ✅ | ❌ | ❌ |
+| Altération du navigateur (usurpation) | ✅ | ❌ | ❌ |
+| Machine virtuelle | ✅ | ❌ | ❌ |
+| Réinitialisation d'usine récente | ❌ | ✅ | ✅ |
+| Usurpation de géolocalisation | ❌ | ✅ | ✅ |
+| Émulateur Android | ❌ | ❌ | ✅ |
+| Appareil jailbreaké | ❌ | ✅ | ❌ |
+| Appareil rooté | ❌ | ❌ | ✅ |
+| Accès root à l'appareil | ✅ | ✅ | ✅ |
+| Détection de Frida | ❌ | ✅ | ✅ |
+| Score de risque de l'appareil | ✅ | ✅ | ✅ |
+
+✅ = disponible · ❌ = non disponible
+
+<Note>
+  Les signaux sont des indicateurs, pas des preuves de fraude. Le score de risque de l'appareil les combine en un seul chiffre sur 100, ce qui vous évite de juger chacun isolément.
+</Note>
+
+## Comment ça fonctionne
+
+<Steps>
+  <Step title="Ajoutez le SDK">
+    Ajoutez le SDK Fraud Insights à votre application web ou mobile avec votre Public Merchant Key. Consultez le [guide d'intégration](/fr/sdks/fraud-insights/web).
+  </Step>
+  <Step title="Démarrez une session">
+    Lorsqu'un utilisateur ouvre votre application, le SDK démarre une session, identifie l'appareil et envoie un événement `session_start`. Si vous transmettez un identifiant d'entité, la session est liée à cette entité.
+  </Step>
+  <Step title="Envoyez des événements">
+    Envoyez des événements pertinents pendant que l'utilisateur navigue dans votre produit, par exemple une connexion, une page consultée ou une étape de paiement. Les noms d'événements et les métadonnées sont à votre choix.
+  </Step>
+  <Step title="Examinez et agissez">
+    Youverify analyse les signaux et attribue un score à l'appareil. Vous examinez les résultats dans le tableau de bord, et ils font monter ou baisser le score de risque de l'entité. Les sessions à haut risque peuvent être transformées en dossier d'enquête.
+  </Step>
+</Steps>
+
+## Du signal à la décision
+
+Les signaux ne servent que s'ils débouchent sur une action. Fraud Insights les relie au reste de votre workflow de lutte contre la fraude et de conformité.
+
+- **Règles :** votre équipe antifraude définit ce à quoi ressemble un schéma risqué, par exemple un même identifiant de profil présent sur de nombreux comptes en une journée, et ce qui doit se passer lorsqu'il est détecté.
+- **Dossiers :** une règle peut suspendre l'activité, ouvrir un dossier et y rattacher tous les comptes liés. Un analyste peut aussi ouvrir un dossier manuellement. Il s'agit du même dossier que celui utilisé pour les revues d'intégration.
+- **Vyra :** Vyra regroupe l'activité liée, explique les signaux partagés par les sessions et rédige le récit de l'investigation. Les preuves restent rattachées au dossier, et la décision revient à un responsable désigné.
+
+## Consultez les résultats dans le tableau de bord
+
+Ouvrez **Signals** et sélectionnez **Behavioural Insights**. Chaque ligne correspond à une session sur un appareil, avec les colonnes Entity, Device ID, Application Name, Device Type & OS, Event Count, Session Duration, Date Occurred et Anomaly Flag. Sélectionnez des sessions et choisissez **Create a new case** pour démarrer une investigation.
+
+Ouvrez une session pour voir son enregistrement complet :
+
+- **Résumé :** Entity ID, Signal ID, Application Name, Signal Source (par exemple Web SDK), Device Risk Score (par exemple 46/100), User Email, Fraud Alert Status, Session Duration, Session Start, Session End, First Seen et Last Seen.
+- **Device Fingerprint :** les détections décrites ci-dessus.
+- **Onglet Threat Indicator :** Threat Indicator Analysis, avec l'IP Velocity Indicator, la Device-Entity Relationship, la Location Velocity, la Location Pattern Anomaly et l'IP Change Timeline.
+- **Onglet Events :** All Events de la session, avec un Preview de chacun.
+
+Les mêmes données de session alimentent les autres onglets de **Signals** : Activities, Events, Alerts et Cases.
+
+## Où il est utilisé
+
+Les mêmes signaux détectent des fraudes différentes selon les secteurs :
+
+- **Banques commerciales :** prise de contrôle de compte et comptes de passage.
+- **Fintech et paiements :** fausses intégrations, fermes d'appareils et fraude aux paiements.
+- **Jeux et paris :** abus de bonus et multi-comptes.
+- **Plateformes de travail à la demande :** faux comptes et comptes partagés de travailleurs ou de clients.
+- **Administrations :** demandes en double et frauduleuses sur les services publics.
+
+## Place de Fraud Insights dans Youverify
+
+- **Score de risque :** à l'intégration, le score de risque reflète les données d'identité et AML. Fraud Insights ajoute un historique comportemental au fil du temps, ce qui rend le score plus précis à mesure que l'entité utilise votre produit. Consultez [Score de risque](/fr/concepts/risk-scoring).
+- **Surveillance continue :** les schémas d'appareil et d'accès font partie de la couche comportementale décrite dans le [modèle de surveillance](/fr/concepts/monitoring-model).
+- **SDK de vérification :** Fraud Insights n'ajoute ni écran ni invite, il fonctionne donc avec les SDK [Détection de vivacité anti-deepfake](/fr/sdks/liveness/overview) et [Capture de documents](/fr/sdks/document-capture/overview).
 
 <Info>
-  Fraud Insights s'exécutant en arrière-plan, il n'ajoute aucun écran ni aucune invite à vos parcours de vérification. Il fonctionne avec les SDK [Détection de vivacité anti-deepfake](/fr/sdks/liveness/overview) et [Capture de documents](/fr/sdks/document-capture/overview).
+  Fraud Insights fonctionne sur le web et sur mobile (Android et iOS). Le modèle de session, les événements et la configuration sont les mêmes sur toutes les plateformes. Le web, iOS et Android renvoient tous un profil pour chaque appareil, mais les signaux disponibles varient selon la plateforme, comme le montre le tableau ci-dessus.
 </Info>
 
-## Guides d'intégration
+## Bonnes pratiques
 
-<Card title="Guide d'intégration" icon="code" href="/fr/sdks/fraud-insights/web">
-  Un seul guide pour toutes les plateformes : installez le SDK, démarrez une session et envoyez des événements comportementaux.
-</Card>
+- **Combinez les signaux.** Examinez plusieurs indicateurs ensemble et évitez de bloquer un client sur un seul signal, sauf s'il est clairement à haut risque, comme un appareil déjà sur liste de blocage.
+- **Liez les sessions aux entités.** Transmettez l'identifiant de l'entité dans `get()`, `sendEvent()` et `close()` afin que l'historique de l'appareil se construise sur le bon client.
+- **Nommez clairement les événements.** Utilisez des noms cohérents et descriptifs et ajoutez des métadonnées pour repérer plus facilement les schémas par la suite.
+- **Privilégiez des contrôles supplémentaires au blocage.** Pour une session à risque moyen, demandez une vérification supplémentaire (vivacité, e-mail ou téléphone) plutôt que de rejeter le client.
+- **Utilisez la bonne clé.** Utilisez le paramètre et la clé sandbox pendant les tests, puis le paramètre et la clé de production lors de la mise en ligne.
 
-Pour savoir comment les scores de risque sont calculés, consultez [Score de risque](/fr/concepts/risk-scoring). Pour obtenir de l'aide à la configuration, contactez [support@youverify.co](mailto:support@youverify.co).
+## Confidentialité
+
+Fraud Insights lit les attributs de l'appareil et du navigateur, les caractéristiques de rendu, le fuseau horaire et les paramètres régionaux, la posture réseau et les schémas d'interaction. Il ne collecte ni le contenu des documents ni de données biométriques. Veillez à ce que votre politique de confidentialité informe les utilisateurs que des signaux d'appareil et de comportement sont collectés pour prévenir la fraude.
+
+## Étapes suivantes
+
+<CardGroup cols={2}>
+  <Card title="Guide d'intégration" icon="code" href="/fr/sdks/fraud-insights/web">
+    Installez le SDK, démarrez une session et envoyez des événements comportementaux.
+  </Card>
+
+  <Card title="Score de risque" icon="gauge" href="/fr/concepts/risk-scoring">
+    Découvrez comment les signaux d'appareil et de comportement influencent le score de risque de l'entité.
+  </Card>
+</CardGroup>
+
+Pour obtenir de l'aide à la configuration, contactez [support@youverify.co](mailto:support@youverify.co).

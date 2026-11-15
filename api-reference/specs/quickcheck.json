@@ -4550,7 +4550,7 @@
           "KYC - Nigeria"
         ],
         "summary": "Verify Phone Number",
-        "description": "Verifies a phone number in Nigeria and returns the details linked to it.\n\nBasic search (`advanceSearch: false`) returns `phoneDetails`. The primary date of birth and address stay on `dateOfBirth` and `address`. Extra matches are returned in `datesOfBirth` and `addresses`.\n\n**Data confidence.** `dataConfidence.dateOfBirth.level` and `dataConfidence.address.level` say how well those values agree across records. The matched values are not repeated inside `dataConfidence`.\n\n**Line status.** `lineStatus` is the airtime activity of the number:\n\n- `active`: the number topped up recently.\n- `inactive`: there is no recent top-up.\n- `unknown`: there is no record.\n\nRecently means the last 30 days where that data exists, otherwise September 2026.\n\n**Score.** `score.value` is 0 to 100, from how much airtime the number topped up. A higher score means the number tops up more, more often, and more steadily. It is made up of:\n\n- 60%: the average monthly top-up compared with everyone else.\n- 25%: whether it topped up in all 3 months in similar amounts.\n- 15%: whether September went up or down against July and August.\n\n`score.grade` is a band of `score.value`:\n\n| Grade | Score | Meaning |\n| --- | --- | --- |\n| A | 80 and above | Excellent |\n| B | 65 to 79 | Good |\n| C | 50 to 64 | Fair |\n| D | 35 to 49 | Low |\n| E | Below 35 | Very low |\n",
+        "description": "Verifies a phone number in Nigeria and returns the details linked to it.\n\nBasic search (`advanceSearch: false`) returns `phoneDetails`. The primary date of birth and address stay on `dateOfBirth` and `address`. Extra matches are returned in `datesOfBirth` and `addresses`.\n\n**Missing details.** Some details, such as `dateOfBirth`, `datesOfBirth`, `gender`, `age`, `stateOfOrigin` and `address`, can be missing from a response. This means the source or data provider does not hold that detail for the number. It does not mean the request failed. There are several reasons, including:\n\n- The SIM is unregistered.\n- The SIM is a tourist SIM.\n- The SIM registration is outdated.\n- The provider's record for the number is incomplete.\n\nTreat a missing detail as not available. Do not treat it as a mismatch.\n\n**Data confidence.** `dataConfidence.dateOfBirth.level` and `dataConfidence.address.level` say how well those values agree across records. The matched values are not repeated inside `dataConfidence`.\n\n**Line status.** `lineStatus` is the airtime activity of the number:\n\n- `active`: the number topped up recently.\n- `inactive`: there is no recent top-up.\n- `unknown`: there is no record.\n\nRecently means the last 30 days where that data exists, otherwise September 2026.\n\n**Score.** `score.value` is 0 to 100, from how much airtime the number topped up in July, August and September 2026. A higher score means the number tops up more, more often, and more steadily. It is made up of:\n\n- 60%: the average monthly top-up compared with everyone else.\n- 25%: whether it topped up in all 3 months in similar amounts.\n- 15%: whether September went up or down against July and August.\n\n`score.grade` is a band of `score.value`:\n\n| Grade | Score | Meaning |\n| --- | --- | --- |\n| A | 80 and above | Excellent |\n| B | 65 to 79 | Good |\n| C | 50 to 64 | Fair |\n| D | 35 to 49 | Low |\n| E | Below 35 | Very low |\n",
         "operationId": "verifyPhoneNumberNigeria",
         "parameters": [
           {
@@ -4751,28 +4751,35 @@
                                 "type": "string"
                               },
                               "gender": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "May be missing if the source or data provider has no record, for example for an unregistered, tourist or outdated SIM.",
+                                "nullable": true
                               },
                               "dateOfBirth": {
                                 "type": "string",
-                                "description": "The primary date of birth."
+                                "description": "The primary date of birth. May be missing if the source or data provider has no record, for example for an unregistered, tourist or outdated SIM.",
+                                "nullable": true
                               },
                               "datesOfBirth": {
                                 "type": "array",
                                 "items": {
                                   "type": "string"
                                 },
-                                "description": "Every date of birth matched for the number, including the primary one."
+                                "description": "Every date of birth matched for the number, including the primary one. May be missing if the source or data provider has no record, for example for an unregistered, tourist or outdated SIM."
                               },
                               "age": {
-                                "type": "integer"
+                                "type": "integer",
+                                "description": "May be missing if the source or data provider has no record, for example for an unregistered, tourist or outdated SIM.",
+                                "nullable": true
                               },
                               "stateOfOrigin": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "May be missing if the source or data provider has no record, for example for an unregistered, tourist or outdated SIM.",
+                                "nullable": true
                               },
                               "address": {
                                 "type": "object",
-                                "description": "The primary address.",
+                                "description": "The primary address. May be missing if the source or data provider has no record, for example for an unregistered, tourist or outdated SIM.",
                                 "properties": {
                                   "residence_AdressLine1": {
                                     "type": "string"
@@ -4789,7 +4796,8 @@
                                   "state": {
                                     "type": "string"
                                   }
-                                }
+                                },
+                                "nullable": true
                               },
                               "addresses": {
                                 "type": "array",
@@ -4814,7 +4822,7 @@
                                     }
                                   }
                                 },
-                                "description": "Every address matched for the number, including the primary one."
+                                "description": "Every address matched for the number, including the primary one. May be missing if the source or data provider has no record, for example for an unregistered, tourist or outdated SIM."
                               },
                               "dataConfidence": {
                                 "type": "object",
